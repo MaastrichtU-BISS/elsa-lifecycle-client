@@ -3,4 +3,5 @@ export type Questionnaire = {
     name: string;
     description: string;
     form: string;
+    formName: string;
 }

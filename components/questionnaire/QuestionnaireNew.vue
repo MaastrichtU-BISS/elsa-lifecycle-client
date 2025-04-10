@@ -7,7 +7,8 @@ const emit = defineEmits(["create"]);
 const newQuestionnaire = ref<Omit<Questionnaire, "id">>({
     name: '',
     description: '',
-    form: ''
+    form: '',
+    formName: ''
 });
 
 const importTemplate = (event: Event) => {
@@ -18,6 +19,7 @@ const importTemplate = (event: Event) => {
         reader.onload = (e) => {
             const content = e.target?.result as string;
             newQuestionnaire.value.form = content;
+            newQuestionnaire.value.formName = file.name;
         };
         reader.readAsText(file);
     }
@@ -26,7 +28,7 @@ const importTemplate = (event: Event) => {
 const createQuestionnaire = () => {
     if (newQuestionnaire.value.name && newQuestionnaire.value.description && newQuestionnaire.value.form) {
         emit('create', newQuestionnaire.value);
-        newQuestionnaire.value = { name: '', description: '', form: '' };
+        newQuestionnaire.value = { name: '', description: '', form: '', formName: '' };
     } else {
         alert("Please fill all fields.");
     }
@@ -47,7 +49,7 @@ const createQuestionnaire = () => {
         </div>
         <div class="mb-3">
             <label class="mr-3">Form</label>
-            <UInput type="file" @change="importTemplate" accept=".json"/>
+            <UInput type="file" @change="importTemplate" accept=".json" />
         </div>
         <UButton @click="createQuestionnaire">Create Questionnaire</UButton>
     </div>
