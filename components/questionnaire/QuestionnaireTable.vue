@@ -12,12 +12,6 @@ const questionnaires = ref<Questionnaire[]>(await service.getAllQuestionnaires()
 
 const table = useTemplateRef('table')
 
-const newQuestionnaire = ref<Omit<Questionnaire, "id">>({
-    name: '',
-    description: '',
-    form: ''
-});
-
 const pagination = ref({
     pageIndex: 0,
     pageSize: 10
@@ -27,15 +21,10 @@ const rows = computed(() => {
     return questionnaires.value.map(q => q);
 });
 
-const createQuestionnaire = async () => {
+const createQuestionnaire = async (newQuestionnaire: Omit<Questionnaire, "id">) => {
     loadingTable.value = true;
-    const response = await service.createQuestionnaire(newQuestionnaire.value);
+    const response = await service.createQuestionnaire(newQuestionnaire);
     questionnaires.value.push(response);
-    newQuestionnaire.value = {
-        name: '',
-        description: '',
-        form: ''
-    };
     loadingTable.value = false;
 };
 
@@ -54,21 +43,6 @@ const createQuestionnaire = async () => {
             @update:page="(p) => table?.tableApi?.setPageIndex(p - 1)" />
     </div>
 
-
-    <div class="p-4 border border-gray-300 rounded-lg w-fit">
-        <div class="mb-3">
-            <label class="mr-3">Name</label>
-            <UInput v-model="newQuestionnaire.name" />
-        </div>
-        <div class="mb-3">
-            <label class="mr-3">Description</label>
-            <UInput v-model="newQuestionnaire.description" />
-        </div>
-        <div class="mb-3">
-            <label class="mr-3">Form</label>
-            <UTextarea v-model="newQuestionnaire.form" />
-        </div>
-        <UButton @click="createQuestionnaire">Create Questionnaire</UButton>
-    </div>
+    <QuestionnaireNew @create="createQuestionnaire" />
 
 </template>
