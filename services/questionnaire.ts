@@ -21,6 +21,17 @@ export class QuestionnaireService {
     }
   }
 
+  async getQuestionnaireById(id: number): Promise<Questionnaire> {
+    try {
+      const response = await $fetch(`${this.url}/questionnaires/${id}`, {
+        method: "GET",
+      });
+      return response as Questionnaire;
+    } catch (error) {
+      throw new Error(`Failed to fetch questionnaire with id ${id}: ${error}`);
+    }
+  }
+
   async createQuestionnaire(
     questionnaire: Omit<Questionnaire, "id">
   ): Promise<Questionnaire> {
@@ -32,7 +43,7 @@ export class QuestionnaireService {
 
       return response as Questionnaire;
     } catch (error) {
-      throw new Error(`Failed to create questionnaires: ${error}`);
+      throw new Error(`Failed to create questionnaire: ${error}`);
     }
   }
 }

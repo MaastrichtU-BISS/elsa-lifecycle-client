@@ -1,6 +1,5 @@
 <template>
   <div>
-    <NuxtRouteAnnouncer />
-    <QuestionnaireTable />
+    <NuxtPage />
   </div>
 </template>

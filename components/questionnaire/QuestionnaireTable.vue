@@ -2,9 +2,9 @@
 import { ref } from 'vue';
 import type { Questionnaire } from '~/utils/types';
 import { QuestionnaireService } from '~/services/questionnaire';
-import type { TableColumn } from '@nuxt/ui'
+import type { TableColumn } from '@nuxt/ui';
 import { getPaginationRowModel } from '@tanstack/vue-table';
-import { h, resolveComponent } from 'vue'
+import { h, resolveComponent } from 'vue';
 
 // API calls
 
