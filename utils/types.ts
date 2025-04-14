@@ -1,12 +1,22 @@
 import * as z from "zod";
 
+// DB types
+
 export type Questionnaire = {
-  id: string;
+  id: number;
   name: string;
   description: string;
   form: string;
   formName: string;
+  Answers?: Answer[];
 };
+
+export type Answer = {
+    id: number;
+    questionnaireId: number;
+    form: string;
+    Questionnaire?: Questionnaire;
+}
 
 export type Form = {
   schema: any;

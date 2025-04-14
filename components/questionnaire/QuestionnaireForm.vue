@@ -6,8 +6,6 @@ import { parseCedar } from '~/utils/parseCedar';
 
 const emits = defineEmits(["submit"]);
 
-const toast = useToast();
-
 const props = defineProps<{
     questionnaire: Questionnaire
 }>();
@@ -31,7 +29,6 @@ const schema = z.object({
 });
 
 const onSubmit = (event: FormSubmitEvent<Schema>) => {
-    toast.add({ title: 'Success', description: 'The form has been submitted.', color: 'success' });
     emits('submit', event.data);
 };
 

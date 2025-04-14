@@ -1,27 +1,19 @@
 <script lang="ts" setup>
 import { ref } from 'vue';
-import type { Questionnaire } from '~/utils/types';
-import { QuestionnaireService } from '~/services/questionnaire';
+import type { Answer } from '~/utils/types';
 import type { TableColumn } from '@nuxt/ui';
 import { getPaginationRowModel } from '@tanstack/vue-table';
 import { h, resolveComponent } from 'vue';
 
 // API calls
 
-const config = useRuntimeConfig();
-const service = new QuestionnaireService(config.public.apiBase as string);
-
-const createQuestionnaire = async (newQuestionnaire: Omit<Questionnaire, "id">) => {
-    loadingTable.value = true;
-    const response = await service.createQuestionnaire(newQuestionnaire);
-    questionnaires.push(response);
-    loadingTable.value = false;
-};
+const props = defineProps<{
+    answers: Answer[]
+}>();
 
 // Table setup
 
 const loadingTable = ref(false);
-const questionnaires = reactive<Questionnaire[]>(await service.getAllQuestionnaires());
 
 const table = useTemplateRef('table')
 
@@ -31,26 +23,14 @@ const pagination = ref({
 });
 
 const rows = computed(() => {
-    return questionnaires.map(q => q);
+    return props.answers.map(a => a);
 });
 
-const columns: TableColumn<Questionnaire>[] = [
+const columns: TableColumn<Answer>[] = [
     {
         accessorKey: 'id',
         header: 'Id',
         cell: ({ row }) => `#${row.getValue('id')}`
-    },
-    {
-        accessorKey: 'name',
-        header: 'Name',
-    },
-    {
-        accessorKey: 'description',
-        header: 'Description',
-    },
-    {
-        accessorKey: 'formName',
-        header: 'Form',
     },
     {
         id: 'actions',
@@ -63,7 +43,7 @@ const columns: TableColumn<Questionnaire>[] = [
                     color: 'primary',
                     variant: 'outline',
                     size: 'sm',
-                    to: `/questionnaires/${row.original.id}`
+                    to: `/answers/${row.original.id}`
                 }),
                 h(resolveComponent('UButton'), {
                     label: 'Remove',
@@ -72,7 +52,7 @@ const columns: TableColumn<Questionnaire>[] = [
                     variant: 'outline',
                     size: 'sm',
                     onClick: () => {
-                        const questionnaire = row.original as Questionnaire;
+                        const questionnaire = row.original as Answer;
                         // Handle delete action
                         console.log('Delete questionnaire', questionnaire);
                     }
@@ -95,7 +75,5 @@ const columns: TableColumn<Questionnaire>[] = [
             :total="table?.tableApi?.getFilteredRowModel().rows.length"
             @update:page="(p) => table?.tableApi?.setPageIndex(p - 1)" />
     </div>
-
-    <QuestionnaireNew @create="createQuestionnaire" />
 
 </template>

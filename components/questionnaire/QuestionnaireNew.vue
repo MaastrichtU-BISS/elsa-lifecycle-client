@@ -38,7 +38,7 @@ const createQuestionnaire = () => {
 
 <template>
 
-    <div class="p-4 border border-gray-300 rounded-lg w-fit">
+    <div class="p-4 border border-gray-300 rounded-lg w-fit mx-auto mt-24">
         <div class="mb-3">
             <label class="mr-3">Name</label>
             <UInput v-model="newQuestionnaire.name" />
