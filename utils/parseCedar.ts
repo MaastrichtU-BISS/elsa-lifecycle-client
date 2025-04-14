@@ -1,26 +1,120 @@
-export function parseCedar(cedarForm: any): Form {
+import * as z from "zod";
 
-    // console.log("Parsing Cedar form:", cedarForm);
+export async function parseCedar(cedarForm: any): Promise<Form> {
+  const _ui = cedarForm._ui;
+  const properties = cedarForm.properties;
 
-    // const _ui = cedarForm._ui;
-    // const properties = cedarForm.properties;
+  const schema: any = {};
+  const state: any = {};
+  const ui: any = {};
 
+  for (let i = 0; i < _ui.order.length; i++) {
+    const fieldId = _ui.order[i];
 
-    // console.log("Cedar form properties:", properties);
+    const currentProp = properties[fieldId];
 
-    // const fields: Field[] = [];
+    const type: string = currentProp._ui.inputType;
+    const title: string = currentProp["schema:name"] ?? fieldId;
+    const required: boolean =
+      currentProp._valueConstraints?.requiredValue || false;
+    const defaultValue: any =
+      currentProp._valueConstraints?.defaultValue || undefined;
+    const options =
+      currentProp._valueConstraints?.literals?.map((l: any) => l.label) ?? [];
 
-    // _ui.order.forEach((fieldId: any) => { 
-    //     const currentProp = properties[fieldId];
-    //     console.log(currentProp.title);
+    switch (type) {
+      case "textfield":
+        schema[fieldId] = z.string();
+        if (currentProp._valueConstraints?.branches?.length) {
+          // pull options from ontology
+          const options = await fetchOptions(
+            currentProp._valueConstraints.branches[0].uri
+          );
+          schema[fieldId] = z.string();
+          ui[fieldId] = { label: title, inputType: "list", options, required };
+        } else {
+          // regular text field
+          ui[fieldId] = {
+            label: title,
+            inputType: "text",
+            baseInput: true,
+            required,
+          };
+        }
+        break;
+      case "temporal":
+        schema[fieldId] = z.string().refine((val) => !isNaN(Date.parse(val)), {
+          message: "Invalid datetime",
+        });
+        ui[fieldId] = {
+          inputType: "datetime-local",
+          label: title,
+          baseInput: true,
+          required,
+        };
+        break;
+      case "email":
+        if (required) schema[fieldId] = z.string().email();
+        else schema[fieldId] = z.string().email().optional();
+        ui[fieldId] = {
+          label: title,
+          inputType: "email",
+          baseInput: true,
+          required,
+        };
+        break;
+      case "richtext":
+        schema[fieldId] = z
+          .string()
+          .min(10, "Must be at least 10 characters long");
+        ui[fieldId] = {
+          label: title,
+          inputType: "text",
+          baseInput: true,
+          required,
+        };
+        break;
+      case "numeric":
+        schema[fieldId] = z.number();
+        ui[fieldId] = {
+          label: title,
+          inputType: "number",
+          baseInput: true,
+          required,
+        };
+        break;
+      case "radio":
+        schema[fieldId] = z.string();
+        ui[fieldId] = { label: title, inputType: "radio", options, required };
+        break;
+      case "list":
+        schema[fieldId] = z.string();
+        ui[fieldId] = { label: title, inputType: "list", options, required };
+        break;
+      default:
+        schema[fieldId] = z.unknown();
+        break;
+    }
 
-    //     fields.push({
-    //         id: fieldId,
-    //         label: _ui.propertyLabels[fieldId],
-    //         type: 
-    //     })
-    // });
+    state[fieldId] = defaultValue;
+  }
 
-    return cedarForm
-
+  return { schema, state, ui };
 }
+
+const fetchOptions = async (url: string) => {
+  try {
+    const response = await fetch(url, {
+      method: "GET",
+      headers: {
+        Accept: "application/json",
+      },
+    });
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error("Error fetching options:", error);
+    return ["Test1", "Test2", "Test3"];
+  }
+};

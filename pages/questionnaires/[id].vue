@@ -9,13 +9,18 @@ const route = useRoute()
 const questionnaireId = +route.params.id;
 const questionnaire = ref<Questionnaire>(await service.getQuestionnaireById(questionnaireId));
 
+const createInstance = async (data: any) => {
+    // const response = await service.createInstance(questionnaireId, data);
+    // console.log('Instance created:', response);
+    // Handle success or error as needed
+};
+
 
 </script>
 
 <template>
     <div class="flex flex-col gap-4">
         <h1 class="text-2xl font-bold">{{ questionnaire.name }}</h1>
-        
-        <QuestionnaireForm :questionnaire="questionnaire" />
+        <QuestionnaireForm :questionnaire="questionnaire" @submit="createInstance"/>
     </div>
 </template>
