@@ -7,14 +7,19 @@ import { parseCedar } from '~/utils/parseCedar';
 const emits = defineEmits(["submit"]);
 
 const props = defineProps<{
-    questionnaire: Questionnaire
+    questionnaire: Questionnaire;
+    answer?: Answer;
 }>();
 
 type Schema = z.output<typeof form.schema>
 
 function getForm() {
     const form = JSON.parse(props.questionnaire.form);
-    const parsedForm = parseCedar(form);
+    let answerForm = undefined
+    if(props.answer?.form) {
+        answerForm = JSON.parse(props.answer.form);
+    }
+    const parsedForm = parseCedar(form, answerForm);
     return parsedForm;
 }
 

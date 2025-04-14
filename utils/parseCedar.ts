@@ -1,6 +1,6 @@
 import * as z from "zod";
 
-export async function parseCedar(cedarForm: any): Promise<Form> {
+export async function parseCedar(cedarForm: any, answerForm: any | undefined): Promise<Form> {
   const _ui = cedarForm._ui;
   const properties = cedarForm.properties;
 
@@ -17,10 +17,14 @@ export async function parseCedar(cedarForm: any): Promise<Form> {
     const title: string = currentProp["schema:name"] ?? fieldId;
     const required: boolean =
       currentProp._valueConstraints?.requiredValue || false;
-    const defaultValue: any =
-      currentProp._valueConstraints?.defaultValue || undefined;
     const options =
       currentProp._valueConstraints?.literals?.map((l: any) => l.label) ?? [];
+
+    let defaultValue: any = currentProp._valueConstraints?.defaultValue ?? null;
+
+    if(answerForm && answerForm[fieldId]) {
+      defaultValue = answerForm[fieldId];
+    }
 
     switch (type) {
       case "textfield":
