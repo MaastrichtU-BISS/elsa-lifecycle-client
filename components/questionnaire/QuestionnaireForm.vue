@@ -4,7 +4,7 @@ import type { FormSubmitEvent } from '@nuxt/ui';
 
 import { parseCedar } from '~/utils/parseCedar';
 
-const emits = defineEmits(["submit"]);
+const emits = defineEmits(["onSubmit"]);
 
 const props = defineProps<{
     questionnaire: Questionnaire;
@@ -34,7 +34,7 @@ const schema = z.object({
 });
 
 const onSubmit = (event: FormSubmitEvent<Schema>) => {
-    emits('submit', event.data);
+    emits('onSubmit', event.data);
 };
 
 </script>

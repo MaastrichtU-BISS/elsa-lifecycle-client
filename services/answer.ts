@@ -47,4 +47,20 @@ export class AnswerService {
       throw new Error(`Failed to create questionnaire: ${error}`);
     }
   }
+
+  async editAnswer(
+    answer: Partial<Answer>,
+    answerId: number
+  ): Promise<Answer> {
+    try {
+      const response = await $fetch(`${this.url}/answers/${answerId}/edit`, {
+        method: "PUT",
+        body: JSON.stringify(answer),
+      });
+
+      return response as Answer;
+    } catch (error) {
+      throw new Error(`Failed to create questionnaire: ${error}`);
+    }
+  }
 }

@@ -37,7 +37,7 @@ const createInstance = async (data: any) => {
 <template>
     <div class="flex flex-col gap-4">
         <h1 class="text-2xl font-bold mt-8 text-center">{{ questionnaire.name }}</h1>
-        <QuestionnaireForm :questionnaire="questionnaire" @submit="createInstance"/>
+        <QuestionnaireForm :questionnaire="questionnaire" @onSubmit="createInstance"/>
         
         <h2 class="text-xl font-bold mt-8 text-center">Answers</h2>
         <AnswerTable :answers="answers" />
