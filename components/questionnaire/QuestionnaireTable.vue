@@ -6,6 +6,8 @@ import type { TableColumn } from '@nuxt/ui';
 import { getPaginationRowModel } from '@tanstack/vue-table';
 import { h, resolveComponent } from 'vue';
 
+const toast = useToast();
+
 // API calls
 
 const config = useRuntimeConfig();
@@ -13,9 +15,31 @@ const service = new QuestionnaireService(config.public.apiBase as string);
 
 const createQuestionnaire = async (newQuestionnaire: Omit<Questionnaire, "id">) => {
     loadingTable.value = true;
-    const response = await service.createQuestionnaire(newQuestionnaire);
-    questionnaires.push(response);
-    loadingTable.value = false;
+    try {
+        const response = await service.createQuestionnaire(newQuestionnaire);
+        questionnaires.push(response);
+        toast.add({ title: 'Success', description: 'The questionnaire has been created.', color: 'success' });
+    } catch (error) {
+        toast.add({ title: 'Error', description: error as string, color: 'error' });
+    } finally {
+        loadingTable.value = false;
+    }
+};
+
+const deleteQuestionnaire = async (questionnaire: Questionnaire) => {
+    loadingTable.value = true;
+    try {
+        await service.deleteQuestionnaire(questionnaire.id);
+        const i = questionnaires.indexOf(questionnaire);
+        if (i >= 0) {
+            questionnaires.splice(i, 1);
+        }
+        toast.add({ title: 'Success', description: 'The questionnaire has been deleted.', color: 'success' });
+    } catch (error) {
+        toast.add({ title: 'Error', description: error as string, color: 'error' });
+    } finally {
+        loadingTable.value = false;
+    }
 };
 
 // Table setup
@@ -71,11 +95,7 @@ const columns: TableColumn<Questionnaire>[] = [
                     color: 'error',
                     variant: 'outline',
                     size: 'sm',
-                    onClick: () => {
-                        const questionnaire = row.original as Questionnaire;
-                        // Handle delete action
-                        console.log('Delete questionnaire', questionnaire);
-                    }
+                    onClick: () => { deleteQuestionnaire(row.original as Questionnaire) }
                 })
             ]
             );
@@ -84,7 +104,6 @@ const columns: TableColumn<Questionnaire>[] = [
 </script>
 
 <template>
-
     <UTable ref="table" v-model:pagination="pagination" :pagination-options="{
         getPaginationRowModel: getPaginationRowModel()
     }" :data="rows" :columns="columns" :loading="loadingTable" class="flex-1 mb-4 mx-auto w-3xl" />
@@ -97,5 +116,4 @@ const columns: TableColumn<Questionnaire>[] = [
     </div>
 
     <QuestionnaireNew @create="createQuestionnaire" />
-
 </template>

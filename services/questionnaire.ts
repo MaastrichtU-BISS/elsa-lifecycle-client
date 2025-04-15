@@ -32,6 +32,17 @@ export class QuestionnaireService {
     }
   }
 
+  async deleteQuestionnaire(id: number): Promise<void> {
+    try {
+      const response = await $fetch(`${this.url}/questionnaires/${id}`, {
+        method: "DELETE",
+      });
+      
+    } catch (error) {
+      throw new Error(error as string);
+    }
+  }
+
   async createQuestionnaire(
     questionnaire: Omit<Questionnaire, "id">
   ): Promise<Questionnaire> {
