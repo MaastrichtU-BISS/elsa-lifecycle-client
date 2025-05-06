@@ -8,12 +8,22 @@ export async function parseCedar(cedarForm: any, answerForm: any | undefined): P
   const state: any = {};
   const ui: any = {};
 
+  console.log("Cedar Form", cedarForm);
+
   for (let i = 0; i < _ui.order.length; i++) {
     const fieldId = _ui.order[i];
 
     const currentProp = properties[fieldId];
 
-    const type: string = currentProp._ui.inputType;
+    console.log(currentProp)
+
+    const type: string = currentProp?._ui?.inputType;
+
+    if (!type) {
+      console.warn(`No inputType found for field ${fieldId}`);
+      continue;
+    }
+
     const title: string = currentProp["schema:name"] ?? fieldId;
     const required: boolean =
       currentProp._valueConstraints?.requiredValue || false;
@@ -27,6 +37,13 @@ export async function parseCedar(cedarForm: any, answerForm: any | undefined): P
     }
 
     switch (type) {
+      case "section-break":
+        schema[fieldId] = z.string();
+        ui[fieldId] = {
+          label: title,
+          inputType: "section-break",
+        };
+        break;
       case "textfield":
         schema[fieldId] = z.string();
         if (currentProp._valueConstraints?.branches?.length) {
