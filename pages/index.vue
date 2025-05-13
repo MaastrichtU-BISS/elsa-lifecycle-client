@@ -1,3 +1,4 @@
 <template>
-    <QuestionnaireTable />
+  <br />
 </template>
+  

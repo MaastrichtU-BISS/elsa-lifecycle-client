@@ -18,6 +18,14 @@ export type Answer = {
     Questionnaire?: Questionnaire;
 }
 
+export type Tool = {
+  id: number;
+  title: string;
+  description: string;
+  url: string;
+  cover: string;
+}
+
 export type Form = {
   schema: any;
   state: any;
