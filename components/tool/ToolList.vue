@@ -1,15 +1,20 @@
 <script lang="ts" setup>
 // import { ref } from 'vue';
 import type { Tool } from '~/utils/types';
-import { ToolService } from '~/services/tool';
+// import { ToolService } from '~/services/tool';
 
+const props = defineProps<{
+    tools: Tool[];
+}>();
 
 // const toast = useToast();
 
 // API calls
-const config = useRuntimeConfig();
-const service = new ToolService(config.public.apiBase as string);
-const tools = reactive<Tool[]>(await service.getAllTools());
+// const config = useRuntimeConfig();
+// const service = new ToolService(config.public.apiBase as string);
+// const tools = reactive<Tool[]>(await service.getAllTools());
+
+
 // const loading = ref(false);
 
 // const createTool = async (newTool: FormData) => {
@@ -46,8 +51,6 @@ const tools = reactive<Tool[]>(await service.getAllTools());
 <template>
 
     <section id="list" class="flex flex-col gap-4">
-        <h1 class="text-2xl font-bold mx-auto">Tools</h1>
-
         <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 p-4 auto-rows-fr">
             <template v-for="tool in tools" :key="tool.id">
                 <ToolCard :tool="tool" />

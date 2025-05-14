@@ -21,7 +21,7 @@ const tags = computed(() => {
         <!-- <div :style="`background-image: url(${coverUrl});`" class="h-48 bg-cover bg-no-repeat rounded-t-lg" /> -->
         <ULink :href="props.tool.url" target="_blank">
             <div class="p-4 sm:p-6 flex flex-col">
-                <div class="text-lg font-semibold">
+                <div class="text-lg font-bold">
                     {{ props.tool.title }}
                 </div>
                 <i class="text-sm">

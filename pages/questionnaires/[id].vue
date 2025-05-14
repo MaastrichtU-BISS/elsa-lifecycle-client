@@ -15,11 +15,12 @@ const questionnaireId = +route.params.id;
 const questionnaire = ref<Questionnaire>(await questionnaireService.getQuestionnaireById(questionnaireId));
 const answers = reactive<Answer[]>(questionnaire.value.Answers || []);
 
-const createInstance = async (data: any) => {
+const createInstance = async (data: any, binaryEvaluation: number) => {
     try {
         const newAnswer: Omit<Answer, "id"> = {
             questionnaireId: questionnaireId,
             form: JSON.stringify(data),
+            binaryEvaluation: binaryEvaluation,
         }
         const response = await answerService.createAnswer(newAnswer, questionnaireId);
         answers.push(response);

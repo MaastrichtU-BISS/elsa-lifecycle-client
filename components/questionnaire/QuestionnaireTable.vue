@@ -13,18 +13,18 @@ const toast = useToast();
 const config = useRuntimeConfig();
 const service = new QuestionnaireService(config.public.apiBase as string);
 
-const createQuestionnaire = async (newQuestionnaire: Omit<Questionnaire, "id">) => {
-    loadingTable.value = true;
-    try {
-        const response = await service.createQuestionnaire(newQuestionnaire);
-        questionnaires.push(response);
-        toast.add({ title: 'Success', description: 'The questionnaire has been created.', color: 'success' });
-    } catch (error) {
-        toast.add({ title: 'Error', description: error as string, color: 'error' });
-    } finally {
-        loadingTable.value = false;
-    }
-};
+// const createQuestionnaire = async (newQuestionnaire: Omit<Questionnaire, "id">) => {
+//     loadingTable.value = true;
+//     try {
+//         const response = await service.createQuestionnaire(newQuestionnaire);
+//         questionnaires.push(response);
+//         toast.add({ title: 'Success', description: 'The questionnaire has been created.', color: 'success' });
+//     } catch (error) {
+//         toast.add({ title: 'Error', description: error as string, color: 'error' });
+//     } finally {
+//         loadingTable.value = false;
+//     }
+// };
 
 const deleteQuestionnaire = async (questionnaire: Questionnaire) => {
     loadingTable.value = true;
@@ -106,7 +106,7 @@ const columns: TableColumn<Questionnaire>[] = [
 <template>
 
     <section id="table">
-        <h1 class="text-2xl font-bold text-center my-4">Questionnaires</h1>
+        <h1 class="text-3xl font-bold text-center my-4">Questionnaires</h1>
         <UTable ref="table" v-model:pagination="pagination" :pagination-options="{
             getPaginationRowModel: getPaginationRowModel()
         }" :data="rows" :columns="columns" :loading="loadingTable" class="flex-1 mb-4 mx-auto w-3xl" />
@@ -119,10 +119,15 @@ const columns: TableColumn<Questionnaire>[] = [
         </div>
     </section>
 
-    <section id="form">
+    <!-- <section id="form">
         <h2 class="text-xl font-bold text-center mt-8">Create Questionnaire</h2>
         <QuestionnaireNew @create="createQuestionnaire" />
-    </section>
-
+    </section> -->
 
 </template>
+<style>
+table,
+td {
+    white-space: pre-wrap;
+}
+</style>

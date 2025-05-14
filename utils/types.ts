@@ -15,6 +15,7 @@ export type Answer = {
     id: number;
     questionnaireId: number;
     form: string;
+    binaryEvaluation: number;
     Questionnaire?: Questionnaire;
 }
 
@@ -26,6 +27,14 @@ export type Tool = {
   cover: string;
   tags: string;
   type: string;
+}
+export type Recommendation = {
+  id: number;
+  questionnaireId: number;
+  toolId: number;
+  binaryEvaluation: number;
+  Questionnaire?: Questionnaire;
+  Tool?: Tool;
 }
 
 export type Form = {
