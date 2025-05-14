@@ -5,25 +5,38 @@ const props = defineProps<{
 
 const config = useRuntimeConfig();
 
-const coverUrl = computed(() => {
-    return `${config.public.apiBase}/${props.tool.cover.replace("\\","\/")}`;
+const tags = computed(() => {
+    return props.tool.tags.split(",");
 });
+
+// const coverUrl = computed(() => {
+//     return `${config.public.apiBase}/${props.tool.cover.replace("\\","\/")}`;
+// });
 
 </script>
 
 <template>
-    <ULink :href="props.tool.url" target="_blank" class="block">
-        <UCard variant="soft" class="h-full w-full max-w-sm mx-auto shadow-lg flex flex-cols border" :ui="{ body: 'p-0!'}">
-            <div :style="`background-image: url(${coverUrl});`" class="h-48 bg-cover bg-no-repeat rounded-t-lg" />
 
+    <UCard variant="soft" class="h-full w-full max-w-sm mx-auto shadow-lg flex flex-cols border" :ui="{ body: 'p-0!' }">
+        <!-- <div :style="`background-image: url(${coverUrl});`" class="h-48 bg-cover bg-no-repeat rounded-t-lg" /> -->
+        <ULink :href="props.tool.url" target="_blank">
             <div class="p-4 sm:p-6 flex flex-col">
                 <div class="text-lg font-semibold">
                     {{ props.tool.title }}
                 </div>
-                <p class="mt-4 flex-grow">
+                <i class="text-sm">
+                    {{ props.tool.type }}
+                </i>
+                <p class="my-4 flex-grow">
                     {{ props.tool.description }}
                 </p>
+                <div class="flex justify-end">
+                    <UBadge v-for="tag in tags" class="font-bold rounded-full ml-2">
+                        {{ tag }}
+                    </UBadge>
+                </div>
             </div>
-        </UCard>
-    </ULink>
+        </ULink>
+    </UCard>
+
 </template>

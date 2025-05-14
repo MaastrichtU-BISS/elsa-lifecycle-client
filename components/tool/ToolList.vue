@@ -1,45 +1,45 @@
 <script lang="ts" setup>
-import { ref } from 'vue';
+// import { ref } from 'vue';
 import type { Tool } from '~/utils/types';
 import { ToolService } from '~/services/tool';
 
 
-const toast = useToast();
+// const toast = useToast();
 
 // API calls
 const config = useRuntimeConfig();
 const service = new ToolService(config.public.apiBase as string);
 const tools = reactive<Tool[]>(await service.getAllTools());
-const loading = ref(false);
+// const loading = ref(false);
 
-const createTool = async (newTool: FormData) => {
-    loading.value = true;
-    try {
-        const response = await service.createTool(newTool);
-        tools.push(response);
-        toast.add({ title: 'Success', description: 'The tool has been created.', color: 'success' });
-    } catch (error) {
-        toast.add({ title: 'Error', description: error as string, color: 'error' });
-    } finally {
-        loading.value = false;
-    }
-};
+// const createTool = async (newTool: FormData) => {
+//     loading.value = true;
+//     try {
+//         const response = await service.createTool(newTool);
+//         tools.push(response);
+//         toast.add({ title: 'Success', description: 'The tool has been created.', color: 'success' });
+//     } catch (error) {
+//         toast.add({ title: 'Error', description: error as string, color: 'error' });
+//     } finally {
+//         loading.value = false;
+//     }
+// };
 
-const deleteTool = async (tool: Tool) => {
-    loading.value = true;
-    try {
-        await service.deleteTool(tool.id);
-        const i = tools.indexOf(tool);
-        if (i >= 0) {
-            tools.splice(i, 1);
-        }
-        toast.add({ title: 'Success', description: 'The tool has been deleted.', color: 'success' });
-    } catch (error) {
-        toast.add({ title: 'Error', description: error as string, color: 'error' });
-    } finally {
-        loading.value = false;
-    }
-};
+// const deleteTool = async (tool: Tool) => {
+//     loading.value = true;
+//     try {
+//         await service.deleteTool(tool.id);
+//         const i = tools.indexOf(tool);
+//         if (i >= 0) {
+//             tools.splice(i, 1);
+//         }
+//         toast.add({ title: 'Success', description: 'The tool has been deleted.', color: 'success' });
+//     } catch (error) {
+//         toast.add({ title: 'Error', description: error as string, color: 'error' });
+//     } finally {
+//         loading.value = false;
+//     }
+// };
 
 </script>
 
@@ -56,9 +56,9 @@ const deleteTool = async (tool: Tool) => {
 
     </section>
 
-    <section id="form" class="my-8">
+    <!-- <section id="form" class="my-8">
         <h2 class="text-center text-xl font-bold">Add a new tool</h2>
         <ToolForm @create="createTool" />
-    </section>
-    
+    </section> -->
+
 </template>

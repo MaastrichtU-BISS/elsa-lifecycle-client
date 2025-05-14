@@ -24,6 +24,8 @@ export type Tool = {
   description: string;
   url: string;
   cover: string;
+  tags: string;
+  type: string;
 }
 
 export type Form = {
