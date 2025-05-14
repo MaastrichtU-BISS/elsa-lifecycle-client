@@ -6,7 +6,7 @@ const props = defineProps<{
 const config = useRuntimeConfig();
 
 const coverUrl = computed(() => {
-    return `${config.public.apiBase}/${props.tool.cover}`;
+    return `${config.public.apiBase}/${props.tool.cover.replace("\\","\/")}`;
 });
 
 </script>

@@ -4,9 +4,9 @@ export async function parseCedar(cedarForm: any, answerForm: any | undefined): P
   const _ui = cedarForm._ui;
   const properties = cedarForm.properties;
 
-  const schema: any = {};
-  const state: any = {};
-  const ui: any = {};
+  let schema: any = {};
+  let state: any = {};
+  let ui: any = {};
 
   console.log("Cedar Form", cedarForm);
 
@@ -15,14 +15,17 @@ export async function parseCedar(cedarForm: any, answerForm: any | undefined): P
 
     const currentProp = properties[fieldId];
 
-    console.log(currentProp)
-
-    const type: string = currentProp?._ui?.inputType;
-
-    if (!type) {
-      console.warn(`No inputType found for field ${fieldId}`);
+    // subform
+    if (!currentProp._ui) {
+      console.log("Subform", currentProp);
+      const subform = await parseCedar(currentProp.items, answerForm);
+      schema[fieldId] = { ... schema, ... subform.schema };
+      state[fieldId] = { ... state, ... subform.state };
+      ui[fieldId] = { ... ui, ... subform.ui };
       continue;
     }
+
+    const type: string = currentProp?._ui?.inputType;
 
     const title: string = currentProp["schema:name"] ?? fieldId;
     const required: boolean =
