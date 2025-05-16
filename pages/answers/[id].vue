@@ -38,13 +38,10 @@ const editAnswer = async (data: any, binaryEvaluation: number) => {
 </script>
 
 <template>
-    <section id="form" v-if="answer" class="flex flex-col gap-4">
+    <section v-if="answer" id="form" class="flex flex-col gap-4">
         <h1 class="text-2xl font-bold mt-8 text-center">{{ answer.Questionnaire?.name }}</h1>
-        <QuestionnaireForm :questionnaire="answer.Questionnaire!" :answer="answer" @onSubmit="editAnswer" />
-    </section>
+        <QuestionnaireForm :questionnaire="answer.Questionnaire!" :answer="answer" @on-submit="editAnswer" />
 
-    <section id="recommendations" v-if="recommendations" class="flex flex-col gap-4">
-        <h2 class="text-xl font-bold mt-8 text-center">Recommended Tools</h2>
-        <ToolList :tools="recommendedTools" />
+        <ToolList :tools="recommendedTools" :title="'Recommended Tools'"/>
     </section>
 </template>

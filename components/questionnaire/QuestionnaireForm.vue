@@ -35,6 +35,7 @@ const schema = z.object({
 
 const onSubmit = (event: FormSubmitEvent<Schema>) => {
     const binEval = binaryEvaluation();
+    console.log("Binary Evaluation: ", binEval);
     emits('onSubmit', event.data, binEval);
 };
 

@@ -3,9 +3,13 @@
 import type { Tool } from '~/utils/types';
 // import { ToolService } from '~/services/tool';
 
-const props = defineProps<{
-    tools: Tool[];
-}>();
+const props = withDefaults(defineProps<{
+    tools?: Tool[]
+    title?: string
+}>(), {
+    tools: [],
+    title: 'Tools',
+});
 
 // const toast = useToast();
 
@@ -51,7 +55,9 @@ const props = defineProps<{
 <template>
 
     <section id="list" class="flex flex-col gap-4">
-        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 p-4 auto-rows-fr">
+
+        <h2 class="text-2xl font-bold text-center">{{ title }}</h2>
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 p-4">
             <template v-for="tool in tools" :key="tool.id">
                 <ToolCard :tool="tool" />
             </template>
