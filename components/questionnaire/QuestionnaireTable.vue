@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { ref } from 'vue';
 import type { Questionnaire } from '~/utils/types';
-import { QuestionnaireService } from '~/services/questionnaire';
+import { QuestionnaireService } from '~/services/reflection';
 import type { TableColumn } from '@nuxt/ui';
 import { getPaginationRowModel } from '@tanstack/vue-table';
 import { h, resolveComponent } from 'vue';

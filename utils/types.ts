@@ -2,22 +2,60 @@ import * as z from "zod";
 
 // DB types
 
-export type Questionnaire = {
+export type Lifecycle = {
   id: number;
-  name: string;
+  title: string;
   description: string;
-  form: string;
-  formName: string;
-  Answers?: Answer[];
+  general: string;
+  introduction: string;
+  Phases?: Phase[];
 };
 
-export type Answer = {
-    id: number;
-    questionnaireId: number;
-    form: string;
-    binaryEvaluation: number;
-    Questionnaire?: Questionnaire;
-}
+export type Phase = {
+  id: number;
+  number: number;
+  title: string;
+  description: string;
+  lifecycleId: number;
+  Lifecycle?: Lifecycle;
+  Reflection?: Reflection;
+  Journal?: Journal;
+};
+
+export type Reflection = {
+  id: number;
+  title: string;
+  description: string;
+  form: string;
+  phaseId: number;
+  Phase?: Phase;
+  Answers?: ReflectionAnswer[];
+};
+
+export type Journal = {
+  id: number;
+  title: string;
+  description: string;
+  form: string;
+  phaseId: number;
+  Phase?: Phase;
+  Answers?: JournalAnswer[];
+};
+
+export type ReflectionAnswer = {
+  id: number;
+  form: string;
+  binaryEvaluation: number;
+  reflectionId: number;
+  Reflection?: Reflection;
+};
+
+export type JournalAnswer = {
+  id: number;
+  form: string;
+  journalId: number;
+  Journal?: Journal;
+};
 
 export type Tool = {
   id: number;
@@ -27,15 +65,15 @@ export type Tool = {
   cover: string;
   tags: string;
   type: string;
-}
+};
 export type Recommendation = {
   id: number;
   questionnaireId: number;
   toolId: number;
   binaryEvaluation: number;
-  Questionnaire?: Questionnaire;
+  Reflection?: Reflection;
   Tool?: Tool;
-}
+};
 
 export type Form = {
   schema: any;

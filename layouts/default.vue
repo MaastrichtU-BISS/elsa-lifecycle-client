@@ -3,14 +3,9 @@ import type { NavigationMenuItem } from '@nuxt/ui'
 
 const items = ref<NavigationMenuItem[]>([
   {
-    label: 'Home',
-    icon: 'i-lucide-home',
-    to: '/',
-  },
-  {
-    label: 'Questionnaires',
-    icon: 'i-lucide-clipboard-pen-line',
-    to: '/questionnaires',
+    label: 'Life Cycles',
+    icon: 'i-lucide-recycle',
+    to: '/lifecycles',
   },
   {
     label: 'Tools',
