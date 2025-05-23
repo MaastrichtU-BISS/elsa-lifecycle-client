@@ -1,7 +1,7 @@
 <script setup lang="ts">
 
 import { QuestionnaireService } from '~/services/reflection';
-import { AnswerService } from '~/services/answer';
+import { AnswerService } from '~/services/reflectionAnswer';
 
 const toast = useToast();
 

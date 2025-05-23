@@ -11,12 +11,12 @@ export class RecommendationService {
   }
 
   async getRecommendations(
-    questionnaireId: number,
+    reflectionId: number,
     binaryEvaluation: number
   ): Promise<Recommendation[]> {
     try {
       const response = await $fetch(
-        `${this.url}/recommendations/${questionnaireId}?binaryEvaluation=${binaryEvaluation}`,
+        `${this.url}/recommendations/${reflectionId}?binaryEvaluation=${binaryEvaluation}`,
         {
           method: "GET",
         }

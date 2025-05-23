@@ -8,7 +8,7 @@ export async function parseCedar(cedarForm: any, answerForm: any | undefined): P
   let state: any = {};
   let ui: any = {};
 
-  console.log("Cedar Form", cedarForm);
+  // console.log("Cedar Form", cedarForm);
 
   for (let i = 0; i < _ui.order.length; i++) {
     const fieldId = _ui.order[i];
@@ -17,7 +17,7 @@ export async function parseCedar(cedarForm: any, answerForm: any | undefined): P
 
     // subform
     if (!currentProp._ui) {
-      console.log("Subform", currentProp);
+      // console.log("Subform", currentProp);
       const subform = await parseCedar(currentProp.items, answerForm);
       schema[fieldId] = { ... schema, ... subform.schema };
       state[fieldId] = { ... state, ... subform.state };

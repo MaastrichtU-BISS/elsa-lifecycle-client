@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { Answer, Questionnaire } from "~/utils/types";
-import { AnswerService } from '~/services/answer';
+import { AnswerService } from '~/services/reflectionAnswer';
 import { RecommendationService } from '~/services/recommendation';
 
 const config = useRuntimeConfig();

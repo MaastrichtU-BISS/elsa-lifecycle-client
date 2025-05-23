@@ -7,17 +7,17 @@ import { parseCedar } from '~/utils/parseCedar';
 const emits = defineEmits(["onSubmit"]);
 
 const props = defineProps<{
-    questionnaire: Questionnaire;
-    answer?: Answer;
+    questionnaire: string;
+    answer?: string;
 }>();
 
 type Schema = z.output<typeof form.schema>
 
 function getForm() {
-    const form = JSON.parse(props.questionnaire.form);
+    const form = JSON.parse(props.questionnaire);
     let answerForm = undefined
-    if (props.answer?.form) {
-        answerForm = JSON.parse(props.answer.form);
+    if (props.answer) {
+        answerForm = JSON.parse(props.answer);
     }
     const parsedForm = parseCedar(form, answerForm);
     return parsedForm;
@@ -35,7 +35,6 @@ const schema = z.object({
 
 const onSubmit = (event: FormSubmitEvent<Schema>) => {
     const binEval = binaryEvaluation();
-    console.log("Binary Evaluation: ", binEval);
     emits('onSubmit', event.data, binEval);
 };
 
@@ -53,18 +52,22 @@ const binaryEvaluation = () => {
     <section id="form" class="flex flex-col gap-4">
         <template v-if="form && schema && state">
             <UForm :schema="schema" :state="state" class="space-y-4 w-2xl mx-auto" @submit="onSubmit">
-                <UFormField v-for="fieldId in Object.keys(form.schema)" :key="fieldId" :label="form.ui[fieldId]?.label"
+                <UFormField 
+                    v-for="fieldId in Object.keys(form.schema)" :key="fieldId" :label="form.ui[fieldId]?.label"
                     :name="fieldId" :class="form.ui[fieldId]?.inputType === 'section-break' ? 'font-bold text-xl' : ''">
                     <template v-if="form.ui[fieldId]?.baseInput">
-                        <UInput v-model="state[fieldId]" :type="form.ui[fieldId]?.inputType"
+                        <UInput 
+                            v-model="state[fieldId]" :type="form.ui[fieldId]?.inputType"
                             :required="form.ui[fieldId]?.required"/>
                     </template>
                     <template v-else-if="form.ui[fieldId]?.inputType === 'radio'">
-                        <URadioGroup v-model="state[fieldId]" :items="form.ui[fieldId]?.options"
+                        <URadioGroup 
+                            v-model="state[fieldId]" :items="form.ui[fieldId]?.options"
                             :required="form.ui[fieldId]?.required" />
                     </template>
                     <template v-else-if="form.ui[fieldId]?.inputType === 'list'">
-                        <USelectMenu v-model="state[fieldId]" :items="form.ui[fieldId]?.options"
+                        <USelectMenu 
+                            v-model="state[fieldId]" :items="form.ui[fieldId]?.options"
                             :required="form.ui[fieldId]?.required" class="w-48" />
                     </template>
                 </UFormField>
