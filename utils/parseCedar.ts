@@ -8,7 +8,7 @@ export async function parseCedar(cedarForm: any, answerForm: any | undefined): P
   let state: any = {};
   let ui: any = {};
 
-  // console.log("Cedar Form", cedarForm);
+  console.log("Cedar Form", cedarForm);
 
   for (let i = 0; i < _ui.order.length; i++) {
     const fieldId = _ui.order[i];
@@ -95,6 +95,15 @@ export async function parseCedar(cedarForm: any, answerForm: any | undefined): P
           label: title,
           inputType: "text",
           baseInput: true,
+          required,
+        };
+        break;
+      case "textarea":
+        schema[fieldId] = z.string().optional();
+        ui[fieldId] = {
+          label: title,
+          inputType: "textarea",
+          baseInput: false,
           required,
         };
         break;
