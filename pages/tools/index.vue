@@ -11,7 +11,8 @@ const tools = reactive<Tool[]>(await service.getAllTools());
 </script>
 
 <template>
-  <div class="mt-8">
+  <div>
+    <h1 class="text-2xl font-bold my-4 text-center">Tools</h1>
     <ToolList :tools="tools" />
   </div>
 </template>

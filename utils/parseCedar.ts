@@ -8,7 +8,7 @@ export async function parseCedar(cedarForm: any, answerForm: any | undefined): P
   let state: any = {};
   let ui: any = {};
 
-  console.log("Cedar Form", cedarForm);
+  // console.log("Cedar Form", cedarForm);
 
   for (let i = 0; i < _ui.order.length; i++) {
     const fieldId = _ui.order[i];

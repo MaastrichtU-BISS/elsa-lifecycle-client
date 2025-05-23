@@ -60,6 +60,9 @@ const binaryEvaluation = () => {
                             v-model="state[fieldId]" :type="form.ui[fieldId]?.inputType"
                             :required="form.ui[fieldId]?.required"/>
                     </template>
+                    <template v-else-if="form.ui[fieldId].inputType == 'textarea'">
+                        <UTextarea v-model="state[fieldId]" autoresize class="w-full"/>
+                    </template>
                     <template v-else-if="form.ui[fieldId]?.inputType === 'radio'">
                         <URadioGroup 
                             v-model="state[fieldId]" :items="form.ui[fieldId]?.options"
@@ -72,7 +75,7 @@ const binaryEvaluation = () => {
                     </template>
                 </UFormField>
 
-                <UButton type="submit">
+                <UButton type="submit" class="flex justify-self-center" icon="i-lucide-save">
                     Submit
                 </UButton>
             </UForm>
