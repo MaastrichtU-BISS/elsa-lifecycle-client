@@ -8,6 +8,7 @@ import { marked } from 'marked'
 
 const toast = useToast();
 const route = useRoute();
+const router = useRouter()
 const config = useRuntimeConfig();
 const lifecycleId = +route.params.id;
 
@@ -33,25 +34,26 @@ const indices = ref([{
             label: 'General',
             value: 'introduction-general',
             icon: 'i-lucide-info',
-            defaultExpanded: true,
+            defaultExpanded: true
         },
         {
             label: 'Journal',
             value: 'introduction-journal',
             icon: 'i-lucide-book-open-text',
-            defaultExpanded: true,
+            defaultExpanded: true
         }
     ]
 }]);
 
-// Set default index to Lifecycle General
-const activeIndex = ref(indices.value[0].children[0]);
+const hash = route.hash.substring(1);
+let hashIndex = indices.value[0].children.find(x => x.value == hash);
+const activeIndex = ref();
 
 for (const phase of lifeCycle.value.Phases) {
 
     // Add indices phases
     indices.value.push({
-        label: `Phase  ${phase.number} - ${phase.title}`,
+        label: `Phase ${phase.number} - ${phase.title}`,
         value: `phase${phase.number}`,
         defaultExpanded: true,
         children: [
@@ -69,12 +71,19 @@ for (const phase of lifeCycle.value.Phases) {
             },
             {
                 label: 'Journal',
-                value: 'phase1-journal',
+                value: `phase${phase.number}-journal`,
                 icon: 'i-lucide-book-open-text',
                 defaultExpanded: true,
             }
         ]
     },);
+
+    if(!hashIndex) {
+        const hit = indices.value.at(-1)?.children.find(x => x.value == hash)
+        if(hit) {
+            hashIndex = hit;
+        }
+    } 
 
     if (phase.Reflection?.Answers?.length) {
         // Add reflection answers
@@ -92,8 +101,8 @@ for (const phase of lifeCycle.value.Phases) {
         // TODO: Don't take the first answer, but the one belonging to the current user
         journalAnswers.value.push(phase.Journal.Answers[0]);
     }
-
 }
+
 
 
 // Handle Reflections 
@@ -202,12 +211,23 @@ const createOrEditJournalAnswer = async (data: any, index: number) => {
     }
 }
 
+// utils
+watch(activeIndex, (val) => {
+    window.scrollTo({ top: 0, behavior: 'smooth' }); //scroll to top
+    router.push({ hash: `#${val.value}` }); //update url
+});
+
+onMounted(() => {
+    // Set active index, Lifecycle General by default
+    activeIndex.value = hashIndex ?? indices.value[0].children[0];
+})
+
+
 </script>
 
 <template>
     <div>
         <section id="content" class="mt-2 mb-8">
-
             <USlideover :overlay="false" side="left" title="Indices" :ui="{ overlay: 'max-w-sm' }">
                 <UButton label="Indices" trailing-icon="i-lucide-square-menu" class="ml-4 fixed left-[1em]" />
 
@@ -216,84 +236,88 @@ const createOrEditJournalAnswer = async (data: any, index: number) => {
                 </template>
             </USlideover>
 
-            <!-- LIFECYCLE GENERAL -->
-            <div v-show="activeIndex.value == 'introduction-general'">
-                <div class="prose dark:prose-invert lg:prose-xl" v-html="marked.parse(lifeCycle.general)" />
-                <div class="flex justify-end my-4">
-                    <UButton trailing-icon="i-lucide-arrow-right" size="md" variant="outline"
-                        @click="activeIndex = indices[0].children[1]">
-                        Journal
-                    </UButton>
-                </div>
-            </div>
-
-            <!-- LIFECYCLE INTRODUCTION -->
-            <div v-show="activeIndex.value == 'introduction-journal'">
-                <div class="prose dark:prose-invert lg:prose-xl" v-html="marked.parse(lifeCycle.introduction)" />
-                <div class="flex justify-between my-8">
-                    <UButton icon="i-lucide-arrow-left" size="md" variant="outline" @click="activeIndex = indices[0].children[0]">
-                        General
-                    </UButton>
-                    <UButton trailing-icon="i-lucide-arrow-right" size="md" variant="outline"
-                        @click="activeIndex = indices[1].children[0]">
-                        Reflection
-                    </UButton>
-                </div>
-            </div>
-
-            <!-- PHASES -->
-            <template v-if="lifeCycle?.Phases?.length">
-                <div v-for="(phase, index) in lifeCycle.Phases" :key="phase.id">
-
-                    <!-- PHASE REFLECTION  -->
-                    <div v-show="activeIndex.value == `phase${phase.number}-reflection`">
-                        <!-- Getting the first answer of this reflection. TODO: get the answer from the reflection and the user -->
-                        <h1 class="text-2xl font-bold my-4 text-center">Reflection</h1>
-                        <QuestionnaireForm :questionnaire="phase.Reflection?.form!"
-                            :answer="reflectionAnswers[index]?.form"
-                            @on-submit="(data: any, binaryEvaluation: number) => createOrEditReflectionAnswer(data, binaryEvaluation, index)" />
-                        <div class="flex justify-between my-8">
-                            <UButton icon="i-lucide-arrow-left" size="md" variant="outline"
-                                @click="activeIndex = indices[phase.number - 1].children[1]">
-                                Journal
-                            </UButton>
-                            <UButton trailing-icon="i-lucide-arrow-right" size="md" variant="outline"
-                                @click="activeIndex = indices[phase.number].children[1]">
-                                Recommendations
-                            </UButton>
-                        </div>
-                    </div>
-
-                    <!-- PHASE RECOMMENDATIONS -->
-                    <div v-show="activeIndex.value == `phase${phase.number}-recommendations`">
-                        <h1 class="text-2xl font-bold my-4 text-center">Recommended Tools</h1>
-                        <ToolList :tools="recommendedTools[index]" />
-                        <div class="flex justify-between my-8">
-                            <UButton icon="i-lucide-arrow-left" size="md" variant="outline"
-                                @click="activeIndex = indices[phase.number].children[0]">
-                                Reflection</UButton>
-                            <UButton trailing-icon="i-lucide-arrow-right" size="md" variant="outline"
-                                @click="activeIndex = indices[phase.number].children[2]">Journal
-                            </UButton>
-                        </div>
-                    </div>
-
-                    <!-- PHASE JOURNAL -->
-                    <div v-show="activeIndex.value == `phase${phase.number}-journal`">
-                        <h1 class="text-2xl font-bold my-4 text-center">Journal</h1>
-                        <QuestionnaireForm :questionnaire="phase.Journal?.form!"
-                            :answer="journalAnswers[index]?.form"
-                            @on-submit="(data: any) => createOrEditJournalAnswer(data, index)" />
-                        <div class="flex justify-between my-8">
-                            <UButton icon="i-lucide-arrow-left" size="md" variant="outline"
-                                @click="activeIndex = indices[phase.number].children[1]">
-                                Recommendations</UButton>
-                            <UButton v-if="index < indices.length - 2" trailing-icon="i-lucide-arrow-right" size="md" variant="outline"
-                                @click="activeIndex = indices[phase.number + 1].children[0]"> Next Phase
-                            </UButton>
-                        </div>
+            <template v-if="activeIndex">
+                <!-- LIFECYCLE GENERAL -->
+                <div v-show="activeIndex.value == 'introduction-general'">
+                    <div class="prose dark:prose-invert lg:prose-xl" v-html="marked.parse(lifeCycle.general)" />
+                    <div class="flex justify-end my-4">
+                        <UButton trailing-icon="i-lucide-arrow-right" size="md" variant="outline"
+                            @click="activeIndex = indices[0].children[1]">
+                            Journal
+                        </UButton>
                     </div>
                 </div>
+
+                <!-- LIFECYCLE INTRODUCTION -->
+                <div v-show="activeIndex.value == 'introduction-journal'">
+                    <div class="prose dark:prose-invert lg:prose-xl" v-html="marked.parse(lifeCycle.introduction)" />
+                    <div class="flex justify-between my-8">
+                        <UButton icon="i-lucide-arrow-left" size="md" variant="outline"
+                            @click="activeIndex = indices[0].children[0]">
+                            General
+                        </UButton>
+                        <UButton trailing-icon="i-lucide-arrow-right" size="md" variant="outline"
+                            @click="activeIndex = indices[1].children[0]">
+                            Reflection
+                        </UButton>
+                    </div>
+                </div>
+
+                <!-- PHASES -->
+                <template v-if="lifeCycle?.Phases?.length">
+                    <div v-for="(phase, index) in lifeCycle.Phases" :key="phase.id">
+
+                        <!-- PHASE REFLECTION  -->
+                        <div v-show="activeIndex.value == `phase${phase.number}-reflection`">
+                            <!-- Getting the first answer of this reflection. TODO: get the answer from the reflection and the user -->
+                            <h1 class="text-2xl font-bold my-4 text-center">Reflection</h1>
+                            <QuestionnaireForm :questionnaire="phase.Reflection?.form!"
+                                :answer="reflectionAnswers[index]?.form"
+                                @on-submit="(data: any, binaryEvaluation: number) => createOrEditReflectionAnswer(data, binaryEvaluation, index)" />
+                            <div class="flex justify-between my-8">
+                                <UButton icon="i-lucide-arrow-left" size="md" variant="outline"
+                                    @click="activeIndex = indices[phase.number - 1].children[1]">
+                                    Journal
+                                </UButton>
+                                <UButton trailing-icon="i-lucide-arrow-right" size="md" variant="outline"
+                                    @click="activeIndex = indices[phase.number].children[1]">
+                                    Recommendations
+                                </UButton>
+                            </div>
+                        </div>
+
+                        <!-- PHASE RECOMMENDATIONS -->
+                        <div v-show="activeIndex.value == `phase${phase.number}-recommendations`">
+                            <h1 class="text-2xl font-bold my-4 text-center">Recommended Tools</h1>
+                            <ToolList :tools="recommendedTools[index]" />
+                            <div class="flex justify-between my-8">
+                                <UButton icon="i-lucide-arrow-left" size="md" variant="outline"
+                                    @click="activeIndex = indices[phase.number].children[0]">
+                                    Reflection</UButton>
+                                <UButton trailing-icon="i-lucide-arrow-right" size="md" variant="outline"
+                                    @click="activeIndex = indices[phase.number].children[2]">Journal
+                                </UButton>
+                            </div>
+                        </div>
+
+                        <!-- PHASE JOURNAL -->
+                        <div v-show="activeIndex.value == `phase${phase.number}-journal`">
+                            <h1 class="text-2xl font-bold my-4 text-center">Journal</h1>
+                            <QuestionnaireForm :questionnaire="phase.Journal?.form!"
+                                :answer="journalAnswers[index]?.form"
+                                @on-submit="(data: any) => createOrEditJournalAnswer(data, index)" />
+                            <div class="flex justify-between my-8">
+                                <UButton icon="i-lucide-arrow-left" size="md" variant="outline"
+                                    @click="activeIndex = indices[phase.number].children[1]">
+                                    Recommendations</UButton>
+                                <UButton v-if="index < indices.length - 2" trailing-icon="i-lucide-arrow-right"
+                                    size="md" variant="outline"
+                                    @click="activeIndex = indices[phase.number + 1].children[0]"> Next Phase
+                                </UButton>
+                            </div>
+                        </div>
+                    </div>
+                </template>
             </template>
         </section>
     </div>

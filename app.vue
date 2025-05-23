@@ -1,5 +1,5 @@
 <template>
-  <UApp>
+  <UApp class="scroll-smooth">
     <NuxtLayout>
         <NuxtPage />
     </NuxtLayout>
