@@ -238,7 +238,7 @@ onMounted(() => {
 
             <template v-if="activeIndex">
                 <!-- LIFECYCLE GENERAL -->
-                <div v-show="activeIndex.value == 'introduction-general'">
+                <div v-show="activeIndex.value == 'introduction-general' || activeIndex.value == 'introduction'">
                     <div class="prose dark:prose-invert lg:prose-xl" v-html="marked.parse(lifeCycle.general)" />
                     <div class="flex justify-end my-4">
                         <UButton trailing-icon="i-lucide-arrow-right" size="md" variant="outline"
@@ -268,7 +268,7 @@ onMounted(() => {
                     <div v-for="(phase, index) in lifeCycle.Phases" :key="phase.id">
 
                         <!-- PHASE REFLECTION  -->
-                        <div v-show="activeIndex.value == `phase${phase.number}-reflection`">
+                        <div v-show="activeIndex.value == `phase${phase.number}-reflection` || activeIndex.value == `phase${phase.number}`">
                             <!-- Getting the first answer of this reflection. TODO: get the answer from the reflection and the user -->
                             <h1 class="text-2xl font-bold my-4 text-center">Reflection</h1>
                             <QuestionnaireForm :questionnaire="phase.Reflection?.form!"
