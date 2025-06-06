@@ -84,7 +84,7 @@ const binaryEvaluation = () => {
 </template>
 
 <style>
-label {
+#form * label {
     font-size: 1.15rem;
 }
 </style>

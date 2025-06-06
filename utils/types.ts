@@ -73,7 +73,16 @@ export type Recommendation = {
   binaryEvaluation: number;
   Reflection?: Reflection;
   Tool?: Tool;
+  Answers?: RecommendationAnswer[];
 };
+
+export type RecommendationAnswer = {
+  id: number;
+  recommendationId: number;
+  form?: string;
+  file?: string;
+  Recommendation?: Recommendation;
+}
 
 export type Form = {
   schema: any;

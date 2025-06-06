@@ -1,10 +1,9 @@
 <script lang="ts" setup>
-// import { ref } from 'vue';
-import type { Tool } from '~/utils/types';
-// import { ToolService } from '~/services/tool';
+import type { Tool, Recommendation, RecommendationAnswer } from '~/utils/types';
 
 const props = defineProps<{
     tools: Tool[]
+    recommendations?: Recommendation[] // Optional, if you want to pass recommendations as well
 }>();
 
 // const toast = useToast();
@@ -52,8 +51,8 @@ const props = defineProps<{
 
     <section id="list" class="flex flex-col gap-4">
         <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 p-4">
-            <template v-for="tool in tools" :key="tool.id">
-                <ToolCard :tool="tool" />
+            <template v-for="(tool, index) in tools" :key="tool.id">
+                <ToolCard :tool="tool" :recommendation="recommendations ? recommendations[index] : null"/>
             </template>
         </div>
     </section>

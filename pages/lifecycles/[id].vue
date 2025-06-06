@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { JournalAnswer, Lifecycle, ReflectionAnswer } from "~/utils/types";
+import type { JournalAnswer, Lifecycle, Recommendation, ReflectionAnswer } from "~/utils/types";
 import { LifecycleService } from "~/services/lifecycle";
 import { ReflectionAnswerService } from "~/services/reflectionAnswer";
 import { JournalAnswerService } from "~/services/journalAnswer";
@@ -20,7 +20,7 @@ const recommendationService = new RecommendationService(config.public.apiBase);
 const lifeCycle = ref<Lifecycle>(await lifecycleService.getLifecycleById(lifecycleId));
 const reflectionAnswers = ref<ReflectionAnswer[]>([]);
 const journalAnswers = ref<JournalAnswer[]>([]);
-const recommendedTools = ref<Tool[][]>([]);
+const recommendations = ref<Recommendation[][]>([]);
 
 if (!lifeCycle.value.Phases?.length) throw new Error("Lifecycle has no phases");
 
@@ -92,8 +92,8 @@ for (const phase of lifeCycle.value.Phases) {
 
         // Add recommended tools
         // TODO: Don't take the first answer, but the one belonging to the current user
-        const recommendations = await recommendationService.getRecommendations(phase.Reflection.id, phase.Reflection.Answers[0].binaryEvaluation);
-        recommendedTools.value.push(recommendations.map(r => r.Tool!));
+        const phaseRecommendations = await recommendationService.getRecommendations(phase.Reflection.id, phase.Reflection.Answers[0].binaryEvaluation);
+        recommendations.value.push(phaseRecommendations);
     }
 
     // Add journal answers
@@ -102,8 +102,6 @@ for (const phase of lifeCycle.value.Phases) {
         journalAnswers.value.push(phase.Journal.Answers[0]);
     }
 }
-
-
 
 // Handle Reflections 
 const createReflectionAnswer = async (data: any, binaryEvaluation: number, reflectionId: number) => {
@@ -156,10 +154,13 @@ const createOrEditReflectionAnswer = async (data: any, binaryEvaluation: number,
         reflectionAnswers.value[index] = answer;
 
         // update recommended tools
-        const recommendations = await recommendationService.getRecommendations(reflectionId, answer.binaryEvaluation);
-        recommendedTools.value[index] = recommendations.map(r => r.Tool!);
+        const phaseRecommendations = await recommendationService.getRecommendations(reflectionId, answer.binaryEvaluation);
+        recommendations.value[index] = phaseRecommendations;
     }
 };
+
+// Handle Recommendations
+const recommendationProgress = ref(50);
 
 // Handle Journal
 const createJournalAnswer = async (data: any, journalId: number) => {
@@ -289,7 +290,10 @@ onMounted(() => {
                         <!-- PHASE RECOMMENDATIONS -->
                         <div v-show="activeIndex.value == `phase${phase.number}-recommendations`">
                             <h1 class="text-2xl font-bold my-4 text-center">Recommended Tools</h1>
-                            <ToolList :tools="recommendedTools[index]" />
+                            <RecommendationList :recommendations="recommendations[index]" />
+                            <div id="recommendations-progress" class="my-4">
+                                <UProgress v-model="recommendationProgress" status />
+                            </div>
                             <div class="flex justify-between my-8">
                                 <UButton icon="i-lucide-arrow-left" size="md" variant="outline"
                                     @click="activeIndex = indices[phase.number].children[0]">
