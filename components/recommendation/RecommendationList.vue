@@ -8,5 +8,5 @@ const props = defineProps<{
 </script>
 
 <template>
-    <ToolList :tools="recommendations.map(r => r.Tool!)" :recommendations="recommendations"/>
+    <ToolList :tools="recommendations?.map(r => r.Tool!)" :recommendations="recommendations"/>
 </template>

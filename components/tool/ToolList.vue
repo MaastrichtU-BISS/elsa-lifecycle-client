@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import type { Tool, Recommendation, RecommendationAnswer } from '~/utils/types';
+import type { Tool, Recommendation } from '~/utils/types';
 
 const props = defineProps<{
     tools: Tool[]

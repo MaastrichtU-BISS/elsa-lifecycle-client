@@ -65,6 +65,7 @@ export type Tool = {
   cover: string;
   tags: string;
   type: string;
+  form?: string;
 };
 export type Recommendation = {
   id: number;

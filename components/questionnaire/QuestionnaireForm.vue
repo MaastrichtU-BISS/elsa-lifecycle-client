@@ -49,9 +49,9 @@ const binaryEvaluation = () => {
 </script>
 
 <template>
-    <section id="form" class="flex flex-col gap-4">
+    <section class="questionnaire flex flex-col gap-4">
         <template v-if="form && schema && state">
-            <UForm :schema="schema" :state="state" class="space-y-4 w-2xl mx-auto" @submit="onSubmit">
+            <UForm :schema="schema" :state="state" class="space-y-4 w-full mx-auto" @submit="onSubmit">
                 <UFormField 
                     v-for="fieldId in Object.keys(form.schema)" :key="fieldId" :label="form.ui[fieldId]?.label"
                     :name="fieldId" :class="form.ui[fieldId]?.inputType === 'section-break' ? 'font-bold text-xl' : ''">
@@ -65,6 +65,11 @@ const binaryEvaluation = () => {
                     </template>
                     <template v-else-if="form.ui[fieldId]?.inputType === 'radio'">
                         <URadioGroup 
+                            v-model="state[fieldId]" :items="form.ui[fieldId]?.options"
+                            :required="form.ui[fieldId]?.required" />
+                    </template>
+                    <template v-else-if="form.ui[fieldId]?.inputType === 'checkbox'">
+                        <UCheckboxGroup 
                             v-model="state[fieldId]" :items="form.ui[fieldId]?.options"
                             :required="form.ui[fieldId]?.required" />
                     </template>
@@ -84,7 +89,7 @@ const binaryEvaluation = () => {
 </template>
 
 <style>
-#form * label {
+.questionnaire * label {
     font-size: 1.15rem;
 }
 </style>

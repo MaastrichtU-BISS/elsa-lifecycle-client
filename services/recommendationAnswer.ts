@@ -11,12 +11,12 @@ export class RecommendationAnswerService {
   }
 
   async createRecommendationAnswer(
-    answer: Omit<RecommendationAnswer, "id">
+    answer: FormData
   ): Promise<RecommendationAnswer> {
     try {
-      const response = await $fetch(`${this.url}/recommendationAnswer`, {
+      const response = await $fetch(`${this.url}/recommendationAnswers`, {
         method: "POST",
-        body: JSON.stringify(answer),
+        body: answer,
       });
 
       return response as RecommendationAnswer;
@@ -26,7 +26,7 @@ export class RecommendationAnswerService {
   }
 
   async editRecommendationAnswer(
-    answer: Partial<RecommendationAnswer>,
+    answer: FormData,
     recommendationAnswerId: number
   ): Promise<RecommendationAnswer> {
     try {
@@ -34,13 +34,13 @@ export class RecommendationAnswerService {
         `${this.url}/recommendationAnswers/${recommendationAnswerId}/edit`,
         {
           method: "PUT",
-          body: JSON.stringify(answer),
+          body: answer,
         }
       );
 
       return response as RecommendationAnswer;
     } catch (error) {
-      throw new Error(`Failed to create recommendation answer: ${error}`);
+      throw new Error(`Failed to edit recommendation answer: ${error}`);
     }
   }
 }

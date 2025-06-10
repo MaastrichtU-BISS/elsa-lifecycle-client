@@ -160,7 +160,23 @@ const createOrEditReflectionAnswer = async (data: any, binaryEvaluation: number,
 };
 
 // Handle Recommendations
-const recommendationProgress = ref(50);
+const recommendationProgress = computed(() => {
+    const res: {completed: number; total: number; percent: number}[]  = [];
+    if (!recommendations.value.length) return [];
+    
+    recommendations.value.forEach((phaseRecommendations) => {
+        const total = phaseRecommendations.length;
+        let completed = 0;
+        phaseRecommendations.forEach((recommendation) => {
+            const answer = recommendation.Answers?.at(0);
+            if ((recommendation.Tool?.form !== undefined && answer?.form) && (recommendation.Tool?.url !== undefined && answer?.file)) {
+                completed++;
+            }
+        });
+        res.push({ completed, total, percent: total > 0 ? Math.round((completed / total) * 100) : 0});
+    }); 
+    return res;
+}); 
 
 // Handle Journal
 const createJournalAnswer = async (data: any, journalId: number) => {
@@ -291,8 +307,8 @@ onMounted(() => {
                         <div v-show="activeIndex.value == `phase${phase.number}-recommendations`">
                             <h1 class="text-2xl font-bold my-4 text-center">Recommended Tools</h1>
                             <RecommendationList :recommendations="recommendations[index]" />
-                            <div id="recommendations-progress" class="my-4">
-                                <UProgress v-model="recommendationProgress" status />
+                            <div class="my-4">
+                                <UProgress v-model="recommendationProgress[index].percent" status />
                             </div>
                             <div class="flex justify-between my-8">
                                 <UButton icon="i-lucide-arrow-left" size="md" variant="outline"

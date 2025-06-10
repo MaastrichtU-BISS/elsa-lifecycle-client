@@ -8,21 +8,20 @@ export async function parseCedar(cedarForm: any, answerForm: any | undefined): P
   let state: any = {};
   let ui: any = {};
 
-  // console.log("Cedar Form", cedarForm);
-
   for (let i = 0; i < _ui.order.length; i++) {
     const fieldId = _ui.order[i];
 
-    const currentProp = properties[fieldId];
+    let currentProp = properties[fieldId];
 
-    // subform
-    if (!currentProp._ui) {
-      // console.log("Subform", currentProp);
-      const subform = await parseCedar(currentProp.items, answerForm);
-      schema[fieldId] = { ... schema, ... subform.schema };
-      state[fieldId] = { ... state, ... subform.state };
-      ui[fieldId] = { ... ui, ... subform.ui };
-      continue;
+    // // subform
+    if (currentProp['type'] == "array") {
+      currentProp = currentProp["items"];
+    //   // console.log("Subform", currentProp);
+    //   const subform = await parseCedar(currentProp.items, answerForm);
+    //   schema[fieldId] = { ... schema, ... subform.schema };
+    //   state[fieldId] = { ... state, ... subform.state };
+    //   ui[fieldId] = { ... ui, ... subform.ui };
+    //   continue;
     }
 
     const type: string = currentProp?._ui?.inputType;
@@ -34,6 +33,10 @@ export async function parseCedar(cedarForm: any, answerForm: any | undefined): P
       currentProp._valueConstraints?.literals?.map((l: any) => l.label) ?? [];
 
     let defaultValue: any = currentProp._valueConstraints?.defaultValue ?? null;
+
+    if(type == "checkbox") {
+      defaultValue = [];
+    }
 
     if(answerForm && answerForm[fieldId]) {
       defaultValue = answerForm[fieldId];
@@ -119,6 +122,10 @@ export async function parseCedar(cedarForm: any, answerForm: any | undefined): P
       case "radio":
         schema[fieldId] = z.string();
         ui[fieldId] = { label: title, inputType: "radio", options, required };
+        break;
+      case "checkbox":
+        schema[fieldId] = z.string().array();
+        ui[fieldId] = { label: title, inputType: "checkbox", options, required };
         break;
       case "list":
         schema[fieldId] = z.string();

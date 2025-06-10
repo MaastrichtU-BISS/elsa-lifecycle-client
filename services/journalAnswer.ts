@@ -24,6 +24,7 @@ export class JournalAnswerService {
       throw new Error(`Failed to create journal answer: ${error}`);
     }
   }
+  
 
   async editJournalAnswer(
     answer: Partial<JournalAnswer>,
