@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { JournalAnswer, Lifecycle, Recommendation, ReflectionAnswer } from "~/utils/types";
+import { isRecommendationDone } from '~/utils/helpers';
 import { LifecycleService } from "~/services/lifecycle";
 import { ReflectionAnswerService } from "~/services/reflectionAnswer";
 import { JournalAnswerService } from "~/services/journalAnswer";
@@ -78,12 +79,12 @@ for (const phase of lifeCycle.value.Phases) {
         ]
     },);
 
-    if(!hashIndex) {
+    if (!hashIndex) {
         const hit = indices.value.at(-1)?.children.find(x => x.value == hash)
-        if(hit) {
+        if (hit) {
             hashIndex = hit;
         }
-    } 
+    }
 
     if (phase.Reflection?.Answers?.length) {
         // Add reflection answers
@@ -161,22 +162,22 @@ const createOrEditReflectionAnswer = async (data: any, binaryEvaluation: number,
 
 // Handle Recommendations
 const recommendationProgress = computed(() => {
-    const res: {completed: number; total: number; percent: number}[]  = [];
+    const res: { completed: number; total: number; percent: number }[] = [];
     if (!recommendations.value.length) return [];
-    
+
     recommendations.value.forEach((phaseRecommendations) => {
         const total = phaseRecommendations.length;
         let completed = 0;
         phaseRecommendations.forEach((recommendation) => {
             const answer = recommendation.Answers?.at(0);
-            if ((recommendation.Tool?.form !== undefined && answer?.form) && (recommendation.Tool?.url !== undefined && answer?.file)) {
+            if (answer && isRecommendationDone(recommendation, answer)) {
                 completed++;
             }
         });
-        res.push({ completed, total, percent: total > 0 ? Math.round((completed / total) * 100) : 0});
-    }); 
+        res.push({ completed, total, percent: total > 0 ? Math.round((completed / total) * 100) : 0 });
+    });
     return res;
-}); 
+});
 
 // Handle Journal
 const createJournalAnswer = async (data: any, journalId: number) => {
@@ -239,7 +240,6 @@ onMounted(() => {
     activeIndex.value = hashIndex ?? indices.value[0].children[0];
 })
 
-
 </script>
 
 <template>
@@ -285,7 +285,8 @@ onMounted(() => {
                     <div v-for="(phase, index) in lifeCycle.Phases" :key="phase.id">
 
                         <!-- PHASE REFLECTION  -->
-                        <div v-show="activeIndex.value == `phase${phase.number}-reflection` || activeIndex.value == `phase${phase.number}`">
+                        <div
+                            v-show="activeIndex.value == `phase${phase.number}-reflection` || activeIndex.value == `phase${phase.number}`">
                             <!-- Getting the first answer of this reflection. TODO: get the answer from the reflection and the user -->
                             <h1 class="text-2xl font-bold my-4 text-center">Reflection</h1>
                             <QuestionnaireForm :questionnaire="phase.Reflection?.form!"
@@ -306,8 +307,9 @@ onMounted(() => {
                         <!-- PHASE RECOMMENDATIONS -->
                         <div v-show="activeIndex.value == `phase${phase.number}-recommendations`">
                             <h1 class="text-2xl font-bold my-4 text-center">Recommended Tools</h1>
-                            <RecommendationList :recommendations="recommendations[index]" />
-                            <div class="my-4">
+                            <ToolList :tools="recommendations[index]?.map(r => r.Tool!)"
+                                :recommendations="recommendations[index]" />
+                            <div v-if="recommendations[index]?.length" class="my-4">
                                 <UProgress v-model="recommendationProgress[index].percent" status />
                             </div>
                             <div class="flex justify-between my-8">

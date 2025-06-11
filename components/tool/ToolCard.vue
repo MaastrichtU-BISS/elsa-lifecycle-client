@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import { RecommendationAnswerService } from '~/services/recommendationAnswer';
+import { isRecommendationDone } from '~/utils/helpers';
 
 const props = defineProps<{
     tool: Tool;
@@ -11,7 +12,7 @@ const config = useRuntimeConfig();
 const $toast = useToast();
 const recommendationAnswerService = new RecommendationAnswerService(config.public.apiBase as string);
 
-const recommendationAnswer = computed(() => {
+const answer = computed(() => {
     return props.recommendation?.Answers?.at(0);
 });
 
@@ -20,44 +21,49 @@ const tags = computed(() => {
 });
 
 const recommendationIsDone = computed(() => {
-    if (!props.recommendation) return false;
-    const answer = props.recommendation.Answers?.at(0);
-
-    if (!answer) return false;
+    if (!props.recommendation || !answer.value) return false;
 
     // TODO: get answer from current user
-    return (props.recommendation.Tool?.form !== undefined && answer.form) && (props.recommendation.Tool?.url !== undefined && answer?.file)
+    return isRecommendationDone(props.recommendation, answer.value);
 });
 
-const createOrEdit = async (form: any) => {
+const uploadFileMessage = computed(() => {
+    if (!props.recommendation) return '';
+    return answer.value?.file ? answer.value?.file.split('\\').at(-1) : 'Upload tool\'s output';
+});
+
+const fillInFormMessage = computed(() => {
+    if (!props.recommendation) return '';
+    return answer.value?.form ? 'Edit Form' : 'Fill in Form';
+});
+
+const submitForm = async (form: any) => {
 
     if (!props.recommendation) {
         return;
     }
-
-    const answer = props.recommendation.Answers?.at(0);
 
     const data = new FormData();
     data.append('form', JSON.stringify(form));
 
     try {
         // TODO: get the answer for the current user
-        if (answer) {
-            await recommendationAnswerService.editRecommendationAnswer(data, answer.id);
-            $toast.add({
-                title: 'Success',
-                description: 'Recommendation answer has been updated.',
-                color: 'success'
-            });
+        let newRecommendationAnswer;
+        if (answer.value) {
+            newRecommendationAnswer = await recommendationAnswerService.editRecommendationAnswer(data, answer.value.id);
         } else {
             data.append('recommendationId', props.recommendation.id.toString());
-            await recommendationAnswerService.createRecommendationAnswer(data);
-            $toast.add({
-                title: 'Success',
-                description: 'Recommendation answer has been saved.',
-                color: 'success'
-            });
+            newRecommendationAnswer = await recommendationAnswerService.createRecommendationAnswer(data);
         }
+
+        $toast.add({
+            title: 'Success',
+            description: 'Form has been submitted.',
+            color: 'success'
+        });
+
+        props.recommendation.Answers = [newRecommendationAnswer];
+
     } catch (error) {
         $toast.add({
             title: 'Error',
@@ -66,6 +72,43 @@ const createOrEdit = async (form: any) => {
         });
     } finally {
         modalOpened.value = false;
+    }
+};
+
+const uploadFile = async (event: Event) => {
+    if (!props.recommendation) return;
+
+    const input = event.target as HTMLInputElement;
+    if (!input.files || input.files.length === 0) return;
+
+    const file = input.files[0];
+    const data = new FormData();
+    data.append('file', file);
+
+    let newRecommendationAnswer;
+
+    try {
+        if (answer.value) {
+            newRecommendationAnswer = await recommendationAnswerService.editRecommendationAnswer(data, answer.value.id);
+        } else {
+            data.append('recommendationId', props.recommendation.id.toString());
+            newRecommendationAnswer = await recommendationAnswerService.createRecommendationAnswer(data);
+        }
+
+        $toast.add({
+            title: 'Success',
+            description: 'File has been uploaded successfully.',
+            color: 'success'
+        });
+
+        props.recommendation.Answers = [newRecommendationAnswer];
+
+    } catch (error) {
+        $toast.add({
+            title: 'Error',
+            description: `${error}`,
+            color: 'error'
+        });
     }
 };
 
@@ -98,10 +141,10 @@ const createOrEdit = async (form: any) => {
             <div>
                 <template v-if="recommendation && tool.form">
                     <UModal v-model:open="modalOpened" :title="tool.title" :description="tool.description">
-                        <UButton label="Fill in Form" icon="lucide-edit" class="mb-2" size="sm" />
+                        <UButton :label="fillInFormMessage" icon="lucide-edit" class="mb-2" size="sm" />
                         <template #body>
-                            <QuestionnaireForm :questionnaire="tool.form" :answer="recommendationAnswer?.form"
-                                @on-submit="createOrEdit" />
+                            <QuestionnaireForm :questionnaire="tool.form" :answer="answer?.form"
+                                @on-submit="submitForm" />
                         </template>
                     </UModal>
                 </template>
@@ -111,10 +154,10 @@ const createOrEdit = async (form: any) => {
                             variant="outline" target="_blank" aria-placeholder="ss" />
                         <template v-if="recommendation">
                             <UInput :id="`recommendation-file-${recommendation?.id}`" type="file" size="sm" class="mt-2"
-                                icon="lucide-upload" />
+                                icon="lucide-upload" @change="uploadFile" />
                             <label :for="`recommendation-file-${recommendation?.id}`"
-                                class="text-xs text-gray-400 ml-1">
-                                Upload tool's output
+                                class="text-xs text-gray-400">
+                                {{ uploadFileMessage }} 
                             </label>
                         </template>
                     </div>

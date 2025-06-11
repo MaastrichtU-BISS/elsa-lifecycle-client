@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { Answer, Questionnaire } from "~/utils/types";
+import type { Answer } from "~/utils/types";
 import { AnswerService } from '~/services/reflectionAnswer';
 import { RecommendationService } from '~/services/recommendation';
 
