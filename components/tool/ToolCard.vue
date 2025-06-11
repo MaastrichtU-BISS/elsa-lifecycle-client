@@ -69,17 +69,13 @@ const createOrEdit = async (form: any) => {
     }
 };
 
-// const coverUrl = computed(() => {
-//     return `${config.public.apiBase}/${props.tool.cover.replace("\\","\/")}`;
-// });
 
 </script>
 
 <template>
     <UCard variant="soft" class="h-full w-full max-w-sm mx-auto shadow-lg flex flex-cols border" :ui="{ body: 'p-0!' }">
-        <!-- <div :style="`background-image: url(${coverUrl});`" class="h-48 bg-cover bg-no-repeat rounded-t-lg" /> -->
         <div class="p-4 sm:p-6 flex flex-col h-full">
-            <div class="flex justify-end">
+            <div v-if="recommendation" class="flex justify-end">
                 <UBadge class="font-bold rounded-full" variant="soft" size="xs"
                     :color="recommendationIsDone ? 'primary' : 'error'">
                     {{ recommendationIsDone ? 'Done' : 'Pending' }}
@@ -100,23 +96,27 @@ const createOrEdit = async (form: any) => {
                 </UBadge>
             </div>
             <div>
-                <template v-if="tool.form">
+                <template v-if="recommendation && tool.form">
                     <UModal v-model:open="modalOpened" :title="tool.title" :description="tool.description">
                         <UButton label="Fill in Form" icon="lucide-edit" class="mb-2" size="sm" />
                         <template #body>
-                            <QuestionnaireForm :questionnaire="tool.form" :answer="recommendationAnswer?.form" @on-submit="createOrEdit" />
+                            <QuestionnaireForm :questionnaire="tool.form" :answer="recommendationAnswer?.form"
+                                @on-submit="createOrEdit" />
                         </template>
                     </UModal>
                 </template>
                 <template v-if="tool.url">
                     <div>
-                        <UButton :to="tool.url" label="Visit Tool" icon="lucide-external-link" size="sm" variant="outline"
-                            target="_blank" aria-placeholder="ss" />
-                        <UInput :id="`recommendation-file-${recommendation?.id}`" type="file" size="sm" class="mt-2"
-                            icon="lucide-upload" />
-                        <label :for="`recommendation-file-${recommendation?.id}`" class="text-xs text-gray-400 ml-1">
-                            Upload tool's output
-                        </label>
+                        <UButton :to="tool.url" label="Visit Tool" icon="lucide-external-link" size="sm"
+                            variant="outline" target="_blank" aria-placeholder="ss" />
+                        <template v-if="recommendation">
+                            <UInput :id="`recommendation-file-${recommendation?.id}`" type="file" size="sm" class="mt-2"
+                                icon="lucide-upload" />
+                            <label :for="`recommendation-file-${recommendation?.id}`"
+                                class="text-xs text-gray-400 ml-1">
+                                Upload tool's output
+                            </label>
+                        </template>
                     </div>
                 </template>
             </div>
