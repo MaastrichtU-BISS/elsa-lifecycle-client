@@ -7,6 +7,7 @@ import { JournalAnswerService } from "~/services/journalAnswer";
 import { RecommendationService } from "~/services/recommendation";
 import { marked } from 'marked'
 
+const auth = useAuthStore();
 const toast = useToast();
 const route = useRoute();
 const router = useRouter()
@@ -22,8 +23,7 @@ const lifeCycle = ref<Lifecycle>(await lifecycleService.getLifecycleById(lifecyc
 const reflectionAnswers = ref<ReflectionAnswer[]>([]);
 const journalAnswers = ref<JournalAnswer[]>([]);
 const recommendations = ref<Recommendation[][]>([]);
-
-if (!lifeCycle.value.Phases?.length) throw new Error("Lifecycle has no phases");
+const activeIndex = ref();
 
 // Add indices introduction
 const indices = ref([{
@@ -46,68 +46,11 @@ const indices = ref([{
     ]
 }]);
 
-const hash = route.hash.substring(1);
-let hashIndex = indices.value[0].children.find(x => x.value == hash);
-const activeIndex = ref();
-
-for (const phase of lifeCycle.value.Phases) {
-
-    // Add indices phases
-    indices.value.push({
-        label: `Phase ${phase.number} - ${phase.title}`,
-        value: `phase${phase.number}`,
-        defaultExpanded: true,
-        children: [
-            {
-                label: 'Reflection',
-                value: `phase${phase.number}-reflection`,
-                icon: 'i-lucide-clipboard-pen-line',
-                defaultExpanded: true,
-            },
-            {
-                label: 'Recommendations',
-                value: `phase${phase.number}-recommendations`,
-                icon: 'i-lucide-wrench',
-                defaultExpanded: true,
-            },
-            {
-                label: 'Journal',
-                value: `phase${phase.number}-journal`,
-                icon: 'i-lucide-book-open-text',
-                defaultExpanded: true,
-            }
-        ]
-    },);
-
-    if (!hashIndex) {
-        const hit = indices.value.at(-1)?.children.find(x => x.value == hash)
-        if (hit) {
-            hashIndex = hit;
-        }
-    }
-
-    if (phase.Reflection?.Answers?.length) {
-        // Add reflection answers
-        // TODO: Don't take the first answer, but the one belonging to the current user
-        reflectionAnswers.value.push(phase.Reflection.Answers[0]);
-
-        // Add recommended tools
-        // TODO: Don't take the first answer, but the one belonging to the current user
-        const phaseRecommendations = await recommendationService.getRecommendations(phase.Reflection.id, phase.Reflection.Answers[0].binaryEvaluation);
-        recommendations.value.push(phaseRecommendations);
-    }
-
-    // Add journal answers
-    if (phase.Journal?.Answers?.length) {
-        // TODO: Don't take the first answer, but the one belonging to the current user
-        journalAnswers.value.push(phase.Journal.Answers[0]);
-    }
-}
-
 // Handle Reflections 
 const createReflectionAnswer = async (data: any, binaryEvaluation: number, reflectionId: number) => {
+
     try {
-        const newAnswer: Omit<ReflectionAnswer, "id"> = {
+        const newAnswer: Omit<ReflectionAnswer, "id" | "userId"> = {
             reflectionId: reflectionId,
             form: JSON.stringify(data),
             binaryEvaluation: binaryEvaluation,
@@ -136,6 +79,11 @@ const editReflectionAnswer = async (data: any, binaryEvaluation: number, reflect
 
 const createOrEditReflectionAnswer = async (data: any, binaryEvaluation: number, index: number) => {
     if (!lifeCycle.value.Phases?.length) throw new Error("Lifecycle has no phases");
+
+    if(!auth.token) {
+        toast.add({ title: 'Error', description: 'You need to be logged in!', color: 'error' });
+        return
+    }
 
     const phase = lifeCycle.value.Phases[index];
     const reflectionId = phase.Reflection?.id;
@@ -210,6 +158,11 @@ const editJournalAnswer = async (data: any, journalId: number) => {
 const createOrEditJournalAnswer = async (data: any, index: number) => {
     if (!lifeCycle.value.Phases?.length) throw new Error("Lifecycle has no phases");
 
+    if(!auth.token) {
+        toast.add({ title: 'Error', description: 'You need to be logged in!', color: 'error' });
+        return
+    }
+
     const phase = lifeCycle.value.Phases[index];
     const journalId = phase.Journal?.id;
 
@@ -235,7 +188,74 @@ watch(activeIndex, (val) => {
     router.push({ hash: `#${val.value}` }); //update url
 });
 
-onMounted(() => {
+onMounted(async () => {
+
+    if (!lifeCycle.value.Phases?.length) throw new Error("Lifecycle has no phases");
+
+    if (auth.token) {
+        // Set the user authentication token to the protected services (this has to be done on client side, because the token may be stored in the browser)
+        reflectionAnswerService.setToken(auth.token);
+    }
+
+    console.log(auth.token)
+
+    const hash = route.hash.substring(1);
+    let hashIndex = indices.value[0].children.find(x => x.value == hash);
+
+    for (const phase of lifeCycle.value.Phases) {
+
+        // Add indices phases
+        indices.value.push({
+            label: `Phase ${phase.number} - ${phase.title}`,
+            value: `phase${phase.number}`,
+            defaultExpanded: true,
+            children: [
+                {
+                    label: 'Reflection',
+                    value: `phase${phase.number}-reflection`,
+                    icon: 'i-lucide-clipboard-pen-line',
+                    defaultExpanded: true,
+                },
+                {
+                    label: 'Recommendations',
+                    value: `phase${phase.number}-recommendations`,
+                    icon: 'i-lucide-wrench',
+                    defaultExpanded: true,
+                },
+                {
+                    label: 'Journal',
+                    value: `phase${phase.number}-journal`,
+                    icon: 'i-lucide-book-open-text',
+                    defaultExpanded: true,
+                }
+            ]
+        },);
+
+        if (!hashIndex) {
+            const hit = indices.value.at(-1)?.children.find(x => x.value == hash)
+            if (hit) {
+                hashIndex = hit;
+            }
+        }
+
+        if (auth.token && phase.Reflection?.Answers?.length) {
+
+            const answer = await reflectionAnswerService.GetReflectionAnswerByUserIdAndReflectionID(phase.Reflection?.id);
+            // Add reflection answers
+            reflectionAnswers.value.push(answer);
+
+            // Add recommended tools
+            const phaseRecommendations = await recommendationService.getRecommendations(phase.Reflection.id, answer.binaryEvaluation);
+            recommendations.value.push(phaseRecommendations);
+        }
+
+        // Add journal answers
+        if (auth.token && phase.Journal?.Answers?.length) {
+            // TODO: Don't take the first answer, but the one belonging to the current user
+            journalAnswers.value.push(phase.Journal.Answers[0]);
+        }
+    }
+
     // Set active index, Lifecycle General by default
     activeIndex.value = hashIndex ?? indices.value[0].children[0];
 })
