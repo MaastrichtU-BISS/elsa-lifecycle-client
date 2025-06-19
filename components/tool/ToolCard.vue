@@ -4,17 +4,15 @@ import { isRecommendationDone } from '~/utils/helpers';
 
 const props = defineProps<{
     tool: Tool;
-    recommendation?: Recommendation | null; // Optional, if you want to pass a recommendation   
+    recommendation?: Recommendation | null; // Optional, if you want to pass a recommendation
+    answer?: RecommendationAnswer | null 
 }>();
 
+const auth = useAuthStore();
 const modalOpened = ref(false);
 const config = useRuntimeConfig();
 const $toast = useToast();
 const recommendationAnswerService = new RecommendationAnswerService(config.public.apiBase as string);
-
-const answer = computed(() => {
-    return props.recommendation?.Answers?.at(0);
-});
 
 const tags = computed(() => {
     return props.tool.tags.split(",");

@@ -195,9 +195,8 @@ onMounted(async () => {
     if (auth.token) {
         // Set the user authentication token to the protected services (this has to be done on client side, because the token may be stored in the browser)
         reflectionAnswerService.setToken(auth.token);
+        journalAnswerService.setToken(auth.token);
     }
-
-    console.log(auth.token)
 
     const hash = route.hash.substring(1);
     let hashIndex = indices.value[0].children.find(x => x.value == hash);
@@ -238,21 +237,25 @@ onMounted(async () => {
             }
         }
 
-        if (auth.token && phase.Reflection?.Answers?.length) {
+        if (auth.token && phase.Reflection) {
 
             const answer = await reflectionAnswerService.GetReflectionAnswerByUserIdAndReflectionID(phase.Reflection?.id);
             // Add reflection answers
-            reflectionAnswers.value.push(answer);
+            if(answer) {
+                reflectionAnswers.value.push(answer);
 
-            // Add recommended tools
-            const phaseRecommendations = await recommendationService.getRecommendations(phase.Reflection.id, answer.binaryEvaluation);
-            recommendations.value.push(phaseRecommendations);
+                 // Add recommended tools
+                const phaseRecommendations = await recommendationService.getRecommendations(phase.Reflection.id, answer.binaryEvaluation);
+                recommendations.value.push(phaseRecommendations);
+            }
         }
 
         // Add journal answers
-        if (auth.token && phase.Journal?.Answers?.length) {
-            // TODO: Don't take the first answer, but the one belonging to the current user
-            journalAnswers.value.push(phase.Journal.Answers[0]);
+        if (auth.token && phase.Journal) {
+            const answer = await journalAnswerService.GetJournalAnswerByUserIdAndJournalID(phase.Journal.id);
+            if(answer) {
+                journalAnswers.value.push(answer);
+            }
         }
     }
 

@@ -44,7 +44,7 @@ export type Journal = {
 
 export type ReflectionAnswer = {
   id: number;
-  userId: number;
+  userId: string;
   form: string;
   binaryEvaluation: number;
   reflectionId: number;
@@ -53,7 +53,7 @@ export type ReflectionAnswer = {
 
 export type JournalAnswer = {
   id: number;
-  userId: number;
+  userId: string;
   form: string;
   journalId: number;
   Journal?: Journal;
@@ -81,7 +81,7 @@ export type Recommendation = {
 
 export type RecommendationAnswer = {
   id: number;
-  userId: number;
+  userId: string;
   recommendationId: number;
   form?: string;
   file?: string;
