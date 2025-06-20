@@ -1,12 +1,16 @@
 <script lang="ts" setup>
+import { toast } from '#build/ui';
 import { RecommendationAnswerService } from '~/services/recommendationAnswer';
 import { isRecommendationDone } from '~/utils/helpers';
 
 const props = defineProps<{
     tool: Tool;
-    recommendation?: Recommendation | null; // Optional, if you want to pass a recommendation
-    answer?: RecommendationAnswer | null 
+    recommendation?: Recommendation | undefined; // Optional, if you want to pass a recommendation
+    answer?: RecommendationAnswer | undefined;
+    index: number;
 }>();
+
+const emits = defineEmits(["updateAnswer"])
 
 const auth = useAuthStore();
 const modalOpened = ref(false);
@@ -19,25 +23,31 @@ const tags = computed(() => {
 });
 
 const recommendationIsDone = computed(() => {
-    if (!props.recommendation || !answer.value) return false;
-
-    // TODO: get answer from current user
-    return isRecommendationDone(props.recommendation, answer.value);
+    return isRecommendationDone(props.recommendation, props.answer);
 });
 
 const uploadFileMessage = computed(() => {
     if (!props.recommendation) return '';
-    return answer.value?.file ? answer.value?.file.split('\\').at(-1) : 'Upload tool\'s output';
+    return props.answer?.file ? props.answer?.file.replaceAll('\\', '/').split('/').at(-1) : 'Upload tool\'s output';
 });
 
 const fillInFormMessage = computed(() => {
     if (!props.recommendation) return '';
-    return answer.value?.form ? 'Edit Form' : 'Fill in Form';
+    return props.answer?.form ? 'Edit Form' : 'Fill in Form';
 });
 
 const submitForm = async (form: any) => {
 
     if (!props.recommendation) {
+        return;
+    }
+
+    if (!auth.token) {
+        $toast.add({
+            title: 'Error',
+            description: `You have to be logged in!`,
+            color: 'error'
+        });
         return;
     }
 
@@ -47,8 +57,8 @@ const submitForm = async (form: any) => {
     try {
         // TODO: get the answer for the current user
         let newRecommendationAnswer;
-        if (answer.value) {
-            newRecommendationAnswer = await recommendationAnswerService.editRecommendationAnswer(data, answer.value.id);
+        if (props.answer) {
+            newRecommendationAnswer = await recommendationAnswerService.editRecommendationAnswer(data, props.answer.id);
         } else {
             data.append('recommendationId', props.recommendation.id.toString());
             newRecommendationAnswer = await recommendationAnswerService.createRecommendationAnswer(data);
@@ -60,7 +70,8 @@ const submitForm = async (form: any) => {
             color: 'success'
         });
 
-        props.recommendation.Answers = [newRecommendationAnswer];
+        // TODO: edit answer so reactive parent changes it
+        emits("updateAnswer", newRecommendationAnswer, props.index);
 
     } catch (error) {
         $toast.add({
@@ -76,6 +87,15 @@ const submitForm = async (form: any) => {
 const uploadFile = async (event: Event) => {
     if (!props.recommendation) return;
 
+    if (!auth.token) {
+        $toast.add({
+            title: 'Error',
+            description: `You have to be logged in!`,
+            color: 'error'
+        });
+        return;
+    }
+
     const input = event.target as HTMLInputElement;
     if (!input.files || input.files.length === 0) return;
 
@@ -86,8 +106,8 @@ const uploadFile = async (event: Event) => {
     let newRecommendationAnswer;
 
     try {
-        if (answer.value) {
-            newRecommendationAnswer = await recommendationAnswerService.editRecommendationAnswer(data, answer.value.id);
+        if (props.answer) {
+            newRecommendationAnswer = await recommendationAnswerService.editRecommendationAnswer(data, props.answer.id);
         } else {
             data.append('recommendationId', props.recommendation.id.toString());
             newRecommendationAnswer = await recommendationAnswerService.createRecommendationAnswer(data);
@@ -99,7 +119,8 @@ const uploadFile = async (event: Event) => {
             color: 'success'
         });
 
-        props.recommendation.Answers = [newRecommendationAnswer];
+        // TODO: same
+        emits("updateAnswer", newRecommendationAnswer, props.index)
 
     } catch (error) {
         $toast.add({
@@ -109,6 +130,12 @@ const uploadFile = async (event: Event) => {
         });
     }
 };
+
+onMounted(() => {
+    if (auth.token) {
+        recommendationAnswerService.setToken(auth.token);
+    }
+})
 
 
 </script>
@@ -153,9 +180,8 @@ const uploadFile = async (event: Event) => {
                         <template v-if="recommendation">
                             <UInput :id="`recommendation-file-${recommendation?.id}`" type="file" size="sm" class="mt-2"
                                 icon="lucide-upload" @change="uploadFile" />
-                            <label :for="`recommendation-file-${recommendation?.id}`"
-                                class="text-xs text-gray-400">
-                                {{ uploadFileMessage }} 
+                            <label :for="`recommendation-file-${recommendation?.id}`" class="text-xs text-gray-400">
+                                {{ uploadFileMessage }}
                             </label>
                         </template>
                     </div>

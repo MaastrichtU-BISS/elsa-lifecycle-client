@@ -7,7 +7,6 @@ const config = useRuntimeConfig();
 const service = new ToolService(config.public.apiBase as string);
 const tools = reactive<Tool[]>(await service.getAllTools());
 
-
 </script>
 
 <template>

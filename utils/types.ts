@@ -29,7 +29,6 @@ export type Reflection = {
   form: string;
   phaseId: number;
   Phase?: Phase;
-  Answers?: ReflectionAnswer[];
 };
 
 export type Journal = {
@@ -39,7 +38,6 @@ export type Journal = {
   form: string;
   phaseId: number;
   Phase?: Phase;
-  Answers?: JournalAnswer[];
 };
 
 export type ReflectionAnswer = {
@@ -76,7 +74,6 @@ export type Recommendation = {
   binaryEvaluation: number;
   Reflection?: Reflection;
   Tool?: Tool;
-  Answers?: RecommendationAnswer[];
 };
 
 export type RecommendationAnswer = {

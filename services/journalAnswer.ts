@@ -31,7 +31,7 @@ export class JournalAnswerService {
         }
       );
 
-      return response as JournalAnswer;
+      return response ? (response as JournalAnswer) : undefined;
     } catch (error) {
       throw new Error(`Failed to fetch journal answers: ${error}`);
     }

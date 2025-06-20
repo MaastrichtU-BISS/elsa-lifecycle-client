@@ -1,10 +1,11 @@
 <script setup lang="ts">
-import type { JournalAnswer, Lifecycle, Recommendation, ReflectionAnswer } from "~/utils/types";
+import type { JournalAnswer, Lifecycle, Recommendation, RecommendationAnswer, ReflectionAnswer } from "~/utils/types";
 import { isRecommendationDone } from '~/utils/helpers';
 import { LifecycleService } from "~/services/lifecycle";
 import { ReflectionAnswerService } from "~/services/reflectionAnswer";
 import { JournalAnswerService } from "~/services/journalAnswer";
 import { RecommendationService } from "~/services/recommendation";
+import { RecommendationAnswerService } from "~/services/recommendationAnswer";
 import { marked } from 'marked'
 
 const auth = useAuthStore();
@@ -18,11 +19,13 @@ const lifecycleService = new LifecycleService(config.public.apiBase);
 const reflectionAnswerService = new ReflectionAnswerService(config.public.apiBase);
 const journalAnswerService = new JournalAnswerService(config.public.apiBase);
 const recommendationService = new RecommendationService(config.public.apiBase);
+const recommendationAnswerService = new RecommendationAnswerService(config.public.apiBase);
 
 const lifeCycle = ref<Lifecycle>(await lifecycleService.getLifecycleById(lifecycleId));
-const reflectionAnswers = ref<ReflectionAnswer[]>([]);
-const journalAnswers = ref<JournalAnswer[]>([]);
 const recommendations = ref<Recommendation[][]>([]);
+const reflectionAnswers = ref<(ReflectionAnswer | undefined)[]>([]);
+const journalAnswers = ref<(JournalAnswer | undefined)[]>([]);
+const recommendationAnswers = ref<(RecommendationAnswer | undefined)[][]>([]);
 const activeIndex = ref();
 
 // Add indices introduction
@@ -80,7 +83,7 @@ const editReflectionAnswer = async (data: any, binaryEvaluation: number, reflect
 const createOrEditReflectionAnswer = async (data: any, binaryEvaluation: number, index: number) => {
     if (!lifeCycle.value.Phases?.length) throw new Error("Lifecycle has no phases");
 
-    if(!auth.token) {
+    if (!auth.token) {
         toast.add({ title: 'Error', description: 'You need to be logged in!', color: 'error' });
         return
     }
@@ -105,6 +108,16 @@ const createOrEditReflectionAnswer = async (data: any, binaryEvaluation: number,
         // update recommended tools
         const phaseRecommendations = await recommendationService.getRecommendations(reflectionId, answer.binaryEvaluation);
         recommendations.value[index] = phaseRecommendations;
+
+        // update recommendation answers
+        // TODO: optimize this to do it in a single query
+        const promises: Promise<RecommendationAnswer | undefined>[] = [];
+
+        phaseRecommendations.forEach((phaseRec: Recommendation) => {
+            promises.push(recommendationAnswerService.GetRecommendationAnswerByUserIdAndRecommendationID(phaseRec.id));
+        });
+
+        recommendationAnswers.value[index] = await Promise.all(promises);
     }
 };
 
@@ -113,24 +126,20 @@ const recommendationProgress = computed(() => {
     const res: { completed: number; total: number; percent: number }[] = [];
     if (!recommendations.value.length) return [];
 
-    recommendations.value.forEach((phaseRecommendations) => {
-        const total = phaseRecommendations.length;
-        let completed = 0;
-        phaseRecommendations.forEach((recommendation) => {
-            const answer = recommendation.Answers?.at(0);
-            if (answer && isRecommendationDone(recommendation, answer)) {
-                completed++;
-            }
-        });
+    recommendations.value.forEach((recs, index) => {
+        const answers = recommendationAnswers.value[index];
+        const total = recs.length;
+        const completed = answers?.filter(answer => isRecommendationDone(answer?.Recommendation, answer))?.length ?? 0;
         res.push({ completed, total, percent: total > 0 ? Math.round((completed / total) * 100) : 0 });
     });
+
     return res;
 });
 
 // Handle Journal
 const createJournalAnswer = async (data: any, journalId: number) => {
     try {
-        const newAnswer: Omit<JournalAnswer, "id"> = {
+        const newAnswer: Omit<JournalAnswer, "id | userId"> = {
             journalId: journalId,
             form: JSON.stringify(data)
         }
@@ -158,7 +167,7 @@ const editJournalAnswer = async (data: any, journalId: number) => {
 const createOrEditJournalAnswer = async (data: any, index: number) => {
     if (!lifeCycle.value.Phases?.length) throw new Error("Lifecycle has no phases");
 
-    if(!auth.token) {
+    if (!auth.token) {
         toast.add({ title: 'Error', description: 'You need to be logged in!', color: 'error' });
         return
     }
@@ -182,6 +191,12 @@ const createOrEditJournalAnswer = async (data: any, index: number) => {
     }
 }
 
+// Handle RecommendationAnswers
+
+const updateRecommendationAnswer = (newRecommendationAnswer: any, answerIndex: number, index: number) => {
+    recommendationAnswers.value[index][answerIndex] = newRecommendationAnswer;
+}
+
 // utils
 watch(activeIndex, (val) => {
     window.scrollTo({ top: 0, behavior: 'smooth' }); //scroll to top
@@ -196,6 +211,7 @@ onMounted(async () => {
         // Set the user authentication token to the protected services (this has to be done on client side, because the token may be stored in the browser)
         reflectionAnswerService.setToken(auth.token);
         journalAnswerService.setToken(auth.token);
+        recommendationAnswerService.setToken(auth.token);
     }
 
     const hash = route.hash.substring(1);
@@ -239,22 +255,31 @@ onMounted(async () => {
 
         if (auth.token && phase.Reflection) {
 
-            const answer = await reflectionAnswerService.GetReflectionAnswerByUserIdAndReflectionID(phase.Reflection?.id);
+            const refAnswer = await reflectionAnswerService.GetReflectionAnswerByUserIdAndReflectionID(phase.Reflection?.id);
             // Add reflection answers
-            if(answer) {
-                reflectionAnswers.value.push(answer);
+            if (refAnswer) {
+                reflectionAnswers.value.push(refAnswer);
 
-                 // Add recommended tools
-                const phaseRecommendations = await recommendationService.getRecommendations(phase.Reflection.id, answer.binaryEvaluation);
+                // Add recommended tools
+                const phaseRecommendations = await recommendationService.getRecommendations(phase.Reflection.id, refAnswer.binaryEvaluation);
                 recommendations.value.push(phaseRecommendations);
+
+                // TODO: optimize this to do it in a single query
+                const promises: Promise<RecommendationAnswer | undefined>[] = [];
+
+                phaseRecommendations.forEach((phaseRec: Recommendation) => {
+                    promises.push(recommendationAnswerService.GetRecommendationAnswerByUserIdAndRecommendationID(phaseRec.id));
+                });
+
+                recommendationAnswers.value.push(await Promise.all(promises));
             }
         }
 
         // Add journal answers
         if (auth.token && phase.Journal) {
-            const answer = await journalAnswerService.GetJournalAnswerByUserIdAndJournalID(phase.Journal.id);
-            if(answer) {
-                journalAnswers.value.push(answer);
+            const jouAnswer = await journalAnswerService.GetJournalAnswerByUserIdAndJournalID(phase.Journal.id);
+            if(jouAnswer) {
+                journalAnswers.value.push(jouAnswer);
             }
         }
     }
@@ -331,7 +356,8 @@ onMounted(async () => {
                         <div v-show="activeIndex.value == `phase${phase.number}-recommendations`">
                             <h1 class="text-2xl font-bold my-4 text-center">Recommended Tools</h1>
                             <ToolList :tools="recommendations[index]?.map(r => r.Tool!)"
-                                :recommendations="recommendations[index]" />
+                                :recommendations="recommendations[index]" :answers="recommendationAnswers[index]"
+                                @update-answer="(newAnswer, answerIndex) => updateRecommendationAnswer(newAnswer, answerIndex, index)" />
                             <div v-if="recommendations[index]?.length" class="my-4">
                                 <UProgress v-model="recommendationProgress[index].percent" status />
                             </div>
