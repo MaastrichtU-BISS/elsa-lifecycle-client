@@ -40,7 +40,7 @@ const onSubmit = (event: FormSubmitEvent<Schema>) => {
 
 const binaryEvaluation = () => {
     let result = 0;
-    Object.values(state).map((value, index) => {
+    Object.values(state).reverse().map((value, index) => {
         result |= (value == "Yes" ? 1 << index : 0);
     });
     return result;
