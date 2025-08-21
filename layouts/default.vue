@@ -7,11 +7,26 @@ const userEmail = computed(() => {
   return auth.user?.email || null;
 });
 
-const fixedItems = [
+const colorMode = useColorMode()
+
+const isDark = computed({
+  get() {
+    return colorMode.value === 'dark'
+  },
+  set(_isDark) {
+    colorMode.preference = _isDark ? 'dark' : 'light'
+  }
+})
+
+const fixedItems = computed(() => [
   [{
     label: 'Home',
     icon: 'i-lucide-house',
     to: '/',
+  },
+  {
+    icon: `${isDark.value ? 'i-lucide-moon' : 'i-lucide-sun'}`,
+    onSelect: () => isDark.value = !isDark.value
   }],
   [
     {
@@ -24,11 +39,11 @@ const fixedItems = [
       icon: 'i-lucide-wrench',
       to: '/tools'
     },
-  ]];
+  ]]);
 
 const items = computed((): NavigationMenuItem[][] => {
   if (userEmail.value) {
-    return [...fixedItems, [{
+    return [...fixedItems.value, [{
       label: userEmail.value,
       icon: 'i-lucide-user',
       children: [
@@ -42,7 +57,7 @@ const items = computed((): NavigationMenuItem[][] => {
       ],
     }]];
   }
-  return [...fixedItems, [{
+  return [...fixedItems.value, [{
     label: 'Login',
     icon: 'i-lucide-log-in',
     to: '/auth/login',
