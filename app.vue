@@ -1,7 +1,7 @@
 <template>
-  <div>
-    <UApp>
-    <NuxtPage />
-    </UApp>
-  </div>
+  <UApp class="scroll-smooth">
+    <NuxtLayout>
+        <NuxtPage />
+    </NuxtLayout>
+  </UApp>
 </template>
