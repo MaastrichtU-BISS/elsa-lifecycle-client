@@ -1,7 +1,5 @@
 FROM node:24-bookworm
 
-RUN apt update && apt upgrade -y
-
 WORKDIR /app
 COPY . .
 
