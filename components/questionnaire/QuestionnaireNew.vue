@@ -1,57 +1,61 @@
 <script lang="ts" setup>
-import { ref } from 'vue';
-import type { Questionnaire } from '~/utils/types';
+// import * as z from 'zod';
+// import { ref } from 'vue';
+// import type { Questionnaire } from '~/utils/types';
 
-const emit = defineEmits(["create"]);
+// const emit = defineEmits(["create"]);
 
-const newQuestionnaire = ref<Omit<Questionnaire, "id">>({
-    name: '',
-    description: '',
-    form: '',
-    formName: ''
-});
+// const newQuestionnaire = ref<Omit<Questionnaire, "id">>({
+//     name: '',
+//     description: '',
+//     form: '',
+//     formName: ''
+// });
 
-const importTemplate = (event: Event) => {
+// const schema = z.object({
+//     name: z.string().min(1, 'Title is required'),
+//     description: z.string().min(1, 'Description is required'),
+//     form: z.string().min(1, 'Form is required'),
+//     formName: z.string().min(1, 'Form name is required')
+// });
 
-    const file = (event.target as HTMLInputElement).files?.[0];
-    if (file) {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            const content = e.target?.result as string;
-            newQuestionnaire.value.form = content;
-            newQuestionnaire.value.formName = file.name;
-        };
-        reader.readAsText(file);
-    }
-}
+// const importTemplate = (event: Event) => {
 
-const createQuestionnaire = () => {
-    if (newQuestionnaire.value.name && newQuestionnaire.value.description && newQuestionnaire.value.form) {
-        emit('create', newQuestionnaire.value);
-        newQuestionnaire.value = { name: '', description: '', form: '', formName: '' };
-    } else {
-        alert("Please fill all fields.");
-    }
-};
+//     const file = (event.target as HTMLInputElement).files?.[0];
+//     if (file) {
+//         const reader = new FileReader();
+//         reader.onload = (e) => {
+//             const content = e.target?.result as string;
+//             newQuestionnaire.value.form = content;
+//             newQuestionnaire.value.formName = file.name;
+//         };
+//         reader.readAsText(file);
+//     }
+// }
+
+// const createQuestionnaire = () => {
+//     emit('create', newQuestionnaire.value);
+//     newQuestionnaire.value = { name: '', description: '', form: '', formName: '' };
+// };
 
 </script>
 
 <template>
+    <span></span>
+    <!-- <div class="p-4 rounded-lg w-fit mx-auto">
+        <UForm :state="newQuestionnaire" :schema="schema" class="space-y-4" @submit="createQuestionnaire">
+            <UFormField name="name" label="Name" :required="true">
+                <UInput v-model="newQuestionnaire.name" class="w-full" />
+            </UFormField>
+            <UFormField name="description" label="Description" :required="true">
+                <UTextarea v-model="newQuestionnaire.description" class="w-full" />
+            </UFormField>
+            <UFormField name="form" label="Form" :required="true">
+                <UInput type="file" accept=".json" @change="importTemplate" />
+            </UFormField>
 
-    <div class="p-4 border border-gray-300 rounded-lg w-fit mx-auto mt-24">
-        <div class="mb-3">
-            <label class="mr-3">Name</label>
-            <UInput v-model="newQuestionnaire.name" />
-        </div>
-        <div class="mb-3">
-            <label class="mr-3">Description</label>
-            <UInput v-model="newQuestionnaire.description" />
-        </div>
-        <div class="mb-3">
-            <label class="mr-3">Form</label>
-            <UInput type="file" @change="importTemplate" accept=".json" />
-        </div>
-        <UButton @click="createQuestionnaire">Create Questionnaire</UButton>
-    </div>
 
+            <UButton type="submit">Submit</UButton>
+        </UForm>
+    </div> -->
 </template>

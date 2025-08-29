@@ -4,17 +4,29 @@ export async function parseCedar(cedarForm: any, answerForm: any | undefined): P
   const _ui = cedarForm._ui;
   const properties = cedarForm.properties;
 
-  const schema: any = {};
-  const state: any = {};
-  const ui: any = {};
+  let schema: any = {};
+  let state: any = {};
+  let ui: any = {};
 
   for (let i = 0; i < _ui.order.length; i++) {
     const fieldId = _ui.order[i];
 
-    const currentProp = properties[fieldId];
+    let currentProp = properties[fieldId];
 
-    const type: string = currentProp._ui.inputType;
-    const title: string = currentProp["schema:name"] ?? fieldId;
+    // // subform
+    if (currentProp['type'] == "array") {
+      currentProp = currentProp["items"];
+    //   // console.log("Subform", currentProp);
+    //   const subform = await parseCedar(currentProp.items, answerForm);
+    //   schema[fieldId] = { ... schema, ... subform.schema };
+    //   state[fieldId] = { ... state, ... subform.state };
+    //   ui[fieldId] = { ... ui, ... subform.ui };
+    //   continue;
+    }
+
+    const type: string = currentProp?._ui?.inputType;
+
+    const title: string = currentProp["skos:prefLabel"] ?? (currentProp["schema:name"] ?? fieldId);
     const required: boolean =
       currentProp._valueConstraints?.requiredValue || false;
     const options =
@@ -22,11 +34,22 @@ export async function parseCedar(cedarForm: any, answerForm: any | undefined): P
 
     let defaultValue: any = currentProp._valueConstraints?.defaultValue ?? null;
 
+    if(type == "checkbox") {
+      defaultValue = [];
+    }
+
     if(answerForm && answerForm[fieldId]) {
       defaultValue = answerForm[fieldId];
     }
 
     switch (type) {
+      case "section-break":
+        schema[fieldId] = z.string();
+        ui[fieldId] = {
+          label: title,
+          inputType: "section-break",
+        };
+        break;
       case "textfield":
         schema[fieldId] = z.string();
         if (currentProp._valueConstraints?.branches?.length) {
@@ -78,6 +101,15 @@ export async function parseCedar(cedarForm: any, answerForm: any | undefined): P
           required,
         };
         break;
+      case "textarea":
+        schema[fieldId] = z.string().optional();
+        ui[fieldId] = {
+          label: title,
+          inputType: "textarea",
+          baseInput: false,
+          required,
+        };
+        break;
       case "numeric":
         schema[fieldId] = z.number();
         ui[fieldId] = {
@@ -90,6 +122,10 @@ export async function parseCedar(cedarForm: any, answerForm: any | undefined): P
       case "radio":
         schema[fieldId] = z.string();
         ui[fieldId] = { label: title, inputType: "radio", options, required };
+        break;
+      case "checkbox":
+        schema[fieldId] = z.string().array();
+        ui[fieldId] = { label: title, inputType: "checkbox", options, required };
         break;
       case "list":
         schema[fieldId] = z.string();

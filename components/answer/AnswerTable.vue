@@ -1,71 +1,71 @@
 <script lang="ts" setup>
-import { ref } from 'vue';
-import type { Answer } from '~/utils/types';
-import type { TableColumn } from '@nuxt/ui';
-import { getPaginationRowModel } from '@tanstack/vue-table';
-import { h, resolveComponent } from 'vue';
+// import { ref } from 'vue';
+// import type { Answer } from '~/utils/types';
+// import type { TableColumn } from '@nuxt/ui';
+// import { getPaginationRowModel } from '@tanstack/vue-table';
+// import { h, resolveComponent } from 'vue';
 
-// API calls
+// // API calls
 
-const props = defineProps<{
-    answers: Answer[]
-}>();
+// const props = defineProps<{
+//     answers: Answer[]
+// }>();
 
-// Table setup
+// // Table setup
 
-const loadingTable = ref(false);
+// const loadingTable = ref(false);
 
-const table = useTemplateRef('table')
+// const table = useTemplateRef('table')
 
-const pagination = ref({
-    pageIndex: 0,
-    pageSize: 10
-});
+// const pagination = ref({
+//     pageIndex: 0,
+//     pageSize: 10
+// });
 
-const rows = computed(() => {
-    return props.answers.map(a => a);
-});
+// const rows = computed(() => {
+//     return props.answers.map(a => a);
+// });
 
-const columns: TableColumn<Answer>[] = [
-    {
-        accessorKey: 'id',
-        header: 'Id',
-        cell: ({ row }) => `#${row.getValue('id')}`
-    },
-    {
-        id: 'actions',
-        header: 'Actions',
-        cell: ({ row }) => {
-            return h('div', { class: 'flex gap-2' }, [
-                h(resolveComponent('UButton'), {
-                    label: 'View',
-                    icon: 'i-lucide-eye',
-                    color: 'primary',
-                    variant: 'outline',
-                    size: 'sm',
-                    to: `/answers/${row.original.id}`
-                }),
-                h(resolveComponent('UButton'), {
-                    label: 'Remove',
-                    icon: 'i-lucide-trash',
-                    color: 'error',
-                    variant: 'outline',
-                    size: 'sm',
-                    onClick: () => {
-                        const questionnaire = row.original as Answer;
-                        // Handle delete action
-                        console.log('Delete questionnaire', questionnaire);
-                    }
-                })
-            ]
-            );
-        }
-    }]
+// const columns: TableColumn<Answer>[] = [
+//     {
+//         accessorKey: 'id',
+//         header: 'Id',
+//         cell: ({ row }) => `#${row.getValue('id')}`
+//     },
+//     {
+//         id: 'actions',
+//         header: 'Actions',
+//         cell: ({ row }) => {
+//             return h('div', { class: 'flex gap-2' }, [
+//                 h(resolveComponent('UButton'), {
+//                     label: 'View',
+//                     icon: 'i-lucide-eye',
+//                     color: 'primary',
+//                     variant: 'outline',
+//                     size: 'sm',
+//                     to: `/answers/${row.original.id}`
+//                 }),
+//                 h(resolveComponent('UButton'), {
+//                     label: 'Remove',
+//                     icon: 'i-lucide-trash',
+//                     color: 'error',
+//                     variant: 'outline',
+//                     size: 'sm',
+//                     onClick: () => {
+//                         const questionnaire = row.original as Answer;
+//                         // Handle delete action
+//                         console.log('Delete questionnaire', questionnaire);
+//                     }
+//                 })
+//             ]
+//             );
+//         }
+//     }]
 </script>
 
 <template>
-
-    <UTable ref="table" v-model:pagination="pagination" :pagination-options="{
+    <span></span>
+    <!-- <UTable ref="table" v-model:pagination="pagination" :pagination-options="{
         getPaginationRowModel: getPaginationRowModel()
     }" :data="rows" :columns="columns" :loading="loadingTable" class="flex-1 mb-4 mx-auto w-3xl" />
 
@@ -74,6 +74,6 @@ const columns: TableColumn<Answer>[] = [
             :items-per-page="table?.tableApi?.getState().pagination.pageSize"
             :total="table?.tableApi?.getFilteredRowModel().rows.length"
             @update:page="(p) => table?.tableApi?.setPageIndex(p - 1)" />
-    </div>
+    </div> -->
 
 </template>
