@@ -18,7 +18,7 @@ jobs:
       
       - name: Extract branch name
         shell: bash
-        run: echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/heads/})"
+        run: echo "branch=$(echo ${GITHUB_REF#refs/heads/})" >> $GITHUB_OUTPUT
         id: extract_branch
       
       - name: downcase REPO
@@ -26,7 +26,7 @@ jobs:
           echo "REPO=${GITHUB_REPOSITORY,,}" >>${GITHUB_ENV}
       
       - name: Log in to the Container registry
-        uses: docker/login-action@f054a8b539a109f9f41c372932f1ae047eff08c9
+        uses: docker/login-action@v3
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
@@ -35,17 +35,7 @@ jobs:
       - name: Build container
         id: docker_build
         uses: docker/build-push-action@v4
-        if: steps.extract_branch.outputs.branch != 'main'
         with:
           context: .
           push: true
-          tags: ghcr.io/${{ env.REPO }}:${{ steps.extract_branch.outputs.branch }}
-      
-      - name: Build container
-        id: docker_build_main
-        uses: docker/build-push-action@v4
-        if: steps.extract_branch.outputs.branch == 'main'
-        with:
-          context: .
-          push: true
-          tags: ghcr.io/${{ env.REPO }}:latest
+          tags: ghcr.io/${{ env.REPO }}:${{ steps.extract_branch.outputs.branch == 'main' && 'latest' || steps.extract_branch.outputs.branch }}
