@@ -337,6 +337,7 @@ onMounted(async () => {
                             v-show="activeIndex.value == `phase${phase.number}-reflection` || activeIndex.value == `phase${phase.number}`">
                             <!-- Getting the first answer of this reflection. TODO: get the answer from the reflection and the user -->
                             <h1 class="text-2xl font-bold my-4 text-center">Reflection</h1>
+                            <h2 class="text-xl font-bold text-center mt-2 mb-6">{{ phase.Reflection?.description }}</h2>
                             <QuestionnaireForm :questionnaire="phase.Reflection?.form!"
                                 :answer="reflectionAnswers[index]?.form"
                                 @on-submit="(data: any, binaryEvaluation: number) => createOrEditReflectionAnswer(data, binaryEvaluation, index)" />
@@ -374,6 +375,7 @@ onMounted(async () => {
                         <!-- PHASE JOURNAL -->
                         <div v-show="activeIndex.value == `phase${phase.number}-journal`">
                             <h1 class="text-2xl font-bold my-4 text-center">Journal</h1>
+                            <h2 class="text-xl font-bold text-center mt-2 mb-6">{{ phase.Journal?.description }}</h2>
                             <QuestionnaireForm :questionnaire="phase.Journal?.form!"
                                 :answer="journalAnswers[index]?.form"
                                 @on-submit="(data: any) => createOrEditJournalAnswer(data, index)" />
