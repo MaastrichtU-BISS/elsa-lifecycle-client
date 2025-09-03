@@ -356,6 +356,7 @@ onMounted(async () => {
                         <!-- PHASE RECOMMENDATIONS -->
                         <div v-show="activeIndex.value == `phase${phase.number}-recommendations`">
                             <h1 class="text-2xl font-bold my-4 text-center">Recommended Tools</h1>
+                            <h2 class="text-xl font-bold text-center mt-2 mb-6">{{ phase.Reflection?.description }}</h2>
                             <ToolList :tools="recommendations[index]?.map(r => r.Tool!)"
                                 :recommendations="recommendations[index]" :answers="recommendationAnswers[index]"
                                 @update-answer="(newAnswer, answerIndex) => updateRecommendationAnswer(newAnswer, answerIndex, index)" />
