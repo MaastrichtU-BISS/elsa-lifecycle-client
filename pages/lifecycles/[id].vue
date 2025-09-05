@@ -139,7 +139,7 @@ const recommendationProgress = computed(() => {
 // Handle Journal
 const createJournalAnswer = async (data: any, journalId: number) => {
     try {
-        const newAnswer: Omit<JournalAnswer, "id | userId"> = {
+        const newAnswer: Omit<JournalAnswer, "id" | "userId"> = {
             journalId: journalId,
             form: JSON.stringify(data)
         }
