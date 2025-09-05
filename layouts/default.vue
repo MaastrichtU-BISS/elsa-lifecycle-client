@@ -7,7 +7,8 @@ const userEmail = computed(() => {
   return auth.user?.email || null;
 });
 
-const colorMode = useColorMode()
+const colorMode = useColorMode();
+const colorModeReady = computed(() => ['dark', 'light'].includes(colorMode.value));
 
 const isDark = computed({
   get() {
@@ -19,15 +20,13 @@ const isDark = computed({
 })
 
 const fixedItems = computed(() => [
-  [{
-    label: 'Home',
-    icon: 'i-lucide-house',
-    to: '/',
-  },
-  {
-    icon: `${isDark.value ? 'i-lucide-moon' : 'i-lucide-sun'}`,
-    onSelect: () => isDark.value = !isDark.value
-  }],
+  [
+    {
+      label: 'Home',
+      icon: 'i-lucide-house',
+      to: '/',
+    }
+  ],
   [
     {
       label: 'Life Cycles',
@@ -42,8 +41,13 @@ const fixedItems = computed(() => [
   ]]);
 
 const items = computed((): NavigationMenuItem[][] => {
+  const lightDarkButton = {
+    icon: colorModeReady.value ? (isDark.value ? 'i-lucide-moon' : 'i-lucide-sun') : '',
+    onSelect: () => isDark.value = !isDark.value,
+  };
+  
   if (userEmail.value) {
-    return [...fixedItems.value, [{
+    return [...fixedItems.value, [lightDarkButton, {
       label: userEmail.value,
       icon: 'i-lucide-user',
       children: [
@@ -57,7 +61,7 @@ const items = computed((): NavigationMenuItem[][] => {
       ],
     }]];
   }
-  return [...fixedItems.value, [{
+  return [...fixedItems.value, [lightDarkButton, {
     label: 'Login',
     icon: 'i-lucide-log-in',
     to: '/auth/login',
