@@ -19,9 +19,9 @@ export class RecommendationAnswerService {
   // protected
   async GetRecommendationAnswerByUserIdAndRecommendationID(
     recommendationId: number
-  ): Promise<RecommendationAnswer | undefined> {
+  ): Promise<RecommendationAnswer> {
     try {
-      const response = await $fetch(
+      const response = await $fetch<RecommendationAnswer>(
         `${this.url}/recommendationAnswers?rid=${recommendationId}`,
         {
           method: "GET",
@@ -31,7 +31,7 @@ export class RecommendationAnswerService {
         }
       );
 
-      return response ? (response as RecommendationAnswer) : undefined;
+      return response;
     } catch (error) {
       throw new Error(`Failed to fetch reflection answers: ${error}`);
     }

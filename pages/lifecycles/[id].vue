@@ -25,7 +25,7 @@ const lifeCycle = ref<Lifecycle>(await lifecycleService.getLifecycleById(lifecyc
 const recommendations = ref<Recommendation[][]>([]);
 const reflectionAnswers = ref<(ReflectionAnswer | undefined)[]>([]);
 const journalAnswers = ref<(JournalAnswer | undefined)[]>([]);
-const recommendationAnswers = ref<(RecommendationAnswer | undefined)[][]>([]);
+const recommendationAnswers = ref<RecommendationAnswer[][]>([]);
 const activeIndex = ref();
 
 // Add indices introduction
@@ -111,7 +111,7 @@ const createOrEditReflectionAnswer = async (data: any, binaryEvaluation: number,
 
         // update recommendation answers
         // TODO: optimize this to do it in a single query
-        const promises: Promise<RecommendationAnswer | undefined>[] = [];
+        const promises: Promise<RecommendationAnswer>[] = [];
 
         phaseRecommendations.forEach((phaseRec: Recommendation) => {
             promises.push(recommendationAnswerService.GetRecommendationAnswerByUserIdAndRecommendationID(phaseRec.id));
@@ -265,7 +265,7 @@ onMounted(async () => {
                 recommendations.value.push(phaseRecommendations);
 
                 // TODO: optimize this to do it in a single query
-                const promises: Promise<RecommendationAnswer | undefined>[] = [];
+                const promises: Promise<RecommendationAnswer>[] = [];
 
                 phaseRecommendations.forEach((phaseRec: Recommendation) => {
                     promises.push(recommendationAnswerService.GetRecommendationAnswerByUserIdAndRecommendationID(phaseRec.id));
@@ -278,7 +278,7 @@ onMounted(async () => {
         // Add journal answers
         if (auth.token && phase.Journal) {
             const jouAnswer = await journalAnswerService.GetJournalAnswerByUserIdAndJournalID(phase.Journal.id);
-            if(jouAnswer) {
+            if (jouAnswer) {
                 journalAnswers.value.push(jouAnswer);
             }
         }
@@ -358,8 +358,7 @@ onMounted(async () => {
                             <h1 class="text-2xl font-bold my-4 text-center">Recommended Tools</h1>
                             <h2 class="text-xl font-bold text-center mt-2 mb-6">{{ phase.Reflection?.description }}</h2>
                             <ToolList :tools="recommendations[index]?.map(r => r.Tool!)"
-                                :recommendations="recommendations[index]" :answers="recommendationAnswers[index]"
-                                @update-answer="(newAnswer, answerIndex) => updateRecommendationAnswer(newAnswer, answerIndex, index)" />
+                                :recommendations="recommendations[index]" :answers="recommendationAnswers[index]" />
                             <div v-if="recommendations[index]?.length" class="my-4">
                                 <UProgress v-model="recommendationProgress[index].percent" status />
                             </div>

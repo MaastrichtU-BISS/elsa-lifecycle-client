@@ -1,16 +1,10 @@
 <script lang="ts" setup>
-import { toast } from '#build/ui';
 import { RecommendationAnswerService } from '~/services/recommendationAnswer';
 import { isRecommendationDone } from '~/utils/helpers';
 
-const props = defineProps<{
-    tool: Tool;
-    recommendation?: Recommendation | undefined; // Optional, if you want to pass a recommendation
-    answer?: RecommendationAnswer | undefined;
-    index: number;
-}>();
-
-const emits = defineEmits(["updateAnswer"])
+const tool = defineModel<Tool>('tool', { required: true });
+const recommendation = defineModel<Recommendation>('recommendation');
+const answer = defineModel<RecommendationAnswer>('answer');
 
 const auth = useAuthStore();
 const modalOpened = ref(false);
@@ -19,26 +13,26 @@ const $toast = useToast();
 const recommendationAnswerService = new RecommendationAnswerService(config.public.apiBase as string);
 
 const tags = computed(() => {
-    return props.tool.tags.split(",");
+    return tool.value.tags.split(",");
 });
 
 const recommendationIsDone = computed(() => {
-    return isRecommendationDone(props.recommendation, props.answer);
+    return isRecommendationDone(recommendation.value, answer.value);
 });
 
 const uploadFileMessage = computed(() => {
-    if (!props.recommendation) return '';
-    return props.answer?.file ? props.answer?.file.replaceAll('\\', '/').split('/').at(-1) : 'Upload tool\'s output';
+    if (!recommendation.value) return '';
+    return answer.value?.file ? answer.value?.file.replaceAll('\\', '/').split('/').at(-1) : 'Upload tool\'s output';
 });
 
 const fillInFormMessage = computed(() => {
-    if (!props.recommendation) return '';
-    return props.answer?.form ? 'Edit Form' : 'Fill in Form';
+    if (!recommendation.value) return '';
+    return answer.value?.form ? 'Edit Form' : 'Fill in Form';
 });
 
 const submitForm = async (form: any) => {
 
-    if (!props.recommendation) {
+    if (!recommendation.value) {
         return;
     }
 
@@ -57,10 +51,10 @@ const submitForm = async (form: any) => {
     try {
         // TODO: get the answer for the current user
         let newRecommendationAnswer;
-        if (props.answer) {
-            newRecommendationAnswer = await recommendationAnswerService.editRecommendationAnswer(data, props.answer.id);
+        if (answer.value) {
+            newRecommendationAnswer = await recommendationAnswerService.editRecommendationAnswer(data, answer.value.id);
         } else {
-            data.append('recommendationId', props.recommendation.id.toString());
+            data.append('recommendationId', recommendation.value.id.toString());
             newRecommendationAnswer = await recommendationAnswerService.createRecommendationAnswer(data);
         }
 
@@ -70,8 +64,7 @@ const submitForm = async (form: any) => {
             color: 'success'
         });
 
-        // TODO: edit answer so reactive parent changes it
-        emits("updateAnswer", newRecommendationAnswer, props.index);
+        answer.value = newRecommendationAnswer;
 
     } catch (error) {
         $toast.add({
@@ -85,7 +78,7 @@ const submitForm = async (form: any) => {
 };
 
 const uploadFile = async (event: Event) => {
-    if (!props.recommendation) return;
+    if (!recommendation.value) return;
 
     if (!auth.token) {
         $toast.add({
@@ -106,10 +99,10 @@ const uploadFile = async (event: Event) => {
     let newRecommendationAnswer;
 
     try {
-        if (props.answer) {
-            newRecommendationAnswer = await recommendationAnswerService.editRecommendationAnswer(data, props.answer.id);
+        if (answer.value) {
+            newRecommendationAnswer = await recommendationAnswerService.editRecommendationAnswer(data, answer.value.id);
         } else {
-            data.append('recommendationId', props.recommendation.id.toString());
+            data.append('recommendationId', recommendation.value.id.toString());
             newRecommendationAnswer = await recommendationAnswerService.createRecommendationAnswer(data);
         }
 
@@ -119,8 +112,7 @@ const uploadFile = async (event: Event) => {
             color: 'success'
         });
 
-        // TODO: same
-        emits("updateAnswer", newRecommendationAnswer, props.index)
+        answer.value = newRecommendationAnswer;
 
     } catch (error) {
         $toast.add({
@@ -150,13 +142,13 @@ onMounted(() => {
                 </UBadge>
             </div>
             <div class="text-lg font-bold">
-                {{ props.tool.title }}
+                {{ tool.title }}
             </div>
             <i class="text-sm">
-                {{ props.tool.type }}
+                {{ tool.type }}
             </i>
             <p class="my-4 flex-grow">
-                {{ props.tool.description }}
+                {{ tool.description }}
             </p>
             <div class="flex justify-end mb-3">
                 <UBadge v-for="tag in tags" size="sm" class="font-bold rounded-full ml-2" :key="tag" variant='soft'>
