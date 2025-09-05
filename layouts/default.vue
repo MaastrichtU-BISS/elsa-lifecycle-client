@@ -36,7 +36,7 @@ const fixedItems = computed(() => [
     {
       label: 'Tools',
       icon: 'i-lucide-wrench',
-      to: '/tools'
+      to: '/tools',
     },
   ]]);
 
@@ -45,7 +45,7 @@ const items = computed((): NavigationMenuItem[][] => {
     icon: colorModeReady.value ? (isDark.value ? 'i-lucide-moon' : 'i-lucide-sun') : '',
     onSelect: () => isDark.value = !isDark.value,
   };
-  
+
   if (userEmail.value) {
     return [...fixedItems.value, [lightDarkButton, {
       label: userEmail.value,
@@ -75,7 +75,9 @@ onMounted(async () => {
 </script>
 
 <template>
-  <UNavigationMenu :items="items" class="w-full px-2" arrow content-orientation="vertical" />
+  <UNavigationMenu :items="items"
+    class="w-full px-2 grid grid-cols-3 [&>*:nth-child(2)]:justify-self-center [&>*:nth-child(3)]:justify-self-end"
+    arrow content-orientation="vertical" />
   <main class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-2">
     <slot />
   </main>
