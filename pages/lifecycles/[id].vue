@@ -357,8 +357,9 @@ onMounted(async () => {
                         <div v-show="activeIndex.value == `phase${phase.number}-recommendations`">
                             <h1 class="text-2xl font-bold my-4 text-center">Recommended Tools</h1>
                             <h2 class="text-xl font-bold text-center mt-2 mb-6">{{ phase.Reflection?.description }}</h2>
-                            <ToolList :tools="recommendations[index]?.map(r => r.Tool!)"
-                                :recommendations="recommendations[index]" :answers="recommendationAnswers[index]" />
+                            <ToolList :tools="recommendations[index]?.map(r => r.Tool!) || []"
+                                v-model:recommendations="recommendations[index]"
+                                v-model:answers="recommendationAnswers[index]" />
                             <div v-if="recommendations[index]?.length" class="my-4">
                                 <UProgress v-model="recommendationProgress[index].percent" status />
                             </div>
