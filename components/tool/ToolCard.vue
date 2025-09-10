@@ -31,7 +31,6 @@ const fillInFormMessage = computed(() => {
 });
 
 const submitForm = async (form: any) => {
-
     if (!recommendation.value) {
         return;
     }
@@ -123,13 +122,68 @@ const uploadFile = async (event: Event) => {
     }
 };
 
+const checkboxModel = computed({
+    get() {
+        return answer.value?.checked_done || false;
+    },
+    async set(value: boolean) {
+        setRecommendationDoneTo(value);
+    }
+});
+
+const setRecommendationDoneTo = async (value: boolean) => {
+    if (!recommendation.value) return;
+
+    if (!auth.token) {
+        $toast.add({
+            title: 'Error',
+            description: `You have to be logged in!`,
+            color: 'error'
+        });
+        return;
+    }
+
+    const data = new FormData();
+    data.append('checked_done', value.toString());
+
+    let newRecommendationAnswer;
+    try {
+        if (answer.value) {
+            newRecommendationAnswer = await recommendationAnswerService.editRecommendationAnswer(data, answer.value.id);
+        } else {
+            data.append('recommendationId', recommendation.value.id.toString());
+            newRecommendationAnswer = await recommendationAnswerService.createRecommendationAnswer(data);
+        }
+
+        answer.value = newRecommendationAnswer;
+
+        if (answer.value?.checked_done) {
+            $toast.add({
+                title: 'Success',
+                description: 'Recommended tool has been completed.',
+                color: 'success'
+            });
+        } else {
+            $toast.add({
+                title: 'Info',
+                description: 'Recommended tool has been updated.',
+                color: 'info'
+            });
+        }
+    } catch (error) {
+        $toast.add({
+            title: 'Error',
+            description: `${error}`,
+            color: 'error'
+        });
+    }
+};
+
 onMounted(() => {
     if (auth.token) {
         recommendationAnswerService.setToken(auth.token);
     }
 })
-
-
 </script>
 
 <template>
@@ -155,7 +209,7 @@ onMounted(() => {
                     {{ tag }}
                 </UBadge>
             </div>
-            <div>
+            <div class="flex flex-col gap-4 items-start">
                 <template v-if="recommendation && tool.form">
                     <UModal v-model:open="modalOpened" :title="tool.title" :description="tool.description">
                         <UButton :label="fillInFormMessage" icon="lucide-edit" class="mb-2" size="sm" />
@@ -166,20 +220,20 @@ onMounted(() => {
                     </UModal>
                 </template>
                 <template v-if="tool.url">
-                    <div>
-                        <UButton :to="tool.url" label="Visit Tool" icon="lucide-external-link" size="sm"
-                            variant="outline" target="_blank" aria-placeholder="ss" />
-                        <template v-if="recommendation">
-                            <UInput :id="`recommendation-file-${recommendation?.id}`" type="file" size="sm" class="mt-2"
-                                icon="lucide-upload" @change="uploadFile" />
-                            <label :for="`recommendation-file-${recommendation?.id}`" class="text-xs text-gray-400">
-                                {{ uploadFileMessage }}
-                            </label>
-                        </template>
-                    </div>
+                    <UButton :to="tool.url" label="Visit Tool" icon="lucide-external-link" size="sm" variant="outline"
+                        target="_blank" aria-placeholder="ss" />
+                </template>
+                <template v-if="recommendation && tool.file_upload">
+                    <UInput :id="`recommendation-file-${recommendation?.id}`" type="file" size="sm" class="mt-2"
+                        icon="lucide-upload" @change="uploadFile" />
+                    <label :for="`recommendation-file-${recommendation?.id}`" class="text-xs text-gray-400">
+                        {{ uploadFileMessage }}
+                    </label>
+                </template>
+                <template v-if="recommendation && !tool.file_upload && !tool.form">
+                    <UCheckbox label="Completed" v-model="checkboxModel" />
                 </template>
             </div>
         </div>
     </UCard>
-
 </template>
