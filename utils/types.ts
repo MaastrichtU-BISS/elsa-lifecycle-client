@@ -66,6 +66,7 @@ export type Tool = {
   tags: string;
   type: string;
   form?: string;
+  file_upload: boolean;
 };
 export type Recommendation = {
   id: number;
@@ -82,6 +83,7 @@ export type RecommendationAnswer = {
   recommendationId: number;
   form?: string;
   file?: string;
+  checked_done: boolean;
   Recommendation?: Recommendation;
 }
 
