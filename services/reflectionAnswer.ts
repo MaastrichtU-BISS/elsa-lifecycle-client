@@ -19,7 +19,7 @@ export class ReflectionAnswerService {
   // Protected
   async GetReflectionAnswerByUserIdAndReflectionID(
     reflectionId: number
-  ): Promise<ReflectionAnswer | undefined> {
+  ): Promise<ReflectionAnswer> {
     try {
       const response = await $fetch(`${this.url}/reflectionAnswers?rid=${reflectionId}`, {
         method: "GET",
@@ -28,7 +28,7 @@ export class ReflectionAnswerService {
         },
       });
 
-      return response ? (response as ReflectionAnswer) : undefined;
+      return response as ReflectionAnswer;
     } catch (error) {
       throw new Error(`Failed to fetch reflection answers: ${error}`);
     }
