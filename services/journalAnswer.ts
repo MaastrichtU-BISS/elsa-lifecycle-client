@@ -39,7 +39,7 @@ export class JournalAnswerService {
 
   // protected
   async createJournalAnswer(
-    answer: Omit<JournalAnswer, "id | userId">
+    answer: Omit<JournalAnswer, "id" | "userId">
   ): Promise<JournalAnswer> {
     try {
       const response = await $fetch(`${this.url}/journalAnswers`, {
