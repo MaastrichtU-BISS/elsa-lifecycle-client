@@ -192,7 +192,14 @@ onMounted(() => {
             <div v-if="recommendation" class="flex justify-end">
                 <UBadge class="font-bold rounded-full" variant="soft" size="xs"
                     :color="recommendationIsDone ? 'primary' : 'error'">
-                    {{ recommendationIsDone ? 'Done' : 'Pending' }}
+                    <template v-if="recommendationIsDone">
+                        <UIcon name="i-lucide-check" />
+                        Done
+                    </template>
+                    <template v-else>
+                        <UIcon name="i-lucide-x" />
+                        Pending
+                    </template>
                 </UBadge>
             </div>
             <div class="text-lg font-bold">
