@@ -63,8 +63,8 @@ export type Tool = {
   description: string;
   url: string;
   cover: string;
-  tags: string;
-  type: string;
+  tags?: string;
+  type?: string;
   form?: string;
   file_upload: boolean;
 };
