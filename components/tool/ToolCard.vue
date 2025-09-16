@@ -157,7 +157,7 @@ const setRecommendationDoneTo = async (value: boolean) => {
 
         answer.value = newRecommendationAnswer;
 
-        if (answer.value?.checked_done) {
+        if (newRecommendationAnswer.checked_done) {
             $toast.add({
                 title: 'Success',
                 description: 'Recommended tool has been completed.',
