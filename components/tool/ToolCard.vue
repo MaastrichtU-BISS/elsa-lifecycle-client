@@ -157,7 +157,7 @@ const setRecommendationDoneTo = async (value: boolean) => {
 
         answer.value = newRecommendationAnswer;
 
-        if (answer.value?.checked_done) {
+        if (newRecommendationAnswer.checked_done) {
             $toast.add({
                 title: 'Success',
                 description: 'Recommended tool has been completed.',
@@ -192,7 +192,14 @@ onMounted(() => {
             <div v-if="recommendation" class="flex justify-end">
                 <UBadge class="font-bold rounded-full" variant="soft" size="xs"
                     :color="recommendationIsDone ? 'primary' : 'error'">
-                    {{ recommendationIsDone ? 'Done' : 'Pending' }}
+                    <template v-if="recommendationIsDone">
+                        <UIcon name="i-lucide-check" />
+                        Done
+                    </template>
+                    <template v-else>
+                        <UIcon name="i-lucide-x" />
+                        Pending
+                    </template>
                 </UBadge>
             </div>
             <div class="text-lg font-bold">
@@ -210,18 +217,18 @@ onMounted(() => {
                 </UBadge>
             </div>
             <div class="flex flex-col gap-4 items-start">
+                <template v-if="tool.url">
+                    <UButton :to="tool.url" label="Visit Tool" icon="lucide-external-link" size="sm" variant="outline"
+                        target="_blank" aria-placeholder="ss" />
+                </template>
                 <template v-if="recommendation && tool.form">
                     <UModal v-model:open="modalOpened" :title="tool.title" :description="tool.description">
-                        <UButton :label="fillInFormMessage" icon="lucide-edit" class="mb-2" size="sm" />
+                        <UButton :label="fillInFormMessage" icon="lucide-edit" size="sm" />
                         <template #body>
                             <QuestionnaireForm :questionnaire="tool.form" :answer="answer?.form"
                                 @on-submit="submitForm" />
                         </template>
                     </UModal>
-                </template>
-                <template v-if="tool.url">
-                    <UButton :to="tool.url" label="Visit Tool" icon="lucide-external-link" size="sm" variant="outline"
-                        target="_blank" aria-placeholder="ss" />
                 </template>
                 <template v-if="recommendation && tool.file_upload">
                     <UInput :id="`recommendation-file-${recommendation?.id}`" type="file" size="sm" class="mt-2"
@@ -231,7 +238,7 @@ onMounted(() => {
                     </label>
                 </template>
                 <template v-if="recommendation && !tool.file_upload && !tool.form">
-                    <UCheckbox label="Completed" v-model="checkboxModel" />
+                    <UCheckbox label="Completed" v-model="checkboxModel" class="py-1" />
                 </template>
             </div>
         </div>
