@@ -231,7 +231,7 @@ onMounted(() => {
                     </label>
                 </template>
                 <template v-if="recommendation && !tool.file_upload && !tool.form">
-                    <UCheckbox label="Completed" v-model="checkboxModel" />
+                    <UCheckbox label="Completed" v-model="checkboxModel" class="py-1" />
                 </template>
             </div>
         </div>
