@@ -13,7 +13,7 @@ const $toast = useToast();
 const recommendationAnswerService = new RecommendationAnswerService(config.public.apiBase as string);
 
 const tags = computed(() => {
-    return tool.value.tags.split(",");
+    return tool.value.tags?.split(",");
 });
 
 const recommendationIsDone = computed(() => {
@@ -198,13 +198,13 @@ onMounted(() => {
             <div class="text-lg font-bold">
                 {{ tool.title }}
             </div>
-            <i class="text-sm">
+            <i v-if="tool.type" class="text-sm">
                 {{ tool.type }}
             </i>
             <p class="my-4 flex-grow">
                 {{ tool.description }}
             </p>
-            <div class="flex justify-end mb-3">
+            <div v-if="tags" class="flex justify-end mb-3">
                 <UBadge v-for="tag in tags" size="sm" class="font-bold rounded-full ml-2" :key="tag" variant='soft'>
                     {{ tag }}
                 </UBadge>
