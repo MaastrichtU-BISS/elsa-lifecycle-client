@@ -210,18 +210,18 @@ onMounted(() => {
                 </UBadge>
             </div>
             <div class="flex flex-col gap-4 items-start">
+                <template v-if="tool.url">
+                    <UButton :to="tool.url" label="Visit Tool" icon="lucide-external-link" size="sm" variant="outline"
+                        target="_blank" aria-placeholder="ss" />
+                </template>
                 <template v-if="recommendation && tool.form">
                     <UModal v-model:open="modalOpened" :title="tool.title" :description="tool.description">
-                        <UButton :label="fillInFormMessage" icon="lucide-edit" class="mb-2" size="sm" />
+                        <UButton :label="fillInFormMessage" icon="lucide-edit" size="sm" />
                         <template #body>
                             <QuestionnaireForm :questionnaire="tool.form" :answer="answer?.form"
                                 @on-submit="submitForm" />
                         </template>
                     </UModal>
-                </template>
-                <template v-if="tool.url">
-                    <UButton :to="tool.url" label="Visit Tool" icon="lucide-external-link" size="sm" variant="outline"
-                        target="_blank" aria-placeholder="ss" />
                 </template>
                 <template v-if="recommendation && tool.file_upload">
                     <UInput :id="`recommendation-file-${recommendation?.id}`" type="file" size="sm" class="mt-2"
