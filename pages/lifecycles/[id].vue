@@ -28,21 +28,27 @@ const journalAnswers = ref<(JournalAnswer | undefined)[]>([]);
 const recommendationAnswers = ref<RecommendationAnswer[][]>([]);
 const activeIndex = ref();
 
-// Add indices introduction
+// Add indices Get Started
 const indices = ref([{
-    label: 'Introduction',
-    value: 'introduction',
+    label: 'Get Started',
+    value: 'get-started',
     defaultExpanded: true,
     children: [
         {
-            label: 'General',
-            value: 'introduction-general',
+            label: 'Welcome',
+            value: 'get-started-welcome',
+            icon: 'i-lucide-home',
+            defaultExpanded: true
+        },
+        {
+            label: 'Introduction',
+            value: 'get-started-introduction',
             icon: 'i-lucide-info',
             defaultExpanded: true
         },
         {
             label: 'Journal',
-            value: 'introduction-journal',
+            value: 'get-started-journal',
             icon: 'i-lucide-book-open-text',
             defaultExpanded: true
         }
@@ -302,24 +308,41 @@ onMounted(async () => {
             </USlideover>
 
             <template v-if="activeIndex">
-                <!-- LIFECYCLE GENERAL -->
-                <div v-show="activeIndex.value == 'introduction-general' || activeIndex.value == 'introduction'">
-                    <div class="prose dark:prose-invert lg:prose-xl" v-html="marked.parse(lifeCycle.general)" />
-                    <div class="flex justify-end my-4">
+                <!-- GET STARTED -->
+
+                <!-- WELCOME -->
+                <div v-show="activeIndex.value == 'get-started-welcome' || activeIndex.value == 'get-started'">
+                    <div class="prose dark:prose-invert lg:prose-xl" v-html="marked.parse(lifeCycle.welcome)" />
+                    <div class="flex justify-end my-8">
                         <UButton trailing-icon="i-lucide-arrow-right" size="md" variant="outline"
                             @click="activeIndex = indices[0].children[1]">
+                            Introduction
+                        </UButton>
+                    </div>
+                </div>
+
+                <!-- INTRODUCTION -->
+                <div v-show="activeIndex.value == 'get-started-introduction'">
+                    <div class="prose dark:prose-invert lg:prose-xl" v-html="marked.parse(lifeCycle.introduction)" />
+                    <div class="flex justify-between my-8">
+                        <UButton icon="i-lucide-arrow-left" size="md" variant="outline"
+                            @click="activeIndex = indices[0].children[0]">
+                            Welcome
+                        </UButton>
+                        <UButton trailing-icon="i-lucide-arrow-right" size="md" variant="outline"
+                            @click="activeIndex = indices[0].children[2]">
                             Journal
                         </UButton>
                     </div>
                 </div>
 
-                <!-- LIFECYCLE INTRODUCTION -->
-                <div v-show="activeIndex.value == 'introduction-journal'">
-                    <div class="prose dark:prose-invert lg:prose-xl" v-html="marked.parse(lifeCycle.introduction)" />
+                <!-- JOURNAL -->
+                <div v-show="activeIndex.value == 'get-started-journal'">
+                    <div class="prose dark:prose-invert lg:prose-xl" v-html="marked.parse(lifeCycle.journal)" />
                     <div class="flex justify-between my-8">
                         <UButton icon="i-lucide-arrow-left" size="md" variant="outline"
-                            @click="activeIndex = indices[0].children[0]">
-                            General
+                            @click="activeIndex = indices[0].children[1]">
+                            Introduction
                         </UButton>
                         <UButton trailing-icon="i-lucide-arrow-right" size="md" variant="outline"
                             @click="activeIndex = indices[1].children[0]">
@@ -343,7 +366,7 @@ onMounted(async () => {
                                 @on-submit="(data: any, binaryEvaluation: number) => createOrEditReflectionAnswer(data, binaryEvaluation, index)" />
                             <div class="flex justify-between my-8">
                                 <UButton icon="i-lucide-arrow-left" size="md" variant="outline"
-                                    @click="activeIndex = indices[phase.number - 1].children[1]">
+                                    @click="activeIndex = indices[phase.number - 1].children.at(-1)">
                                     Journal
                                 </UButton>
                                 <UButton trailing-icon="i-lucide-arrow-right" size="md" variant="outline"
