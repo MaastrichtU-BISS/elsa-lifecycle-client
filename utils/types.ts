@@ -25,7 +25,6 @@ export type Phase = {
 
 export type Reflection = {
   id: number;
-  title: string;
   description: string;
   form: string;
   phaseId: number;
@@ -34,8 +33,6 @@ export type Reflection = {
 
 export type Journal = {
   id: number;
-  title: string;
-  description: string;
   form: string;
   phaseId: number;
   Phase?: Phase;

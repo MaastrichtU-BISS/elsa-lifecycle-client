@@ -299,7 +299,8 @@ onMounted(async () => {
 <template>
     <div>
         <section id="content" class="mt-2 mb-8">
-            <USlideover :overlay="false" side="left" :title="lifeCycle.title" :description="lifeCycle.description" :ui="{ overlay: 'max-w-sm' }">
+            <USlideover :overlay="false" side="left" :title="lifeCycle.title" :description="lifeCycle.description"
+                :ui="{ overlay: 'max-w-sm' }">
                 <UButton label="Indices" trailing-icon="i-lucide-square-menu" class="ml-4 fixed left-[1em]" />
 
                 <template #body>
@@ -358,9 +359,10 @@ onMounted(async () => {
                         <!-- PHASE REFLECTION  -->
                         <div
                             v-show="activeIndex.value == `phase${phase.number}-reflection` || activeIndex.value == `phase${phase.number}`">
-                            <!-- Getting the first answer of this reflection. TODO: get the answer from the reflection and the user -->
-                            <h1 class="text-2xl font-bold my-4 text-center">Reflection</h1>
-                            <h2 class="text-xl font-bold text-center mt-2 mb-6">{{ phase.Reflection?.description }}</h2>
+                            <h1 class="text-2xl font-bold my-4 text-center">{{ `Phase ${index + 1} - ${phase.title}` }}
+                            </h1>
+                            <div class="prose dark:prose-invert lg:prose-xl my-6"> {{ phase.Reflection?.description }}</div>
+                            <h2 class="text-xl font-bold text-center my-6">Reflection Questions:</h2>
                             <QuestionnaireForm :questionnaire="phase.Reflection?.form!"
                                 :answer="reflectionAnswers[index]?.form"
                                 @on-submit="(data: any, binaryEvaluation: number) => createOrEditReflectionAnswer(data, binaryEvaluation, index)" />
@@ -378,8 +380,9 @@ onMounted(async () => {
 
                         <!-- PHASE RECOMMENDATIONS -->
                         <div v-show="activeIndex.value == `phase${phase.number}-recommendations`">
-                            <h1 class="text-2xl font-bold my-4 text-center">Recommended Tools</h1>
-                            <h2 class="text-xl font-bold text-center mt-2 mb-6">{{ phase.Reflection?.description }}</h2>
+                            <h1 class="text-2xl font-bold my-4 text-center">{{ `Phase ${index + 1} - ${phase.title}` }}
+                            </h1>
+                            <h2 class="text-xl font-bold text-center mt-2 mb-6">Recommended Tools</h2>
                             <ToolList :tools="recommendations[index]?.map(r => r.Tool!) || []"
                                 v-model:recommendations="recommendations[index]"
                                 v-model:answers="recommendationAnswers[index]" />
@@ -398,8 +401,9 @@ onMounted(async () => {
 
                         <!-- PHASE JOURNAL -->
                         <div v-show="activeIndex.value == `phase${phase.number}-journal`">
-                            <h1 class="text-2xl font-bold my-4 text-center">Journal</h1>
-                            <h2 class="text-xl font-bold text-center mt-2 mb-6">{{ phase.Journal?.description }}</h2>
+                            <h1 class="text-2xl font-bold my-4 text-center">{{ `Phase ${index + 1} - ${phase.title}` }}
+                            </h1>
+                            <h2 class="text-xl font-bold text-center mt-2 mb-6">Journal</h2>
                             <QuestionnaireForm :questionnaire="phase.Journal?.form!"
                                 :answer="journalAnswers[index]?.form"
                                 @on-submit="(data: any) => createOrEditJournalAnswer(data, index)" />
