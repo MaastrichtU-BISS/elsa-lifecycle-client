@@ -370,7 +370,7 @@ onMounted(async () => {
                         <div
                             v-show="activeIndex.value == `phase${phase.number}-reflection` || activeIndex.value == `phase${phase.number}`">
                             <div class="lifecycle-content">
-                                <h1 class="text-2xl font-bold my-4 text-center">{{ `Phase ${index + 1} - ${phase.title}`
+                                <h1 class="text-2xl font-bold mb-4 text-center">{{ `Phase ${index + 1} - ${phase.title}`
                                 }}
                                 </h1>
                                 <div class="prose dark:prose-invert lg:prose-xl my-6"> {{ phase.Reflection?.description
@@ -395,7 +395,7 @@ onMounted(async () => {
                         <!-- PHASE RECOMMENDATIONS -->
                         <div v-show="activeIndex.value == `phase${phase.number}-recommendations`">
                             <div class="lifecycle-content">
-                                <h1 class="text-2xl font-bold my-4 text-center">{{ `Phase ${index + 1} - ${phase.title}`
+                                <h1 class="text-2xl font-bold mb-4 text-center">{{ `Phase ${index + 1} - ${phase.title}`
                                 }}
                                 </h1>
                                 <h2 class="text-xl font-bold text-center mt-2 mb-6">Recommended Tools</h2>
@@ -420,7 +420,7 @@ onMounted(async () => {
                         <!-- PHASE JOURNAL -->
                         <div v-show="activeIndex.value == `phase${phase.number}-journal`">
                             <div class="lifecycle-content">
-                                <h1 class="text-2xl font-bold my-4 text-center">{{ `Phase ${index + 1} - ${phase.title}`
+                                <h1 class="text-2xl font-bold mb-4 text-center">{{ `Phase ${index + 1} - ${phase.title}`
                                     }}
                                 </h1>
                                 <h2 class="text-xl font-bold text-center mt-2 mb-6">Journal</h2>
