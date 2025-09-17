@@ -81,7 +81,7 @@ const binaryEvaluation = () => {
                 </UFormField>
 
                 <UButton type="submit" class="flex justify-self-center" icon="i-lucide-save">
-                    Submit
+                    Save
                 </UButton>
             </UForm>
         </template>
