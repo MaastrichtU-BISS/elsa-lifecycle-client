@@ -40,7 +40,9 @@ const columns: TableColumn<Lifecycle>[] = [
     {
         accessorKey: 'description',
         header: 'Description',
-        cell: ({ row }) => `${row.getValue('description')}`
+        cell: ({ row }) => {
+             return h('div', { style: 'white-space: pre-wrap' }, `${row.getValue('description')}`)
+        }
     },
     {
         id: 'actions',
