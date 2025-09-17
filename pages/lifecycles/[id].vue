@@ -318,7 +318,7 @@ onMounted(async () => {
                     </div>
 
                     <div class="flex justify-end my-8">
-                        <UButton trailing-icon="i-lucide-arrow-right" size="md" variant="outline"
+                        <UButton trailing-icon="i-lucide-arrow-right" size="md" variant="outline" class="lifecycle-navigate-btn justify-between"
                             @click="activeIndex = indices[0].children[1]">
                             Introduction
                         </UButton>
@@ -333,11 +333,11 @@ onMounted(async () => {
                     </div>
 
                     <div class="flex justify-between my-8">
-                        <UButton icon="i-lucide-arrow-left" size="md" variant="outline"
+                        <UButton icon="i-lucide-arrow-left" size="md" variant="outline" class="lifecycle-navigate-btn justify-between"
                             @click="activeIndex = indices[0].children[0]">
                             Welcome
                         </UButton>
-                        <UButton trailing-icon="i-lucide-arrow-right" size="md" variant="outline"
+                        <UButton trailing-icon="i-lucide-arrow-right" size="md" variant="outline" class="lifecycle-navigate-btn justify-between"
                             @click="activeIndex = indices[0].children[2]">
                             Journal
                         </UButton>
@@ -351,11 +351,11 @@ onMounted(async () => {
                     </div>
 
                     <div class="flex justify-between my-8">
-                        <UButton icon="i-lucide-arrow-left" size="md" variant="outline"
+                        <UButton icon="i-lucide-arrow-left" size="md" variant="outline" class="lifecycle-navigate-btn justify-between"
                             @click="activeIndex = indices[0].children[1]">
                             Introduction
                         </UButton>
-                        <UButton trailing-icon="i-lucide-arrow-right" size="md" variant="outline"
+                        <UButton trailing-icon="i-lucide-arrow-right" size="md" variant="outline" class="lifecycle-navigate-btn justify-between"
                             @click="activeIndex = indices[1].children[0]">
                             Reflection
                         </UButton>
@@ -381,11 +381,11 @@ onMounted(async () => {
                                     @on-submit="(data: any, binaryEvaluation: number) => createOrEditReflectionAnswer(data, binaryEvaluation, index)" />
                             </div>
                             <div class="flex justify-between my-8">
-                                <UButton icon="i-lucide-arrow-left" size="md" variant="outline"
+                                <UButton icon="i-lucide-arrow-left" size="md" variant="outline" class="lifecycle-navigate-btn justify-between"
                                     @click="activeIndex = indices[phase.number - 1].children.at(-1)">
                                     Previous Journal
                                 </UButton>
-                                <UButton trailing-icon="i-lucide-arrow-right" size="md" variant="outline"
+                                <UButton trailing-icon="i-lucide-arrow-right" size="md" variant="outline" class="lifecycle-navigate-btn justify-between"
                                     @click="activeIndex = indices[phase.number].children[1]">
                                     Recommendations
                                 </UButton>
@@ -408,10 +408,10 @@ onMounted(async () => {
                             </div>
 
                             <div class="flex justify-between my-8">
-                                <UButton icon="i-lucide-arrow-left" size="md" variant="outline"
+                                <UButton icon="i-lucide-arrow-left" size="md" variant="outline" class="lifecycle-navigate-btn justify-between"
                                     @click="activeIndex = indices[phase.number].children[0]">
                                     Reflection</UButton>
-                                <UButton trailing-icon="i-lucide-arrow-right" size="md" variant="outline"
+                                <UButton trailing-icon="i-lucide-arrow-right" size="md" variant="outline" class="lifecycle-navigate-btn justify-between"
                                     @click="activeIndex = indices[phase.number].children[2]">Journal
                                 </UButton>
                             </div>
@@ -430,10 +430,10 @@ onMounted(async () => {
                             </div>
 
                             <div class="flex justify-between my-8">
-                                <UButton icon="i-lucide-arrow-left" size="md" variant="outline"
+                                <UButton icon="i-lucide-arrow-left" size="md" variant="outline" class="lifecycle-navigate-btn justify-between"
                                     @click="activeIndex = indices[phase.number].children[1]">
                                     Recommendations</UButton>
-                                <UButton v-if="index < indices.length - 2" trailing-icon="i-lucide-arrow-right"
+                                <UButton v-if="index < indices.length - 2" trailing-icon="i-lucide-arrow-right" class="lifecycle-navigate-btn justify-between"
                                     size="md" variant="outline"
                                     @click="activeIndex = indices[phase.number + 1].children[0]"> Next Phase
                                 </UButton>
@@ -445,8 +445,12 @@ onMounted(async () => {
         </section>
     </div>
 </template>
-<style scoped lang="css">
+<style lang="css">
 .lifecycle-content {
     min-height: calc(100vh - 200px);
+}
+
+.lifecycle-navigate-btn {
+    min-width: 170px !important;
 }
 </style>
