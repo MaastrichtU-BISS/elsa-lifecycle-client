@@ -369,7 +369,7 @@ onMounted(async () => {
                             <div class="flex justify-between my-8">
                                 <UButton icon="i-lucide-arrow-left" size="md" variant="outline"
                                     @click="activeIndex = indices[phase.number - 1].children.at(-1)">
-                                    Journal
+                                    Previous Journal
                                 </UButton>
                                 <UButton trailing-icon="i-lucide-arrow-right" size="md" variant="outline"
                                     @click="activeIndex = indices[phase.number].children[1]">
