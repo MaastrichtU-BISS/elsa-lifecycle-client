@@ -313,7 +313,10 @@ onMounted(async () => {
 
                 <!-- WELCOME -->
                 <div v-show="activeIndex.value == 'get-started-welcome' || activeIndex.value == 'get-started'">
-                    <div class="prose dark:prose-invert lg:prose-xl" v-html="marked.parse(lifeCycle.welcome)" />
+                    <div class="lifecycle-content">
+                        <div class="prose dark:prose-invert lg:prose-xl" v-html="marked.parse(lifeCycle.welcome)" />
+                    </div>
+
                     <div class="flex justify-end my-8">
                         <UButton trailing-icon="i-lucide-arrow-right" size="md" variant="outline"
                             @click="activeIndex = indices[0].children[1]">
@@ -324,7 +327,11 @@ onMounted(async () => {
 
                 <!-- INTRODUCTION -->
                 <div v-show="activeIndex.value == 'get-started-introduction'">
-                    <div class="prose dark:prose-invert lg:prose-xl" v-html="marked.parse(lifeCycle.introduction)" />
+                    <div class="lifecycle-content">
+                        <div class="prose dark:prose-invert lg:prose-xl"
+                            v-html="marked.parse(lifeCycle.introduction)" />
+                    </div>
+
                     <div class="flex justify-between my-8">
                         <UButton icon="i-lucide-arrow-left" size="md" variant="outline"
                             @click="activeIndex = indices[0].children[0]">
@@ -339,7 +346,10 @@ onMounted(async () => {
 
                 <!-- JOURNAL -->
                 <div v-show="activeIndex.value == 'get-started-journal'">
-                    <div class="prose dark:prose-invert lg:prose-xl" v-html="marked.parse(lifeCycle.journal)" />
+                    <div class="lifecycle-content">
+                        <div class="prose dark:prose-invert lg:prose-xl" v-html="marked.parse(lifeCycle.journal)" />
+                    </div>
+
                     <div class="flex justify-between my-8">
                         <UButton icon="i-lucide-arrow-left" size="md" variant="outline"
                             @click="activeIndex = indices[0].children[1]">
@@ -359,13 +369,17 @@ onMounted(async () => {
                         <!-- PHASE REFLECTION  -->
                         <div
                             v-show="activeIndex.value == `phase${phase.number}-reflection` || activeIndex.value == `phase${phase.number}`">
-                            <h1 class="text-2xl font-bold my-4 text-center">{{ `Phase ${index + 1} - ${phase.title}` }}
-                            </h1>
-                            <div class="prose dark:prose-invert lg:prose-xl my-6"> {{ phase.Reflection?.description }}</div>
-                            <h2 class="text-xl font-bold text-center my-6">Reflection Questions:</h2>
-                            <QuestionnaireForm :questionnaire="phase.Reflection?.form!"
-                                :answer="reflectionAnswers[index]?.form"
-                                @on-submit="(data: any, binaryEvaluation: number) => createOrEditReflectionAnswer(data, binaryEvaluation, index)" />
+                            <div class="lifecycle-content">
+                                <h1 class="text-2xl font-bold my-4 text-center">{{ `Phase ${index + 1} - ${phase.title}`
+                                }}
+                                </h1>
+                                <div class="prose dark:prose-invert lg:prose-xl my-6"> {{ phase.Reflection?.description
+                                }}</div>
+                                <h2 class="text-xl font-bold text-center my-6">Reflection Questions:</h2>
+                                <QuestionnaireForm :questionnaire="phase.Reflection?.form!"
+                                    :answer="reflectionAnswers[index]?.form"
+                                    @on-submit="(data: any, binaryEvaluation: number) => createOrEditReflectionAnswer(data, binaryEvaluation, index)" />
+                            </div>
                             <div class="flex justify-between my-8">
                                 <UButton icon="i-lucide-arrow-left" size="md" variant="outline"
                                     @click="activeIndex = indices[phase.number - 1].children.at(-1)">
@@ -380,15 +394,19 @@ onMounted(async () => {
 
                         <!-- PHASE RECOMMENDATIONS -->
                         <div v-show="activeIndex.value == `phase${phase.number}-recommendations`">
-                            <h1 class="text-2xl font-bold my-4 text-center">{{ `Phase ${index + 1} - ${phase.title}` }}
-                            </h1>
-                            <h2 class="text-xl font-bold text-center mt-2 mb-6">Recommended Tools</h2>
-                            <ToolList :tools="recommendations[index]?.map(r => r.Tool!) || []"
-                                v-model:recommendations="recommendations[index]"
-                                v-model:answers="recommendationAnswers[index]" />
-                            <div v-if="recommendations[index]?.length" class="my-4">
-                                <UProgress v-model="recommendationProgress[index].percent" status />
+                            <div class="lifecycle-content">
+                                <h1 class="text-2xl font-bold my-4 text-center">{{ `Phase ${index + 1} - ${phase.title}`
+                                }}
+                                </h1>
+                                <h2 class="text-xl font-bold text-center mt-2 mb-6">Recommended Tools</h2>
+                                <ToolList :tools="recommendations[index]?.map(r => r.Tool!) || []"
+                                    v-model:recommendations="recommendations[index]"
+                                    v-model:answers="recommendationAnswers[index]" />
+                                <div v-if="recommendations[index]?.length" class="my-4">
+                                    <UProgress v-model="recommendationProgress[index].percent" status />
+                                </div>
                             </div>
+
                             <div class="flex justify-between my-8">
                                 <UButton icon="i-lucide-arrow-left" size="md" variant="outline"
                                     @click="activeIndex = indices[phase.number].children[0]">
@@ -401,12 +419,16 @@ onMounted(async () => {
 
                         <!-- PHASE JOURNAL -->
                         <div v-show="activeIndex.value == `phase${phase.number}-journal`">
-                            <h1 class="text-2xl font-bold my-4 text-center">{{ `Phase ${index + 1} - ${phase.title}` }}
-                            </h1>
-                            <h2 class="text-xl font-bold text-center mt-2 mb-6">Journal</h2>
-                            <QuestionnaireForm :questionnaire="phase.Journal?.form!"
-                                :answer="journalAnswers[index]?.form"
-                                @on-submit="(data: any) => createOrEditJournalAnswer(data, index)" />
+                            <div class="lifecycle-content">
+                                <h1 class="text-2xl font-bold my-4 text-center">{{ `Phase ${index + 1} - ${phase.title}`
+                                    }}
+                                </h1>
+                                <h2 class="text-xl font-bold text-center mt-2 mb-6">Journal</h2>
+                                <QuestionnaireForm :questionnaire="phase.Journal?.form!"
+                                    :answer="journalAnswers[index]?.form"
+                                    @on-submit="(data: any) => createOrEditJournalAnswer(data, index)" />
+                            </div>
+
                             <div class="flex justify-between my-8">
                                 <UButton icon="i-lucide-arrow-left" size="md" variant="outline"
                                     @click="activeIndex = indices[phase.number].children[1]">
@@ -423,3 +445,8 @@ onMounted(async () => {
         </section>
     </div>
 </template>
+<style scoped lang="css">
+.lifecycle-content {
+    min-height: calc(100vh - 200px);
+}
+</style>
