@@ -299,7 +299,7 @@ onMounted(async () => {
 <template>
     <div>
         <section id="content" class="mt-2 mb-8">
-            <USlideover :overlay="false" side="left" title="Indices" :ui="{ overlay: 'max-w-sm' }">
+            <USlideover :overlay="false" side="left" :title="lifeCycle.title" :description="lifeCycle.description" :ui="{ overlay: 'max-w-sm' }">
                 <UButton label="Indices" trailing-icon="i-lucide-square-menu" class="ml-4 fixed left-[1em]" />
 
                 <template #body>
