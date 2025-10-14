@@ -8,7 +8,7 @@ const answers = defineModel<RecommendationAnswer[]>('answers', { default: () => 
 
 <template>
     <section id="list" class="flex flex-col gap-4">
-        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 p-4">
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
             <template v-for="(tool, index) in tools" :key="tool.id">
                 <ToolCard v-model:tool="tools[index]" v-model:recommendation="recommendations[index]"
                     v-model:answer="answers[index]" />
