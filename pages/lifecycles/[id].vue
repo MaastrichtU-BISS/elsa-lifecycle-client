@@ -227,7 +227,7 @@ onMounted(async () => {
 
         // Add indices phases
         indices.value.push({
-            label: `Phase ${phase.number} - ${phase.title}`,
+            label: `${phase.title}`,
             value: `phase${phase.number}`,
             defaultExpanded: true,
             children: [
@@ -370,7 +370,7 @@ onMounted(async () => {
                         <div
                             v-show="activeIndex.value == `phase${phase.number}-reflection` || activeIndex.value == `phase${phase.number}`">
                             <div class="lifecycle-content">
-                                <h1 class="text-2xl font-bold mb-1">{{ `Phase ${index + 1} - ${phase.title}`
+                                <h1 class="text-2xl font-bold mb-1">{{ `${phase.title}`
                                 }}
                                 </h1>
                                 <div class="prose dark:prose-invert lg:prose-xl mb-6 text-justify"> {{ phase.Reflection?.description
@@ -395,7 +395,7 @@ onMounted(async () => {
                         <!-- PHASE RECOMMENDATIONS -->
                         <div v-show="activeIndex.value == `phase${phase.number}-recommendations`">
                             <div class="lifecycle-content">
-                                <h1 class="text-2xl font-bold mb-6">{{ `Phase ${index + 1} - ${phase.title}`
+                                <h1 class="text-2xl font-bold mb-6">{{ `${phase.title}`
                                 }}
                                 </h1>
                                 <h2 class="text-xl font-bold mb-2">Recommended Tools</h2>
@@ -420,7 +420,7 @@ onMounted(async () => {
                         <!-- PHASE JOURNAL -->
                         <div v-show="activeIndex.value == `phase${phase.number}-journal`">
                             <div class="lifecycle-content">
-                                <h1 class="text-2xl font-bold mb-6">{{ `Phase ${index + 1} - ${phase.title}`
+                                <h1 class="text-2xl font-bold mb-6">{{ `${phase.title}`
                                     }}
                                 </h1>
                                 <h2 class="text-xl font-bold mb-1">Journal</h2>
