@@ -14,19 +14,19 @@ export type Lifecycle = {
 
 export type Phase = {
   id: number;
-  number: number;
   title: string;
   description: string;
   lifecycleId: number;
   Lifecycle?: Lifecycle;
-  Reflection?: Reflection;
+  Reflections?: Reflection[];
   Journal?: Journal;
 };
 
 export type Reflection = {
   id: number;
   description: string;
-  form: string;
+  title: string;
+  considerations: string;
   phaseId: number;
   Phase?: Phase;
 };
@@ -41,8 +41,8 @@ export type Journal = {
 export type ReflectionAnswer = {
   id: number;
   userId: string;
-  form: string;
-  binaryEvaluation: number;
+  getRecommendations: boolean;
+  answerText: string;
   reflectionId: number;
   Reflection?: Reflection;
 };

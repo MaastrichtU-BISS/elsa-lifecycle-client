@@ -26,20 +26,10 @@ export class LifecycleService {
       const response = await $fetch(`${this.url}/lifecycles/${id}`, {
         method: "GET",
       });
+
       return response as Lifecycle;
     } catch (error) {
       throw new Error(`Failed to fetch lifecycle: ${error}`);
-    }
-  }
-
-  async getPhases(id: number): Promise<Phase[]> {
-    try {
-      const response = await $fetch(`${this.url}/lifecycles/${id}/phases`, {
-        method: "GET",
-      });
-      return response as Phase[];
-    } catch (error) {
-      throw new Error(`Failed to fetch phases: ${error}`);
     }
   }
 }

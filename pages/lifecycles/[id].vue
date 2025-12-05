@@ -228,24 +228,24 @@ onMounted(async () => {
         // Add indices phases
         indices.value.push({
             label: `${phase.title}`,
-            value: `phase${phase.number}`,
+            value: `phase-${phase.title}`,
             defaultExpanded: true,
             children: [
                 {
-                    label: 'Reflection',
-                    value: `phase${phase.number}-reflection`,
-                    icon: 'i-lucide-clipboard-pen-line',
+                    label: 'Introduction',
+                    value: `phase${phase.title}-introduction`,
+                    icon: 'i-lucide-home',
                     defaultExpanded: true,
                 },
-                {
-                    label: 'Recommendations',
-                    value: `phase${phase.number}-recommendations`,
-                    icon: 'i-lucide-wrench',
+                ...(phase.Reflections?.map(r => ({
+                    label: r.title,
+                    value: `phase${r.title}-reflection`,
+                    icon: 'i-lucide-circle-question-mark',
                     defaultExpanded: true,
-                },
+                })) || []),
                 {
                     label: 'Journal',
-                    value: `phase${phase.number}-journal`,
+                    value: `phase${phase.title}-journal`,
                     icon: 'i-lucide-book-open-text',
                     defaultExpanded: true,
                 }
@@ -259,7 +259,7 @@ onMounted(async () => {
             }
         }
 
-        if (auth.token && phase.Reflection) {
+        if (auth.token && phase.Reflections) {
 
             const refAnswer = await reflectionAnswerService.GetReflectionAnswerByUserIdAndReflectionID(phase.Reflection?.id);
             // Add reflection answers
@@ -318,7 +318,8 @@ onMounted(async () => {
                     </div>
 
                     <div class="flex justify-end my-8">
-                        <UButton trailing-icon="i-lucide-arrow-right" size="md" variant="outline" class="lifecycle-navigate-btn justify-between"
+                        <UButton trailing-icon="i-lucide-arrow-right" size="md" variant="outline"
+                            class="lifecycle-navigate-btn justify-between"
                             @click="activeIndex = indices[0].children[1]">
                             Introduction
                         </UButton>
@@ -333,11 +334,13 @@ onMounted(async () => {
                     </div>
 
                     <div class="flex justify-between my-8">
-                        <UButton icon="i-lucide-arrow-left" size="md" variant="outline" class="lifecycle-navigate-btn justify-between"
+                        <UButton icon="i-lucide-arrow-left" size="md" variant="outline"
+                            class="lifecycle-navigate-btn justify-between"
                             @click="activeIndex = indices[0].children[0]">
                             Welcome
                         </UButton>
-                        <UButton trailing-icon="i-lucide-arrow-right" size="md" variant="outline" class="lifecycle-navigate-btn justify-between"
+                        <UButton trailing-icon="i-lucide-arrow-right" size="md" variant="outline"
+                            class="lifecycle-navigate-btn justify-between"
                             @click="activeIndex = indices[0].children[2]">
                             Journal
                         </UButton>
@@ -351,11 +354,13 @@ onMounted(async () => {
                     </div>
 
                     <div class="flex justify-between my-8">
-                        <UButton icon="i-lucide-arrow-left" size="md" variant="outline" class="lifecycle-navigate-btn justify-between"
+                        <UButton icon="i-lucide-arrow-left" size="md" variant="outline"
+                            class="lifecycle-navigate-btn justify-between"
                             @click="activeIndex = indices[0].children[1]">
                             Introduction
                         </UButton>
-                        <UButton trailing-icon="i-lucide-arrow-right" size="md" variant="outline" class="lifecycle-navigate-btn justify-between"
+                        <UButton trailing-icon="i-lucide-arrow-right" size="md" variant="outline"
+                            class="lifecycle-navigate-btn justify-between"
                             @click="activeIndex = indices[1].children[0]">
                             Reflection
                         </UButton>
@@ -363,65 +368,73 @@ onMounted(async () => {
                 </div>
 
                 <!-- PHASES -->
-                <template v-if="lifeCycle?.Phases?.length">
-                    <div v-for="(phase, index) in lifeCycle.Phases" :key="phase.id">
+                <template v-for="(phase, phaseIndex) in lifeCycle.Phases" :key="phase.id">
 
+                    <template v-for="reflection in phase.Reflections" :key="reflection.title">
                         <!-- PHASE REFLECTION  -->
                         <div
-                            v-show="activeIndex.value == `phase${phase.number}-reflection` || activeIndex.value == `phase${phase.number}`">
+                            v-show="activeIndex.value == `phase${phaseIndex}-reflection` || activeIndex.value == `phase${phaseIndex}`">
                             <div class="lifecycle-content">
                                 <h1 class="text-2xl font-bold mb-1">{{ `${phase.title}`
                                 }}
                                 </h1>
-                                <div class="prose dark:prose-invert lg:prose-xl mb-6 text-justify"> {{ phase.Reflection?.description
-                                }}</div>
+
+
+                                <div class="prose dark:prose-invert lg:prose-xl mb-6 text-justify"> {{
+                                    reflection.description
+                                    }}</div>
                                 <h2 class="text-xl font-bold mb-1">Reflection Questions</h2>
-                                <QuestionnaireForm :questionnaire="phase.Reflection?.form!"
-                                    :answer="reflectionAnswers[index]?.form"
-                                    @on-submit="(data: any, binaryEvaluation: number) => createOrEditReflectionAnswer(data, binaryEvaluation, index)" />
+                                {{ reflection.considerations }}
+                                <!-- <QuestionnaireForm :questionnaire="phase.Reflection?.form!"
+                                        :answer="reflectionAnswers[phaseIndex]?.form"
+                                        @on-submit="(data: any, binaryEvaluation: number) => createOrEditReflectionAnswer(data, binaryEvaluation, index)" /> -->
                             </div>
                             <div class="flex justify-between my-8">
-                                <UButton icon="i-lucide-arrow-left" size="md" variant="outline" class="lifecycle-navigate-btn justify-between"
-                                    @click="activeIndex = indices[phase.number - 1].children.at(-1)">
+                                <UButton icon="i-lucide-arrow-left" size="md" variant="outline"
+                                    class="lifecycle-navigate-btn justify-between"
+                                    @click="activeIndex = indices[phaseIndex].children.at(-1)">
                                     Previous Journal
                                 </UButton>
-                                <UButton trailing-icon="i-lucide-arrow-right" size="md" variant="outline" class="lifecycle-navigate-btn justify-between"
-                                    @click="activeIndex = indices[phase.number].children[1]">
+                                <UButton trailing-icon="i-lucide-arrow-right" size="md" variant="outline"
+                                    class="lifecycle-navigate-btn justify-between"
+                                    @click="activeIndex = indices[phaseIndex].children[1]">
                                     Recommendations
                                 </UButton>
                             </div>
                         </div>
 
                         <!-- PHASE RECOMMENDATIONS -->
-                        <div v-show="activeIndex.value == `phase${phase.number}-recommendations`">
+                        <div v-show="activeIndex.value == `phase${phaseIndex}-recommendations`">
                             <div class="lifecycle-content">
                                 <h1 class="text-2xl font-bold mb-6">{{ `${phase.title}`
                                 }}
                                 </h1>
                                 <h2 class="text-xl font-bold mb-2">Recommended Tools</h2>
-                                <ToolList :tools="recommendations[index]?.map(r => r.Tool!) || []"
-                                    v-model:recommendations="recommendations[index]"
-                                    v-model:answers="recommendationAnswers[index]" />
-                                <div v-if="recommendations[index]?.length" class="my-4">
-                                    <UProgress v-model="recommendationProgress[index].percent" status />
-                                </div>
+                                <!-- <ToolList :tools="recommendations[index]?.map(r => r.Tool!) || []"
+                                        v-model:recommendations="recommendations[index]"
+                                        v-model:answers="recommendationAnswers[index]" />
+                                    <div v-if="recommendations[index]?.length" class="my-4">
+                                        <UProgress v-model="recommendationProgress[index].percent" status />
+                                    </div> -->
                             </div>
 
                             <div class="flex justify-between my-8">
-                                <UButton icon="i-lucide-arrow-left" size="md" variant="outline" class="lifecycle-navigate-btn justify-between"
+                                <UButton icon="i-lucide-arrow-left" size="md" variant="outline"
+                                    class="lifecycle-navigate-btn justify-between"
                                     @click="activeIndex = indices[phase.number].children[0]">
                                     Reflection</UButton>
-                                <UButton trailing-icon="i-lucide-arrow-right" size="md" variant="outline" class="lifecycle-navigate-btn justify-between"
+                                <UButton trailing-icon="i-lucide-arrow-right" size="md" variant="outline"
+                                    class="lifecycle-navigate-btn justify-between"
                                     @click="activeIndex = indices[phase.number].children[2]">Journal
                                 </UButton>
                             </div>
                         </div>
 
                         <!-- PHASE JOURNAL -->
-                        <div v-show="activeIndex.value == `phase${phase.number}-journal`">
+                        <div v-show="activeIndex.value == `phase${phaseIndex}-journal`">
                             <div class="lifecycle-content">
                                 <h1 class="text-2xl font-bold mb-6">{{ `${phase.title}`
-                                    }}
+                                }}
                                 </h1>
                                 <h2 class="text-xl font-bold mb-1">Journal</h2>
                                 <QuestionnaireForm :questionnaire="phase.Journal?.form!"
@@ -430,16 +443,17 @@ onMounted(async () => {
                             </div>
 
                             <div class="flex justify-between my-8">
-                                <UButton icon="i-lucide-arrow-left" size="md" variant="outline" class="lifecycle-navigate-btn justify-between"
+                                <UButton icon="i-lucide-arrow-left" size="md" variant="outline"
+                                    class="lifecycle-navigate-btn justify-between"
                                     @click="activeIndex = indices[phase.number].children[1]">
                                     Recommendations</UButton>
-                                <UButton v-if="index < indices.length - 2" trailing-icon="i-lucide-arrow-right" class="lifecycle-navigate-btn justify-between"
-                                    size="md" variant="outline"
+                                <UButton v-if="index < indices.length - 2" trailing-icon="i-lucide-arrow-right"
+                                    class="lifecycle-navigate-btn justify-between" size="md" variant="outline"
                                     @click="activeIndex = indices[phase.number + 1].children[0]"> Next Phase
                                 </UButton>
                             </div>
                         </div>
-                    </div>
+                    </template>
                 </template>
             </template>
         </section>
