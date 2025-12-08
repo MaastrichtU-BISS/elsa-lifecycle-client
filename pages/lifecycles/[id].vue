@@ -75,7 +75,6 @@ const editReflectionAnswer = async (data: any, reflectionId: number) => {
     try {
         const newAnswer: Partial<ReflectionAnswer> = {
             form: JSON.stringify(data),
-            binaryEvaluation: binaryEvaluation,
         }
         const response = await reflectionAnswerService.editReflectionAnswer(newAnswer, reflectionId);
         toast.add({ title: 'Success', description: 'The form has been edited.', color: 'success' });
@@ -110,7 +109,7 @@ const createOrEditReflectionAnswer = async (data: any, phaseIndex: number, refle
 
     if (answer) {
         // // update answer
-        // reflectionAnswers.value[phaseIndex][reflectionIndex] = answer;
+        reflectionAnswers.value[phaseIndex][reflectionIndex] = answer;
 
         // // update recommended tools
         // const phaseRecommendations = await recommendationService.getRecommendations(reflectionId);
@@ -171,7 +170,7 @@ const editJournalAnswer = async (data: any, journalId: number) => {
     }
 }
 
-const createOrEditJournalAnswer = async (data: any, index: number) => {
+const createOrEditJournalAnswer = async (data: any, phaseIndex: number) => {
     if (!lifeCycle.value.Phases?.length) throw new Error("Lifecycle has no phases");
 
     if (!auth.token) {
@@ -179,14 +178,14 @@ const createOrEditJournalAnswer = async (data: any, index: number) => {
         return
     }
 
-    const phase = lifeCycle.value.Phases[index];
+    const phase = lifeCycle.value.Phases[phaseIndex];
     const journalId = phase.Journal?.id;
 
-    if (!journalId) throw new Error(`Phase ${phase.number} has no journal`);
+    if (!journalId) throw new Error(`Phase ${phase.title} has no journal`);
 
     let answer: JournalAnswer | undefined;
 
-    if (journalAnswers.value[index]?.form) {
+    if (journalAnswers.value[phaseIndex]?.form) {
         answer = await editJournalAnswer(data, journalId);
     } else {
         answer = await createJournalAnswer(data, journalId);
@@ -194,7 +193,7 @@ const createOrEditJournalAnswer = async (data: any, index: number) => {
 
     if (answer) {
         // update answer
-        journalAnswers.value[index] = answer;
+        journalAnswers.value[phaseIndex] = answer;
     }
 }
 
@@ -202,6 +201,14 @@ const createOrEditJournalAnswer = async (data: any, index: number) => {
 
 const updateRecommendationAnswer = (newRecommendationAnswer: any, answerIndex: number, index: number) => {
     recommendationAnswers.value[index][answerIndex] = newRecommendationAnswer;
+}
+
+function getBackIndex(index: number, childrenIndex: number) {
+    return childrenIndex > 0 ? indices.value[index].children[childrenIndex - 1] : indices.value[index - 1].children.at(-1);
+}
+
+function getNextIndex(index: number, childrenIndex: number) {
+    return childrenIndex < indices.value[index].children.length - 1 ? indices.value[index].children[childrenIndex + 1] : indices.value[index + 1]?.children[0]; 
 }
 
 // utils
@@ -296,8 +303,7 @@ onMounted(async () => {
     // Set active index, Lifecycle General by default
     activeIndex.value = hashIndex ?? indices.value[0].children[0];
 
-    console.log(lifeCycle.value);
-    console.log(reflectionAnswers.value);
+    console.log(indices.value);
 })
 
 </script>
@@ -326,8 +332,8 @@ onMounted(async () => {
                     <div class="flex justify-end my-8">
                         <UButton trailing-icon="i-lucide-arrow-right" size="md" variant="outline"
                             class="lifecycle-navigate-btn justify-between"
-                            @click="activeIndex = indices[0].children[1]">
-                            Introduction
+                            @click="activeIndex = getNextIndex(0, 0)">
+                            {{ getNextIndex(0, 0)?.label }}
                         </UButton>
                     </div>
                 </div>
@@ -342,13 +348,12 @@ onMounted(async () => {
                     <div class="flex justify-between my-8">
                         <UButton icon="i-lucide-arrow-left" size="md" variant="outline"
                             class="lifecycle-navigate-btn justify-between"
-                            @click="activeIndex = indices[0].children[0]">
-                            Welcome
-                        </UButton>
+                            @click="activeIndex = getBackIndex(0, 1)">
+                            {{ getBackIndex(0, 1)?.label }}</UButton>
                         <UButton trailing-icon="i-lucide-arrow-right" size="md" variant="outline"
                             class="lifecycle-navigate-btn justify-between"
-                            @click="activeIndex = indices[0].children[2]">
-                            Journal
+                            @click="activeIndex = getNextIndex(0, 1)">
+                            {{ getNextIndex(0, 1)?.label }}
                         </UButton>
                     </div>
                 </div>
@@ -362,13 +367,12 @@ onMounted(async () => {
                     <div class="flex justify-between my-8">
                         <UButton icon="i-lucide-arrow-left" size="md" variant="outline"
                             class="lifecycle-navigate-btn justify-between"
-                            @click="activeIndex = indices[0].children[1]">
-                            Introduction
-                        </UButton>
-                        <UButton trailing-icon="i-lucide-arrow-right" size="md" variant="outline"
+                            @click="activeIndex = getBackIndex(0, 2)">
+                            {{ getBackIndex(0, 2)?.label }}</UButton>
+                        <UButton v-if="lifeCycle.Phases?.length" trailing-icon="i-lucide-arrow-right" size="md" variant="outline"
                             class="lifecycle-navigate-btn justify-between"
-                            @click="activeIndex = indices[1].children[0]">
-                            Reflection
+                            @click="activeIndex = getNextIndex(0, 2)">
+                            {{ getNextIndex(0, 2)?.label }}
                         </UButton>
                     </div>
                 </div>
@@ -376,18 +380,30 @@ onMounted(async () => {
                 <!-- PHASES -->
                 <template v-for="(phase, phaseIndex) in lifeCycle.Phases" :key="phase.id">
 
-                    <template v-if="activeIndex.value == `phase${phase.title}-introduction`">
+                    <div v-show="activeIndex.value == `phase${phase.title}-introduction`">
                         <!-- PHASE INTRODUCTION  -->
                         <div class="lifecycle-content">
                             <h1 class="text-2xl font-bold mb-6">{{ `${phase.title}`
-                            }}
+                                }}
                             </h1>
 
                             <div class="prose dark:prose-invert lg:prose-xl mb-6 text-justify"> {{
                                 phase.description
-                                }}</div>
+                            }}</div>
                         </div>
-                    </template>
+
+                        <div class="flex justify-between my-8">
+                            <UButton icon="i-lucide-arrow-left" size="md" variant="outline"
+                                class="lifecycle-navigate-btn justify-between"
+                                @click="activeIndex = getBackIndex(phaseIndex + 1, 0)">
+                                {{ getBackIndex(phaseIndex + 1, 0)?.label }}</UButton>
+                            <UButton v-if="phase.Reflections?.length" trailing-icon="i-lucide-arrow-right"
+                                class="lifecycle-navigate-btn justify-between" size="md" variant="outline"
+                                @click="activeIndex = getNextIndex(phaseIndex + 1, 0)"> {{ getNextIndex(phaseIndex + 1, 0)?.label
+                                }}
+                            </UButton>
+                        </div>
+                    </div>
 
                     <!-- REFLECTIONS -->
                     <template v-for="(reflection, reflectionIndex) in phase.Reflections" :key="reflection.title">
@@ -395,13 +411,13 @@ onMounted(async () => {
                         <div v-show="activeIndex.value == `phase${reflection.title}-reflection`">
                             <div class="lifecycle-content">
                                 <h1 class="text-2xl font-bold mb-1">{{ `${reflection.title}`
-                                    }}
+                                }}
                                 </h1>
 
 
                                 <div class="prose dark:prose-invert lg:prose-xl mb-6 text-justify"> {{
                                     reflection.description
-                                    }}</div>
+                                }}</div>
 
                                 <p class="font-semibold mt-4">In your answer, you might consider:</p>
 
@@ -413,18 +429,13 @@ onMounted(async () => {
                                 </ul>
 
                                 <QuestionnaireForm :questionnaire="reflection.form!"
-                                        :answer="reflectionAnswers[phaseIndex][reflectionIndex]?.form"
-                                        @on-submit="(data: any) => createOrEditReflectionAnswer(data, phaseIndex, reflectionIndex)" />
+                                    :answer="reflectionAnswers[phaseIndex][reflectionIndex]?.form"
+                                    @on-submit="(data: any) => createOrEditReflectionAnswer(data, phaseIndex, reflectionIndex)" />
                             </div>
 
-                        </div>
+                            <!-- RECOMMENDATIONS -->
+                            <div v-show="reflectionAnswers[phaseIndex][reflectionIndex]?.id">
 
-                        <!-- RECOMMENDATIONS -->
-                        <div v-show="reflectionAnswers[phaseIndex][reflectionIndex]?.id">
-                            <div class="lifecycle-content">
-                                <h1 class="text-2xl font-bold mb-6">{{ `${phase.title}`
-                                    }}
-                                </h1>
                                 <h2 class="text-xl font-bold mb-2">Recommended Tools</h2>
                                 <!-- <ToolList :tools="recommendations[index]?.map(r => r.Tool!) || []"
                                         v-model:recommendations="recommendations[index]"
@@ -437,54 +448,43 @@ onMounted(async () => {
                             <div class="flex justify-between my-8">
                                 <UButton icon="i-lucide-arrow-left" size="md" variant="outline"
                                     class="lifecycle-navigate-btn justify-between"
-                                    @click="activeIndex = indices[phaseIndex].children[0]">
-                                    Reflection</UButton>
+                                    @click="activeIndex = getBackIndex(phaseIndex + 1, reflectionIndex + 1)">
+                                    {{  getBackIndex(phaseIndex + 1, reflectionIndex + 1)?.label
+                                    }}</UButton>
                                 <UButton trailing-icon="i-lucide-arrow-right" size="md" variant="outline"
                                     class="lifecycle-navigate-btn justify-between"
-                                    @click="activeIndex = indices[phaseIndex].children[2]">Journal
+                                    @click="activeIndex = getNextIndex(phaseIndex + 1, reflectionIndex + 1)">
+                                    {{ getNextIndex(phaseIndex + 1, reflectionIndex + 1)?.label
+                                    }}
                                 </UButton>
                             </div>
                         </div>
                     </template>
 
                     <!-- PHASE JOURNAL -->
-                    <div v-show="activeIndex.value == `phase${phaseIndex}-journal`">
+                    <div v-show="activeIndex.value == `phase${phase.title}-journal`">
                         <div class="lifecycle-content">
                             <h1 class="text-2xl font-bold mb-6">{{ `${phase.title}`
-                            }}
+                                }}
                             </h1>
                             <h2 class="text-xl font-bold mb-1">Journal</h2>
-                            <!-- <QuestionnaireForm :questionnaire="phase.Journal?.form!"
-                                :answer="journalAnswers[index]?.form"
-                                @on-submit="(data: any) => createOrEditJournalAnswer(data, index)" /> -->
+                            <QuestionnaireForm :questionnaire="phase.Journal?.form!"
+                                :answer="journalAnswers[phaseIndex]?.form"
+                                @on-submit="(data: any) => createOrEditJournalAnswer(data, phaseIndex)" />
                         </div>
 
                         <div class="flex justify-between my-8">
                             <UButton icon="i-lucide-arrow-left" size="md" variant="outline"
                                 class="lifecycle-navigate-btn justify-between"
-                                @click="activeIndex = indices[phaseIndex].children[1]">
-                                Recommendations</UButton>
-                            <UButton v-if="index < indices.length - 2" trailing-icon="i-lucide-arrow-right"
+                                @click="activeIndex = getBackIndex(phaseIndex + 1, phase.Reflections!.length + 1)">
+                                {{ getBackIndex(phaseIndex + 1, phase.Reflections!.length + 1)?.label }}</UButton>
+                            <UButton v-if="phaseIndex < indices.length - 2" trailing-icon="i-lucide-arrow-right"
                                 class="lifecycle-navigate-btn justify-between" size="md" variant="outline"
-                                @click="activeIndex = indices[phaseIndex + 1].children[0]"> Next Phase
-                            </UButton>
-                        </div>
-
-                        <div class="flex justify-between my-8">
-                            <UButton icon="i-lucide-arrow-left" size="md" variant="outline"
-                                class="lifecycle-navigate-btn justify-between"
-                                @click="activeIndex = indices[phaseIndex].children.at(-1)">
-                                Previous Journal
-                            </UButton>
-                            <UButton trailing-icon="i-lucide-arrow-right" size="md" variant="outline"
-                                class="lifecycle-navigate-btn justify-between"
-                                @click="activeIndex = indices[phaseIndex].children[1]">
-                                Recommendations
+                                @click="activeIndex = getNextIndex(phaseIndex + 1, phase.Reflections!.length + 1)"> {{ getNextIndex(phaseIndex + 1, phase.Reflections!.length + 1)?.label
+                                }}
                             </UButton>
                         </div>
                     </div>
-
-
                 </template>
             </template>
         </section>
