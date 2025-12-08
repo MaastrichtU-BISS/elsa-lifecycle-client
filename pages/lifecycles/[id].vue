@@ -23,7 +23,7 @@ const recommendationAnswerService = new RecommendationAnswerService(config.publi
 
 const lifeCycle = ref<Lifecycle>(await lifecycleService.getLifecycleById(lifecycleId));
 const recommendations = ref<Recommendation[][]>([]);
-const reflectionAnswers = ref<(ReflectionAnswer | undefined)[]>([]);
+const reflectionAnswers = ref<(ReflectionAnswer | undefined)[][]>([]);
 const journalAnswers = ref<(JournalAnswer | undefined)[]>([]);
 const recommendationAnswers = ref<RecommendationAnswer[][]>([]);
 const activeIndex = ref();
@@ -56,13 +56,12 @@ const indices = ref([{
 }]);
 
 // Handle Reflections 
-const createReflectionAnswer = async (data: any, binaryEvaluation: number, reflectionId: number) => {
+const createReflectionAnswer = async (data: any, reflectionId: number) => {
 
     try {
         const newAnswer: Omit<ReflectionAnswer, "id" | "userId"> = {
             reflectionId: reflectionId,
             form: JSON.stringify(data),
-            binaryEvaluation: binaryEvaluation,
         }
         const response = await reflectionAnswerService.createReflectionAnswer(newAnswer);
         toast.add({ title: 'Success', description: 'The form has been submitted.', color: 'success' });
@@ -72,7 +71,7 @@ const createReflectionAnswer = async (data: any, binaryEvaluation: number, refle
     }
 };
 
-const editReflectionAnswer = async (data: any, binaryEvaluation: number, reflectionId: number) => {
+const editReflectionAnswer = async (data: any, reflectionId: number) => {
     try {
         const newAnswer: Partial<ReflectionAnswer> = {
             form: JSON.stringify(data),
@@ -86,7 +85,8 @@ const editReflectionAnswer = async (data: any, binaryEvaluation: number, reflect
     }
 }
 
-const createOrEditReflectionAnswer = async (data: any, binaryEvaluation: number, index: number) => {
+const createOrEditReflectionAnswer = async (data: any, phaseIndex: number, reflectionIndex: number) => {
+
     if (!lifeCycle.value.Phases?.length) throw new Error("Lifecycle has no phases");
 
     if (!auth.token) {
@@ -94,36 +94,37 @@ const createOrEditReflectionAnswer = async (data: any, binaryEvaluation: number,
         return
     }
 
-    const phase = lifeCycle.value.Phases[index];
-    const reflectionId = phase.Reflection?.id;
+    const phase = lifeCycle.value.Phases[phaseIndex];
 
-    if (!reflectionId) throw new Error(`Phase ${phase.number} has no reflection`);
+    if (!phase.Reflections?.length) throw new Error(`Phase ${phase.title} has no reflections`);
+
+    const reflectionId = phase.Reflections[reflectionIndex].id;
 
     let answer: ReflectionAnswer | undefined;
 
-    if (reflectionAnswers.value[index]?.form) {
-        answer = await editReflectionAnswer(data, binaryEvaluation, reflectionId);
+    if (reflectionAnswers.value[phaseIndex][reflectionIndex]?.id) {
+        answer = await editReflectionAnswer(data, reflectionId);
     } else {
-        answer = await createReflectionAnswer(data, binaryEvaluation, reflectionId);
+        answer = await createReflectionAnswer(data, reflectionId);
     }
 
     if (answer) {
-        // update answer
-        reflectionAnswers.value[index] = answer;
+        // // update answer
+        // reflectionAnswers.value[phaseIndex][reflectionIndex] = answer;
 
-        // update recommended tools
-        const phaseRecommendations = await recommendationService.getRecommendations(reflectionId, answer.binaryEvaluation);
-        recommendations.value[index] = phaseRecommendations;
+        // // update recommended tools
+        // const phaseRecommendations = await recommendationService.getRecommendations(reflectionId);
+        // recommendations.value[phaseIndex][reflectionIndex] = phaseRecommendations;
 
-        // update recommendation answers
-        // TODO: optimize this to do it in a single query
-        const promises: Promise<RecommendationAnswer>[] = [];
+        // // update recommendation answers
+        // // TODO: optimize this to do it in a single query
+        // const promises: Promise<RecommendationAnswer>[] = [];
 
-        phaseRecommendations.forEach((phaseRec: Recommendation) => {
-            promises.push(recommendationAnswerService.GetRecommendationAnswerByUserIdAndRecommendationID(phaseRec.id));
-        });
+        // phaseRecommendations.forEach((phaseRec: Recommendation) => {
+        //     promises.push(recommendationAnswerService.GetRecommendationAnswerByUserIdAndRecommendationID(phaseRec.id));
+        // });
 
-        recommendationAnswers.value[index] = await Promise.all(promises);
+        // recommendationAnswers.value[phaseIndex][reflectionIndex] = await Promise.all(promises);
     }
 };
 
@@ -142,7 +143,7 @@ const recommendationProgress = computed(() => {
     return res;
 });
 
-// Handle Journal
+// Handle Journals
 const createJournalAnswer = async (data: any, journalId: number) => {
     try {
         const newAnswer: Omit<JournalAnswer, "id" | "userId"> = {
@@ -259,25 +260,27 @@ onMounted(async () => {
             }
         }
 
-        if (auth.token && phase.Reflections) {
+        if (auth.token && phase.Reflections?.length) {
+            reflectionAnswers.value.push([]);
+            for (const reflection of phase.Reflections) {
+                const refAnswer = await reflectionAnswerService.GetReflectionAnswerByUserIdAndReflectionID(reflection.id);
+                // Add reflection answers
+                if (refAnswer) {
+                    reflectionAnswers.value.at(-1)?.push(refAnswer);
 
-            const refAnswer = await reflectionAnswerService.GetReflectionAnswerByUserIdAndReflectionID(phase.Reflection?.id);
-            // Add reflection answers
-            if (refAnswer) {
-                reflectionAnswers.value.push(refAnswer);
+                    // // Add recommended tools
+                    // const phaseRecommendations = await recommendationService.getRecommendations(reflection.id);
+                    // recommendations.value.push(phaseRecommendations);
 
-                // Add recommended tools
-                const phaseRecommendations = await recommendationService.getRecommendations(phase.Reflection.id, refAnswer.binaryEvaluation);
-                recommendations.value.push(phaseRecommendations);
+                    // // TODO: optimize this to do it in a single query
+                    // const promises: Promise<RecommendationAnswer>[] = [];
 
-                // TODO: optimize this to do it in a single query
-                const promises: Promise<RecommendationAnswer>[] = [];
+                    // phaseRecommendations.forEach((phaseRec: Recommendation) => {
+                    //     promises.push(recommendationAnswerService.GetRecommendationAnswerByUserIdAndRecommendationID(phaseRec.id));
+                    // });
 
-                phaseRecommendations.forEach((phaseRec: Recommendation) => {
-                    promises.push(recommendationAnswerService.GetRecommendationAnswerByUserIdAndRecommendationID(phaseRec.id));
-                });
-
-                recommendationAnswers.value.push(await Promise.all(promises));
+                    // recommendationAnswers.value.push(await Promise.all(promises));
+                }
             }
         }
 
@@ -292,6 +295,9 @@ onMounted(async () => {
 
     // Set active index, Lifecycle General by default
     activeIndex.value = hashIndex ?? indices.value[0].children[0];
+
+    console.log(lifeCycle.value);
+    console.log(reflectionAnswers.value);
 })
 
 </script>
@@ -370,44 +376,54 @@ onMounted(async () => {
                 <!-- PHASES -->
                 <template v-for="(phase, phaseIndex) in lifeCycle.Phases" :key="phase.id">
 
-                    <template v-for="reflection in phase.Reflections" :key="reflection.title">
-                        <!-- PHASE REFLECTION  -->
-                        <div
-                            v-show="activeIndex.value == `phase${phaseIndex}-reflection` || activeIndex.value == `phase${phaseIndex}`">
+                    <template v-if="activeIndex.value == `phase${phase.title}-introduction`">
+                        <!-- PHASE INTRODUCTION  -->
+                        <div class="lifecycle-content">
+                            <h1 class="text-2xl font-bold mb-6">{{ `${phase.title}`
+                            }}
+                            </h1>
+
+                            <div class="prose dark:prose-invert lg:prose-xl mb-6 text-justify"> {{
+                                phase.description
+                                }}</div>
+                        </div>
+                    </template>
+
+                    <!-- REFLECTIONS -->
+                    <template v-for="(reflection, reflectionIndex) in phase.Reflections" :key="reflection.title">
+                        <!-- REFLECTION  -->
+                        <div v-show="activeIndex.value == `phase${reflection.title}-reflection`">
                             <div class="lifecycle-content">
-                                <h1 class="text-2xl font-bold mb-1">{{ `${phase.title}`
-                                }}
+                                <h1 class="text-2xl font-bold mb-1">{{ `${reflection.title}`
+                                    }}
                                 </h1>
 
 
                                 <div class="prose dark:prose-invert lg:prose-xl mb-6 text-justify"> {{
                                     reflection.description
                                     }}</div>
-                                <h2 class="text-xl font-bold mb-1">Reflection Questions</h2>
-                                {{ reflection.considerations }}
-                                <!-- <QuestionnaireForm :questionnaire="phase.Reflection?.form!"
-                                        :answer="reflectionAnswers[phaseIndex]?.form"
-                                        @on-submit="(data: any, binaryEvaluation: number) => createOrEditReflectionAnswer(data, binaryEvaluation, index)" /> -->
+
+                                <p class="font-semibold mt-4">In your answer, you might consider:</p>
+
+                                <ul class="list-disc list-inside mb-6">
+                                    <li v-for="consideration in JSON.parse(reflection.considerations)"
+                                        :key="consideration">
+                                        {{ consideration }}
+                                    </li>
+                                </ul>
+
+                                <QuestionnaireForm :questionnaire="reflection.form!"
+                                        :answer="reflectionAnswers[phaseIndex][reflectionIndex]?.form"
+                                        @on-submit="(data: any) => createOrEditReflectionAnswer(data, phaseIndex, reflectionIndex)" />
                             </div>
-                            <div class="flex justify-between my-8">
-                                <UButton icon="i-lucide-arrow-left" size="md" variant="outline"
-                                    class="lifecycle-navigate-btn justify-between"
-                                    @click="activeIndex = indices[phaseIndex].children.at(-1)">
-                                    Previous Journal
-                                </UButton>
-                                <UButton trailing-icon="i-lucide-arrow-right" size="md" variant="outline"
-                                    class="lifecycle-navigate-btn justify-between"
-                                    @click="activeIndex = indices[phaseIndex].children[1]">
-                                    Recommendations
-                                </UButton>
-                            </div>
+
                         </div>
 
-                        <!-- PHASE RECOMMENDATIONS -->
-                        <div v-show="activeIndex.value == `phase${phaseIndex}-recommendations`">
+                        <!-- RECOMMENDATIONS -->
+                        <div v-show="reflectionAnswers[phaseIndex][reflectionIndex]?.id">
                             <div class="lifecycle-content">
                                 <h1 class="text-2xl font-bold mb-6">{{ `${phase.title}`
-                                }}
+                                    }}
                                 </h1>
                                 <h2 class="text-xl font-bold mb-2">Recommended Tools</h2>
                                 <!-- <ToolList :tools="recommendations[index]?.map(r => r.Tool!) || []"
@@ -421,39 +437,54 @@ onMounted(async () => {
                             <div class="flex justify-between my-8">
                                 <UButton icon="i-lucide-arrow-left" size="md" variant="outline"
                                     class="lifecycle-navigate-btn justify-between"
-                                    @click="activeIndex = indices[phase.number].children[0]">
+                                    @click="activeIndex = indices[phaseIndex].children[0]">
                                     Reflection</UButton>
                                 <UButton trailing-icon="i-lucide-arrow-right" size="md" variant="outline"
                                     class="lifecycle-navigate-btn justify-between"
-                                    @click="activeIndex = indices[phase.number].children[2]">Journal
-                                </UButton>
-                            </div>
-                        </div>
-
-                        <!-- PHASE JOURNAL -->
-                        <div v-show="activeIndex.value == `phase${phaseIndex}-journal`">
-                            <div class="lifecycle-content">
-                                <h1 class="text-2xl font-bold mb-6">{{ `${phase.title}`
-                                }}
-                                </h1>
-                                <h2 class="text-xl font-bold mb-1">Journal</h2>
-                                <QuestionnaireForm :questionnaire="phase.Journal?.form!"
-                                    :answer="journalAnswers[index]?.form"
-                                    @on-submit="(data: any) => createOrEditJournalAnswer(data, index)" />
-                            </div>
-
-                            <div class="flex justify-between my-8">
-                                <UButton icon="i-lucide-arrow-left" size="md" variant="outline"
-                                    class="lifecycle-navigate-btn justify-between"
-                                    @click="activeIndex = indices[phase.number].children[1]">
-                                    Recommendations</UButton>
-                                <UButton v-if="index < indices.length - 2" trailing-icon="i-lucide-arrow-right"
-                                    class="lifecycle-navigate-btn justify-between" size="md" variant="outline"
-                                    @click="activeIndex = indices[phase.number + 1].children[0]"> Next Phase
+                                    @click="activeIndex = indices[phaseIndex].children[2]">Journal
                                 </UButton>
                             </div>
                         </div>
                     </template>
+
+                    <!-- PHASE JOURNAL -->
+                    <div v-show="activeIndex.value == `phase${phaseIndex}-journal`">
+                        <div class="lifecycle-content">
+                            <h1 class="text-2xl font-bold mb-6">{{ `${phase.title}`
+                            }}
+                            </h1>
+                            <h2 class="text-xl font-bold mb-1">Journal</h2>
+                            <!-- <QuestionnaireForm :questionnaire="phase.Journal?.form!"
+                                :answer="journalAnswers[index]?.form"
+                                @on-submit="(data: any) => createOrEditJournalAnswer(data, index)" /> -->
+                        </div>
+
+                        <div class="flex justify-between my-8">
+                            <UButton icon="i-lucide-arrow-left" size="md" variant="outline"
+                                class="lifecycle-navigate-btn justify-between"
+                                @click="activeIndex = indices[phaseIndex].children[1]">
+                                Recommendations</UButton>
+                            <UButton v-if="index < indices.length - 2" trailing-icon="i-lucide-arrow-right"
+                                class="lifecycle-navigate-btn justify-between" size="md" variant="outline"
+                                @click="activeIndex = indices[phaseIndex + 1].children[0]"> Next Phase
+                            </UButton>
+                        </div>
+
+                        <div class="flex justify-between my-8">
+                            <UButton icon="i-lucide-arrow-left" size="md" variant="outline"
+                                class="lifecycle-navigate-btn justify-between"
+                                @click="activeIndex = indices[phaseIndex].children.at(-1)">
+                                Previous Journal
+                            </UButton>
+                            <UButton trailing-icon="i-lucide-arrow-right" size="md" variant="outline"
+                                class="lifecycle-navigate-btn justify-between"
+                                @click="activeIndex = indices[phaseIndex].children[1]">
+                                Recommendations
+                            </UButton>
+                        </div>
+                    </div>
+
+
                 </template>
             </template>
         </section>

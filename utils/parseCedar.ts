@@ -26,7 +26,8 @@ export async function parseCedar(cedarForm: any, answerForm: any | undefined): P
 
     const type: string = currentProp?._ui?.inputType;
 
-    const title: string = currentProp["skos:prefLabel"] ?? (currentProp["schema:name"] ?? fieldId);
+    // const title: string = currentProp["skos:prefLabel"] ?? (currentProp["schema:name"] ?? fieldId);
+    const title: string = currentProp["skos:prefLabel"]
     const required: boolean =
       currentProp._valueConstraints?.requiredValue || false;
     const options =

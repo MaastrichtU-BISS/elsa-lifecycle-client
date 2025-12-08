@@ -34,17 +34,9 @@ const schema = z.object({
 });
 
 const onSubmit = (event: FormSubmitEvent<Schema>) => {
-    const binEval = binaryEvaluation();
-    emits('onSubmit', event.data, binEval);
+    emits('onSubmit', event.data);
 };
 
-const binaryEvaluation = () => {
-    let result = 0;
-    Object.values(state).reverse().map((value, index) => {
-        result |= (value == "Yes" ? 1 << index : 0);
-    });
-    return result;
-};
 
 </script>
 

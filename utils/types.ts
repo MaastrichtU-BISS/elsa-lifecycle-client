@@ -27,6 +27,7 @@ export type Reflection = {
   description: string;
   title: string;
   considerations: string;
+  form: string;
   phaseId: number;
   Phase?: Phase;
 };
@@ -41,8 +42,7 @@ export type Journal = {
 export type ReflectionAnswer = {
   id: number;
   userId: string;
-  getRecommendations: boolean;
-  answerText: string;
+  form: string;
   reflectionId: number;
   Reflection?: Reflection;
 };
