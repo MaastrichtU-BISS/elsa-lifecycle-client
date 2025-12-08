@@ -2,6 +2,11 @@ import * as z from "zod";
 
 // DB types
 
+export enum ReflectionAnswerGetRecommendations {
+ YES = `I'd like some recommendations to reflect on this further`,
+ NO = `I'm happy with my answer`
+}
+
 export type Lifecycle = {
   id: number;
   title: string;
