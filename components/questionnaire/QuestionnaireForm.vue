@@ -53,7 +53,7 @@ const onSubmit = (event: FormSubmitEvent<Schema>) => {
                             :required="form.ui[fieldId]?.required"/>
                     </template>
                     <template v-else-if="form.ui[fieldId].inputType == 'textarea'">
-                        <UTextarea v-model="state[fieldId]" autoresize class="w-full"/>
+                        <UTextarea v-model="state[fieldId]" autoresize :rows="8" class="w-full"/>
                     </template>
                     <template v-else-if="form.ui[fieldId]?.inputType === 'radio'">
                         <URadioGroup 

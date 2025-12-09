@@ -103,7 +103,6 @@ const createOrEditReflectionAnswer = async (data: any, phaseIndex: number, refle
 
     if (reflectionAnswers.value[phaseIndex][reflectionIndex]?.id) {
         answer = await editReflectionAnswer(data, reflectionId);
-        console.log(answer)
     } else {
         answer = await createReflectionAnswer(data, reflectionId);
     }
@@ -383,12 +382,12 @@ onMounted(async () => {
                     <!-- PHASE INTRODUCTION  -->
                     <div class="lifecycle-content">
                         <h1 class="text-2xl font-bold mb-6">{{ `${phase.title}`
-                        }}
+                            }}
                         </h1>
 
                         <div class="prose dark:prose-invert lg:prose-xl mb-6 text-justify"> {{
                             phase.description
-                        }}</div>
+                            }}</div>
                     </div>
 
                     <div class="flex justify-between my-8">
@@ -411,13 +410,13 @@ onMounted(async () => {
                     <div v-show="activeIndex.value == `phase${reflection.title}-reflection`">
                         <div class="lifecycle-content">
                             <h1 class="text-2xl font-bold mb-1">{{ `${reflection.title}`
-                            }}
+                                }}
                             </h1>
 
 
                             <div class="prose dark:prose-invert lg:prose-xl mb-6 text-justify"> {{
                                 reflection.description
-                            }}</div>
+                                }}</div>
 
                             <p class="font-semibold mt-4">In your answer, you might consider:</p>
 
@@ -432,7 +431,8 @@ onMounted(async () => {
                                 @on-submit="(data: any) => createOrEditReflectionAnswer(data, phaseIndex, reflectionIndex)" />
 
                             <!-- RECOMMENDATIONS -->
-                            <div v-show="isGetRecommendationsActive(reflectionAnswers[phaseIndex][reflectionIndex]?.form)" class="mt-8">
+                            <div v-show="isGetRecommendationsActive(reflectionAnswers[phaseIndex][reflectionIndex]?.form)"
+                                class="mt-8">
                                 <h2 class="text-xl font-bold mb-2">Recommended Tools</h2>
                                 <ToolList :tools="recommendations[phaseIndex][reflectionIndex]?.map(r => r.Tool!) || []"
                                     v-model:recommendations="recommendations[phaseIndex][reflectionIndex]"
@@ -466,7 +466,7 @@ onMounted(async () => {
                 <div v-show="activeIndex.value == `phase${phase.title}-journal`">
                     <div class="lifecycle-content">
                         <h1 class="text-2xl font-bold mb-6">{{ `${phase.title}`
-                        }}
+                            }}
                         </h1>
                         <h2 class="text-xl font-bold mb-1">Journal</h2>
                         <QuestionnaireForm :questionnaire="phase.Journal?.form!"
