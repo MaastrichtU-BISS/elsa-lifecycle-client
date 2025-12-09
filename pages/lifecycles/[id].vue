@@ -271,10 +271,11 @@ onMounted(async () => {
             }
         }
 
+        reflectionAnswers.value.push([]);
+        recommendations.value.push([]);
+        recommendationAnswers.value.push([]);
+
         if (auth.token && phase.Reflections?.length) {
-            reflectionAnswers.value.push([]);
-            recommendations.value.push([]);
-            recommendationAnswers.value.push([]);
             for (const reflection of phase.Reflections) {
                 const refAnswer = await reflectionAnswerService.GetReflectionAnswerByUserIdAndReflectionID(reflection.id);
                 // Add reflection answers
@@ -308,8 +309,6 @@ onMounted(async () => {
 
     // Set active index, Lifecycle General by default
     activeIndex.value = hashIndex ?? indices.value[0].children[0];
-
-    console.log(reflectionAnswers.value)
 })
 
 </script>
@@ -384,12 +383,12 @@ onMounted(async () => {
                     <!-- PHASE INTRODUCTION  -->
                     <div class="lifecycle-content">
                         <h1 class="text-2xl font-bold mb-6">{{ `${phase.title}`
-                            }}
+                        }}
                         </h1>
 
                         <div class="prose dark:prose-invert lg:prose-xl mb-6 text-justify"> {{
                             phase.description
-                            }}</div>
+                        }}</div>
                     </div>
 
                     <div class="flex justify-between my-8">
@@ -412,13 +411,13 @@ onMounted(async () => {
                     <div v-show="activeIndex.value == `phase${reflection.title}-reflection`">
                         <div class="lifecycle-content">
                             <h1 class="text-2xl font-bold mb-1">{{ `${reflection.title}`
-                                }}
+                            }}
                             </h1>
 
 
                             <div class="prose dark:prose-invert lg:prose-xl mb-6 text-justify"> {{
                                 reflection.description
-                                }}</div>
+                            }}</div>
 
                             <p class="font-semibold mt-4">In your answer, you might consider:</p>
 
@@ -468,7 +467,7 @@ onMounted(async () => {
                 <div v-show="activeIndex.value == `phase${phase.title}-journal`">
                     <div class="lifecycle-content">
                         <h1 class="text-2xl font-bold mb-6">{{ `${phase.title}`
-                            }}
+                        }}
                         </h1>
                         <h2 class="text-xl font-bold mb-1">Journal</h2>
                         <QuestionnaireForm :questionnaire="phase.Journal?.form!"
