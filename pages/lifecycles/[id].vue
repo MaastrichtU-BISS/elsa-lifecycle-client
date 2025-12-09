@@ -381,7 +381,7 @@ onMounted(async () => {
                 <div v-show="activeIndex.value == `phase${phase.title}-introduction`">
                     <!-- PHASE INTRODUCTION  -->
                     <div class="lifecycle-content">
-                        <h1 class="text-2xl font-bold mb-6">{{ `${phase.title}`
+                        <h1 class="text-2xl font-bold mb-6 text-center">{{ `${phase.title}`
                             }}
                         </h1>
 
@@ -409,7 +409,7 @@ onMounted(async () => {
                     <!-- REFLECTION  -->
                     <div v-show="activeIndex.value == `phase${reflection.title}-reflection`">
                         <div class="lifecycle-content">
-                            <h1 class="text-2xl font-bold mb-1">{{ `${reflection.title}`
+                            <h1 class="text-2xl font-bold mb-1 text-center">{{ `${reflection.title}`
                                 }}
                             </h1>
 
@@ -465,10 +465,8 @@ onMounted(async () => {
                 <!-- PHASE JOURNAL -->
                 <div v-show="activeIndex.value == `phase${phase.title}-journal`">
                     <div class="lifecycle-content">
-                        <h1 class="text-2xl font-bold mb-6">{{ `${phase.title}`
-                            }}
-                        </h1>
-                        <h2 class="text-xl font-bold mb-1">Journal</h2>
+                        <h1 class="text-2xl font-bold mb-6 text-center">Journal</h1>
+
                         <QuestionnaireForm :questionnaire="phase.Journal?.form!"
                             :answer="journalAnswers[phaseIndex]?.form"
                             @on-submit="(data: any) => createOrEditJournalAnswer(data, phaseIndex)" />
