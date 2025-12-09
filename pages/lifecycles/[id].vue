@@ -414,11 +414,11 @@ onMounted(async () => {
                             </h1>
 
 
-                            <div class="prose dark:prose-invert lg:prose-xl mb-6 text-justify"> {{
+                            <div class="prose dark:prose-invert lg:prose-xl mb-2 text-justify"> {{
                                 reflection.description
                                 }}</div>
 
-                            <p class="font-semibold mt-4">In your answer, you might consider:</p>
+                            <p class="font-semibold mb-4">In your answer, you might consider:</p>
 
                             <ul class="list-disc list-inside mb-6">
                                 <li v-for="consideration in JSON.parse(reflection.considerations)" :key="consideration">
