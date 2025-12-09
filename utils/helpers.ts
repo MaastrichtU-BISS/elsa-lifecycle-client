@@ -1,3 +1,5 @@
+import { ReflectionAnswerGetRecommendations } from "~/utils/types";
+
 export function isRecommendationDone(
   rec: Recommendation | undefined,
   answer: RecommendationAnswer | undefined
@@ -19,16 +21,34 @@ export function isRecommendationDone(
   return true;
 }
 
-function formRequiredButNotProvided(rec: Recommendation,
-  answer: RecommendationAnswer) {
+function formRequiredButNotProvided(
+  rec: Recommendation,
+  answer: RecommendationAnswer
+) {
   return !!rec.Tool?.form && !answer.form;
 }
 
-function fileRequiredButNotProvided(rec: Recommendation,
-  answer: RecommendationAnswer) {
+function fileRequiredButNotProvided(
+  rec: Recommendation,
+  answer: RecommendationAnswer
+) {
   return rec.Tool?.file_upload && !answer.file;
 }
 
 function nothingRequired(rec: Recommendation) {
   return !rec.Tool?.form && !rec.Tool?.file_upload;
+}
+
+export function isGetRecommendationsActive(form: string | undefined): boolean {
+  if (!form) return false;
+  let parsedForm;
+  try {
+    parsedForm = JSON.parse(form);
+  } catch {
+    return false;
+  }
+
+  return (
+    parsedForm["get_recommendations"] === ReflectionAnswerGetRecommendations.YES
+  );
 }

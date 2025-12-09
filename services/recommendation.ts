@@ -1,4 +1,5 @@
-import { ReflectionAnswerGetRecommendations, type Recommendation, type ReflectionAnswer } from "~/utils/types";
+import type {  Recommendation,  ReflectionAnswer } from "~/utils/types";
+import { isGetRecommendationsActive } from "~/utils/helpers";
 
 export class RecommendationService {
   private url: string;
@@ -15,9 +16,8 @@ export class RecommendationService {
     reflectionAnswer: ReflectionAnswer
   ): Promise<Recommendation[]> {
     try {
-
-      const json = JSON.parse(reflectionAnswer.form)
-      const getRecommendations = json['get_recommendations'] == ReflectionAnswerGetRecommendations.YES;
+      
+      const getRecommendations = isGetRecommendationsActive(reflectionAnswer.form);
 
       if(getRecommendations) {
         const response = await $fetch(

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { JournalAnswer, Lifecycle, Recommendation, RecommendationAnswer, ReflectionAnswer } from "~/utils/types";
-import { isRecommendationDone } from '~/utils/helpers';
+import { isRecommendationDone, isGetRecommendationsActive } from '~/utils/helpers';
 import { LifecycleService } from "~/services/lifecycle";
 import { ReflectionAnswerService } from "~/services/reflectionAnswer";
 import { JournalAnswerService } from "~/services/journalAnswer";
@@ -432,8 +432,7 @@ onMounted(async () => {
                                 @on-submit="(data: any) => createOrEditReflectionAnswer(data, phaseIndex, reflectionIndex)" />
 
                             <!-- RECOMMENDATIONS -->
-                            <div v-show="reflectionAnswers[phaseIndex][reflectionIndex]?.id">
-
+                            <div v-show="isGetRecommendationsActive(reflectionAnswers[phaseIndex][reflectionIndex]?.form)" class="mt-8">
                                 <h2 class="text-xl font-bold mb-2">Recommended Tools</h2>
                                 <ToolList :tools="recommendations[phaseIndex][reflectionIndex]?.map(r => r.Tool!) || []"
                                     v-model:recommendations="recommendations[phaseIndex][reflectionIndex]"
