@@ -206,6 +206,12 @@ const createOrEditJournalAnswer = async (data: any, phaseIndex: number) => {
 //     recommendationAnswers.value[index][answerIndex] = newRecommendationAnswer;
 // }
 
+// Handle Export
+const exportLifecycle = async () => {
+    // Implementation for exporting the lifecycle
+    console.log("Exporting lifecycle...");
+}
+
 function getBackIndex(index: number, childrenIndex: number) {
     return childrenIndex > 0 ? indices.value[index].children[childrenIndex - 1] : indices.value[index - 1].children.at(-1);
 }
@@ -305,6 +311,19 @@ onMounted(async () => {
             }
         }
     }
+
+    //add export page
+    indices.value.push({
+        label: 'Export',
+        value: 'export',
+        defaultExpanded: true,
+        children: [{
+            label: 'Export as PDF',
+            value: 'export-as-pdf',
+            icon: 'i-lucide-download',
+            defaultExpanded: true,
+        }]
+    });
 
     // Set active index, Lifecycle General by default
     activeIndex.value = hashIndex ?? indices.value[0].children[0];
@@ -486,6 +505,22 @@ onMounted(async () => {
                     </div>
                 </div>
             </template>
+
+            <!-- EXPORT AS PDF -->
+                <div v-show="activeIndex.value == `export-as-pdf`">
+                    <div class="lifecycle-content text-center mt-4">
+                        <h1 class="text-2xl font-bold mb-6 text-center">Export</h1>
+                        <UButton label="Export as PDF" icon="i-lucide-download" size="lg" variant="outline"
+                            @click="exportLifecycle" />
+                    </div>
+
+                    <div class="flex justify-between my-8">
+                        <UButton v-if="lifeCycle.Phases?.length" icon="i-lucide-arrow-left" size="md" variant="outline"
+                            class="lifecycle-navigate-btn justify-between"
+                            @click="activeIndex = getBackIndex(lifeCycle.Phases?.length + 1, 0)">
+                            {{ getBackIndex(lifeCycle.Phases?.length + 1, 0)?.label }}</UButton>
+                    </div>
+                </div>
         </template>
     </section>
 </template>
