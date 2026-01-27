@@ -24,7 +24,6 @@ export type Phase = {
   lifecycleId: number;
   Lifecycle?: Lifecycle;
   Reflections?: Reflection[];
-  Journal?: Journal;
 };
 
 export type Reflection = {
@@ -35,13 +34,14 @@ export type Reflection = {
   form: string;
   phaseId: number;
   Phase?: Phase;
+  Journal?: Journal;
 };
 
 export type Journal = {
   id: number;
   form: string;
-  phaseId: number;
-  Phase?: Phase;
+  reflectionId: number;
+  Reflection?: Reflection;
 };
 
 export type ReflectionAnswer = {
