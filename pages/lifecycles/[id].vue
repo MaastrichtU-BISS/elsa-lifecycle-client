@@ -208,8 +208,28 @@ const createOrEditJournalAnswer = async (data: any, phaseIndex: number) => {
 
 // Handle Export
 const exportLifecycle = async () => {
-    // Implementation for exporting the lifecycle
-    console.log("Exporting lifecycle...");
+    if (!auth.token) {
+        toast.add({ title: 'Error', description: 'You need to be logged in!', color: 'error' });
+        return
+    }
+
+     try {
+        const pdfBlob = await lifecycleService.generatePDFById(lifecycleId);
+        
+        // Create a blob URL and trigger download
+        const url = window.URL.createObjectURL(pdfBlob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `${lifeCycle.value.title}.pdf`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+        
+        toast.add({ title: 'Success', description: 'The PDF has been downloaded.', color: 'success' });
+    } catch (error) {
+        toast.add({ title: 'Error', description: error as string, color: 'error' });
+    }
 }
 
 function getBackIndex(index: number, childrenIndex: number) {
@@ -232,6 +252,7 @@ onMounted(async () => {
 
     if (auth.token) {
         // Set the user authentication token to the protected services (this has to be done on client side, because the token may be stored in the browser)
+        lifecycleService.setToken(auth.token);
         reflectionAnswerService.setToken(auth.token);
         journalAnswerService.setToken(auth.token);
         recommendationAnswerService.setToken(auth.token);
