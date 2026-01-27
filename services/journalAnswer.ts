@@ -1,21 +1,7 @@
+import { BaseService } from "./base";
 import type { JournalAnswer } from "~/utils/types";
 
-export class JournalAnswerService {
-  private token: string;
-  private url: string;
-
-  /**
-   *
-   */
-  constructor(url: string) {
-    this.url = url;
-    this.token = "";
-  }
-
-  setToken(token: string) {
-    this.token = token;
-  }
-
+export class JournalAnswerService extends BaseService {
   // protected
   async GetJournalAnswerByUserIdAndJournalID(
     journalId: number

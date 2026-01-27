@@ -1,15 +1,7 @@
+import { BaseService } from "./base";
 import type { Tool } from "~/utils/types";
 
-export class ToolService {
-  private url: string;
-
-  /**
-   *
-   */
-  constructor(url: string) {
-    this.url = url;
-  }
-
+export class ToolService extends BaseService {
   async getAllTools(): Promise<Tool[]> {
     try {
       const response = await $fetch(`${this.url}/tools`, {
@@ -34,7 +26,7 @@ export class ToolService {
 
   async deleteTool(id: number): Promise<void> {
     try {
-      const response = await $fetch(`${this.url}/tools/${id}`, {
+      await $fetch(`${this.url}/tools/${id}`, {
         method: "DELETE",
       });
       

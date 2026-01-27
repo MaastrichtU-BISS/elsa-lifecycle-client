@@ -1,20 +1,7 @@
+import { BaseService } from "./base";
 import type { Lifecycle } from "~/utils/types";
 
-export class LifecycleService {
-  private url: string;
-  private token: string;
-
-  /**
-   *
-   */
-  constructor(url: string) {
-    this.url = url;
-    this.token = "";
-  }
-
-  setToken(token: string) {
-    this.token = token;
-  }
+export class LifecycleService extends BaseService {
 
   async getAllLifecycles(): Promise<Lifecycle[]> {
     try {

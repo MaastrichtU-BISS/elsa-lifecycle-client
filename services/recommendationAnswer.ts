@@ -1,21 +1,7 @@
+import { BaseService } from "./base";
 import type { RecommendationAnswer } from "~/utils/types";
 
-export class RecommendationAnswerService {
-  private token: string;
-  private url: string;
-
-  /**
-   *
-   */
-  constructor(url: string) {
-    this.url = url;
-    this.token = "";
-  }
-
-  setToken(token: string) {
-    this.token = token;
-  }
-
+export class RecommendationAnswerService extends BaseService {
   // protected
   async GetRecommendationAnswerByUserIdAndRecommendationID(
     recommendationId: number

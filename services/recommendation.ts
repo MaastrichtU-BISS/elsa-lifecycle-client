@@ -1,16 +1,8 @@
+import { BaseService } from "./base";
 import type {  Recommendation,  ReflectionAnswer } from "~/utils/types";
 import { isGetRecommendationsActive } from "~/utils/helpers";
 
-export class RecommendationService {
-  private url: string;
-
-  /**
-   *
-   */
-  constructor(url: string) {
-    this.url = url;
-  }
-
+export class RecommendationService extends BaseService {
   async getRecommendations(
     reflectionId: number,
     reflectionAnswer: ReflectionAnswer

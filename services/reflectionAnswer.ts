@@ -1,20 +1,7 @@
+import { BaseService } from "./base";
 import type { ReflectionAnswer } from "~/utils/types";
 
-export class ReflectionAnswerService {
-  private token: string;
-  private url: string;
-
-  /**
-   *
-   */
-  constructor(url: string) {
-    this.url = url;
-    this.token = "";
-  }
-
-  setToken(token: string) {
-    this.token = token;
-  }
+export class ReflectionAnswerService extends BaseService {
 
   // Protected
   async GetReflectionAnswerByUserIdAndReflectionID(

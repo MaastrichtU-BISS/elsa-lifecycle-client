@@ -1,15 +1,7 @@
+import { BaseService } from "./base";
 import type { Reflection } from "~/utils/types";
 
-export class ReflectionService {
-  private url: string;
-
-  /**
-   *
-   */
-  constructor(url: string) {
-    this.url = url;
-  }
-
+export class ReflectionService extends BaseService {
   async getReflectionById(id: number): Promise<Reflection> {
     try {
       const response = await $fetch(`${this.url}/reflections/${id}`, {
