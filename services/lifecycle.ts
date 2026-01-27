@@ -1,13 +1,19 @@
-import type { Lifecycle, Phase } from "~/utils/types";
+import type { Lifecycle } from "~/utils/types";
 
 export class LifecycleService {
   private url: string;
+  private token: string;
 
   /**
    *
    */
   constructor(url: string) {
     this.url = url;
+    this.token = "";
+  }
+
+  setToken(token: string) {
+    this.token = token;
   }
 
   async getAllLifecycles(): Promise<Lifecycle[]> {
@@ -30,6 +36,22 @@ export class LifecycleService {
       return response as Lifecycle;
     } catch (error) {
       throw new Error(`Failed to fetch lifecycle: ${error}`);
+    }
+  }
+
+  async generatePDFById(id: number): Promise<Blob> {
+    try {
+      const response = await $fetch(`${this.url}/lifecycles/${id}/pdf`, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${this.token}`,
+        },
+        responseType: 'blob',
+      });
+
+      return response as Blob;
+    } catch (error) {
+      throw new Error(`Failed to generate PDF: ${error}`);
     }
   }
 }
