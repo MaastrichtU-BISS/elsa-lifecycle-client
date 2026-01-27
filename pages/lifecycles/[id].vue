@@ -346,6 +346,14 @@ onMounted(async () => {
         }]
     });
 
+    // hash was export
+    if(!hashIndex) {
+        const hit = indices.value.at(-1)?.children.find(x => x.value == hash)
+        if (hit) {
+            hashIndex = hit;
+        }
+    }
+
     // Set active index, Lifecycle General by default
     activeIndex.value = hashIndex ?? indices.value[0].children[0];
 })
@@ -528,7 +536,7 @@ onMounted(async () => {
             </template>
 
             <!-- EXPORT AS PDF -->
-                <div v-show="activeIndex.value == `export-as-pdf`">
+                <div v-show="activeIndex.value == `export-as-pdf` || activeIndex.value == 'export'">
                     <div class="lifecycle-content text-center mt-4">
                         <h1 class="text-2xl font-bold mb-6 text-center">Export</h1>
                         <UButton label="Export as PDF" icon="i-lucide-download" size="lg" variant="outline"
