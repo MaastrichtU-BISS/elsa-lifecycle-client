@@ -209,32 +209,6 @@ const recommendationProgress = computed(() => {
 //     recommendationAnswers.value[index][answerIndex] = newRecommendationAnswer;
 // }
 
-// Handle Export
-const exportLifecycle = async () => {
-    if (!auth.token) {
-        toast.add({ title: 'Error', description: 'You need to be logged in!', color: 'error' });
-        return
-    }
-
-    try {
-        const pdfBlob = await lifecycleService.generatePDFById(lifecycleId);
-
-        // Create a blob URL and trigger download
-        const url = window.URL.createObjectURL(pdfBlob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = `${lifeCycle.value.title}.pdf`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        window.URL.revokeObjectURL(url);
-
-        toast.add({ title: 'Success', description: 'The PDF has been downloaded.', color: 'success' });
-    } catch (error) {
-        toast.add({ title: 'Error', description: error as string, color: 'error' });
-    }
-}
-
 function getBackIndex(index: number, childrenIndex: number) {
     return childrenIndex > 0 ? indices.value[index].children[childrenIndex - 1] : indices.value[index - 1].children.at(-1);
 }
@@ -256,7 +230,6 @@ onMounted(async () => {
     if (auth.token) {
         // Set the user authentication token to the protected services (this has to be done on client side, because the token may be stored in the browser)
         furtherReflectionAnswerService.setToken(auth.token);
-        lifecycleService.setToken(auth.token);
         reflectionAnswerService.setToken(auth.token);
         recommendationAnswerService.setToken(auth.token);
     }
@@ -514,6 +487,10 @@ onMounted(async () => {
                                 @click="activeIndex = getBackIndex(phaseIndex + 1, 1 + reflectionIndex)">
                                 {{ getBackIndex(phaseIndex + 1, 1 + reflectionIndex)?.label
                                 }}</UButton>
+
+                            <!-- <UButton icon="i-lucide-arrow-eye" size="md" variant="outline"
+                                class="lifecycle-navigate-btn justify-between"
+                                @click="">See preview</UButton> -->
                             <UButton trailing-icon="i-lucide-arrow-right" size="md" variant="outline"
                                 class="lifecycle-navigate-btn justify-between"
                                 @click="activeIndex = getNextIndex(phaseIndex + 1, 1 + reflectionIndex)">
@@ -528,10 +505,14 @@ onMounted(async () => {
 
             <!-- EXPORT AS PDF -->
             <div v-show="activeIndex.value == `export-as-pdf` || activeIndex.value == 'export'">
-                <div class="lifecycle-content text-center mt-4">
+                <div class="lifecycle-content mt-4">
                     <h1 class="text-2xl font-bold mb-6 text-center">Export</h1>
-                    <UButton label="Export as PDF" icon="i-lucide-download" size="lg" variant="outline"
-                        @click="exportLifecycle" />
+
+                    <LifecyclePdfExport
+                        :lifecycle-id="lifecycleId"
+                        :lifecycle-title="lifeCycle.title"
+                        :active="activeIndex?.value === 'export-as-pdf' || activeIndex?.value === 'export'"
+                    />
                 </div>
 
                 <div class="flex justify-between my-8">
