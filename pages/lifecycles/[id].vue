@@ -36,11 +36,12 @@ const indices = ref<TreeNode[]>([{
     value: 'get-started',
     defaultExpanded: true,
     trailingIcon: 'none',
+    icon: 'i-lucide-home',
     children: [
         {
             label: 'Introduction',
             value: 'get-started-introduction',
-            icon: 'i-lucide-info',
+            icon: 'i-lucide-book-open-text',
             defaultExpanded: true
         },
         {
