@@ -28,6 +28,7 @@ const reflectionAnswers = ref<(ReflectionAnswer | undefined)[][]>([]);
 const recommendationAnswers = ref<RecommendationAnswer[][][]>([]);
 const activeIndex = ref();
 const expandedIndices = ref<string[]>([]);
+const lastActiveIndex = ref<TreeNode | undefined>(undefined);
 
 // Add indices Get Started
 const indices = ref<TreeNode[]>([{ 
@@ -234,6 +235,17 @@ watch(() => activeIndex.value?.value, (value) => {
     router.push({ hash: `#${value}` }); //update url
 });
 
+watch(activeIndex, (value) => {
+    if (value?.value) {
+        lastActiveIndex.value = value;
+        return;
+    }
+
+    if (lastActiveIndex.value) {
+        activeIndex.value = lastActiveIndex.value;
+    }
+});
+
 watch(expandedIndices, (value) => {
     const fixed = indices.value.filter((index) => index.children?.length).map((index) => index.value);
     if (value.length !== fixed.length || fixed.some((v, i) => v !== value[i])) {
@@ -350,6 +362,7 @@ onMounted(async () => {
 
     // Set active index, Lifecycle General by default
     activeIndex.value = hashIndex ?? indices.value[0];
+    lastActiveIndex.value = activeIndex.value;
 })
 
 </script>

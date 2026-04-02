@@ -105,5 +105,5 @@ export type TreeNode = {
   icon?: string;
   defaultExpanded?: boolean;
   children?: TreeNode[];
-  trailingIcon?: string | null;
+  trailingIcon?: string;
 };
