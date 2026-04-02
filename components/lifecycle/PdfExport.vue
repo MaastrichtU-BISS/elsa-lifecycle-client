@@ -92,7 +92,7 @@ onUnmounted(() => {
         label="See in fullscreen" icon="i-lucide-maximize" size="lg" variant="solid" :disabled="!pdfPreviewUrl"
             @click="openPdfFullscreen" />
         <UButton 
-        label="Export as PDF" icon="i-lucide-download" size="lg" variant="solid" :loading="pdfPreviewLoading"
+        label="Export as PDF" icon="i-lucide-download" size="lg" variant="solid"
             @click="exportLifecycle" />
     </div>
 </template>
