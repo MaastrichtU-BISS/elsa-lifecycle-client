@@ -486,7 +486,7 @@ onMounted(async () => {
 
                             <!-- RECOMMENDATIONS -->
                             <div v-show="isGetRecommendationsActive(reflectionAnswers[phaseIndex][reflectionIndex]?.form)"
-                                class="mt-8">
+                                class="mt-10">
                                 <h2 class="text-xl font-bold mb-2">Recommended Tools</h2>
                                 <ToolList :tools="recommendations[phaseIndex][reflectionIndex]?.map(r => r.Tool!) || []"
                                     v-model:recommendations="recommendations[phaseIndex][reflectionIndex]"
@@ -496,7 +496,7 @@ onMounted(async () => {
                                         status />
                                 </div>
 
-                                <div class="mt-8">
+                                <div class="mt-10">
                                     <h2 class="text-xl font-bold mb-2">Further Reflection</h2>
                                     <QuestionnaireForm :questionnaire="reflection.furtherReflectionForm!"
                                         :answer="furtherReflectionAnswers[phaseIndex][reflectionIndex]?.form"
