@@ -221,9 +221,10 @@ async function openPdfPreviewForReflection(reflectionId: number) {
     await openPdfInFullscreen(lifecycleId, lifecycleService, auth, toast, reflectionId);
 }
 
-watch(activeIndex, (val) => {
+watch(() => activeIndex.value?.value, (value) => {
+    if (!value) return;
     window.scrollTo({ top: 0, behavior: 'smooth' }); //scroll to top
-    router.push({ hash: `#${val.value}` }); //update url
+    router.push({ hash: `#${value}` }); //update url
 });
 
 onMounted(async () => {
