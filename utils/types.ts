@@ -32,11 +32,20 @@ export type Reflection = {
   title: string;
   considerations: string;
   form: string;
+  furtherReflectionForm: string;
   phaseId: number;
   Phase?: Phase;
 };
 
 export type ReflectionAnswer = {
+  id: number;
+  userId: string;
+  form: string;
+  reflectionId: number;
+  Reflection?: Reflection;
+};
+
+export type FurtherReflectionAnswer = {
   id: number;
   userId: string;
   form: string;

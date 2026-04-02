@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import type { Lifecycle, Recommendation, RecommendationAnswer, ReflectionAnswer } from "~/utils/types";
+import type { FurtherReflectionAnswer, Lifecycle, Recommendation, RecommendationAnswer, ReflectionAnswer } from "~/utils/types";
 import { isRecommendationDone, isGetRecommendationsActive } from '~/utils/helpers';
+import { FurtherReflectionAnswerService } from "~/services/furtherReflectionAnswer";
 import { LifecycleService } from "~/services/lifecycle";
 import { ReflectionAnswerService } from "~/services/reflectionAnswer";
 import { RecommendationService } from "~/services/recommendation";
@@ -14,6 +15,7 @@ const router = useRouter()
 const config = useRuntimeConfig();
 const lifecycleId = +route.params.id;
 
+const furtherReflectionAnswerService = new FurtherReflectionAnswerService(config.public.apiBase);
 const lifecycleService = new LifecycleService(config.public.apiBase);
 const reflectionAnswerService = new ReflectionAnswerService(config.public.apiBase);
 const recommendationService = new RecommendationService(config.public.apiBase);
@@ -21,6 +23,7 @@ const recommendationAnswerService = new RecommendationAnswerService(config.publi
 
 const lifeCycle = ref<Lifecycle>(await lifecycleService.getLifecycleById(lifecycleId));
 const recommendations = ref<Recommendation[][][]>([]);
+const furtherReflectionAnswers = ref<(FurtherReflectionAnswer | undefined)[][]>([]);
 const reflectionAnswers = ref<(ReflectionAnswer | undefined)[][]>([]);
 const recommendationAnswers = ref<RecommendationAnswer[][][]>([]);
 const activeIndex = ref();
@@ -124,6 +127,64 @@ const createOrEditReflectionAnswer = async (data: any, phaseIndex: number, refle
     }
 };
 
+// Handle Further Reflections
+const createFurtherReflectionAnswer = async (data: any, reflectionId: number) => {
+
+    try {
+        const newAnswer: Omit<FurtherReflectionAnswer, "id" | "userId"> = {
+            reflectionId: reflectionId,
+            form: JSON.stringify(data),
+        }
+        const response = await furtherReflectionAnswerService.createFurtherReflectionAnswer(newAnswer);
+        toast.add({ title: 'Success', description: 'The form has been submitted.', color: 'success' });
+        return response;
+    } catch (error) {
+        toast.add({ title: 'Error', description: error as string, color: 'error' });
+    }
+};
+
+const editFurtherReflectionAnswer = async (data: any, furtherReflectionAnswerId: number) => {
+    try {
+        const newAnswer: Partial<FurtherReflectionAnswer> = {
+            form: JSON.stringify(data),
+        }
+        const response = await furtherReflectionAnswerService.editFurtherReflectionAnswer(newAnswer, furtherReflectionAnswerId);
+        toast.add({ title: 'Success', description: 'The form has been edited.', color: 'success' });
+        return response;
+    } catch (error) {
+        toast.add({ title: 'Error', description: error as string, color: 'error' });
+    }
+}
+
+const createOrEditFurtherReflectionAnswer = async (data: any, phaseIndex: number, reflectionIndex: number) => {
+
+    if (!lifeCycle.value.Phases?.length) throw new Error("Lifecycle has no phases");
+
+    if (!auth.token) {
+        toast.add({ title: 'Error', description: 'You need to be logged in!', color: 'error' });
+        return
+    }
+
+    const phase = lifeCycle.value.Phases[phaseIndex];
+
+    if (!phase.Reflections?.length) throw new Error(`Phase ${phase.title} has no reflections`);
+
+    const reflectionId = phase.Reflections[reflectionIndex].id;
+    const existingAnswer = furtherReflectionAnswers.value[phaseIndex][reflectionIndex];
+
+    let answer: FurtherReflectionAnswer | undefined;
+
+    if (existingAnswer?.id) {
+        answer = await editFurtherReflectionAnswer(data, existingAnswer.id);
+    } else {
+        answer = await createFurtherReflectionAnswer(data, reflectionId);
+    }
+
+    if (answer) {
+        furtherReflectionAnswers.value[phaseIndex][reflectionIndex] = answer;
+    }
+};
+
 // Handle Recommendations
 const recommendationProgress = computed(() => {
     const res: { completed: number; total: number; percent: number }[][] = [];
@@ -155,9 +216,9 @@ const exportLifecycle = async () => {
         return
     }
 
-     try {
+    try {
         const pdfBlob = await lifecycleService.generatePDFById(lifecycleId);
-        
+
         // Create a blob URL and trigger download
         const url = window.URL.createObjectURL(pdfBlob);
         const link = document.createElement('a');
@@ -167,7 +228,7 @@ const exportLifecycle = async () => {
         link.click();
         document.body.removeChild(link);
         window.URL.revokeObjectURL(url);
-        
+
         toast.add({ title: 'Success', description: 'The PDF has been downloaded.', color: 'success' });
     } catch (error) {
         toast.add({ title: 'Error', description: error as string, color: 'error' });
@@ -192,10 +253,9 @@ onMounted(async () => {
 
     if (!lifeCycle.value.Phases?.length) throw new Error("Lifecycle has no phases");
 
-    console.log('lifeCycle', lifeCycle.value);
-
     if (auth.token) {
         // Set the user authentication token to the protected services (this has to be done on client side, because the token may be stored in the browser)
+        furtherReflectionAnswerService.setToken(auth.token);
         lifecycleService.setToken(auth.token);
         reflectionAnswerService.setToken(auth.token);
         recommendationAnswerService.setToken(auth.token);
@@ -243,6 +303,7 @@ onMounted(async () => {
         }
 
         reflectionAnswers.value.push([]);
+        furtherReflectionAnswers.value.push([]);
         recommendations.value.push([]);
         recommendationAnswers.value.push([]);
 
@@ -270,6 +331,9 @@ onMounted(async () => {
                     recommendations.value.at(-1)?.push([]);
                     recommendationAnswers.value.at(-1)?.push([]);
                 }
+
+                const furtherRefAnswer = await furtherReflectionAnswerService.GetFurtherReflectionAnswerByUserIdAndReflectionID(reflection.id);
+                furtherReflectionAnswers.value.at(-1)?.push(furtherRefAnswer || undefined);
             }
         }
     }
@@ -288,7 +352,7 @@ onMounted(async () => {
     });
 
     // hash was export
-    if(!hashIndex) {
+    if (!hashIndex) {
         const hit = indices.value.at(-1)?.children.find(x => x.value == hash)
         if (hit) {
             hashIndex = hit;
@@ -369,15 +433,15 @@ onMounted(async () => {
 
                 <!-- PHASE INTRODUCTION  -->
                 <div v-show="activeIndex.value == `phase${phase.title}-introduction`">
-                    
+
                     <div class="lifecycle-content">
                         <h1 class="text-2xl font-bold mb-6 text-center">{{ `${phase.title}`
-                            }}
+                        }}
                         </h1>
 
                         <div class="prose dark:prose-invert lg:prose-xl mb-6 text-justify"> {{
                             phase.description
-                            }}</div>
+                        }}</div>
                     </div>
 
                     <div class="flex justify-between my-8">
@@ -387,7 +451,8 @@ onMounted(async () => {
                             {{ getBackIndex(phaseIndex + 1, 0)?.label }}</UButton>
                         <UButton v-if="phase.Reflections?.length" trailing-icon="i-lucide-arrow-right"
                             class="lifecycle-navigate-btn justify-between" size="md" variant="outline"
-                            @click="activeIndex = getNextIndex(phaseIndex + 1, 0)"> {{ getNextIndex(phaseIndex + 1, 0)?.label
+                            @click="activeIndex = getNextIndex(phaseIndex + 1, 0)"> {{ getNextIndex(phaseIndex + 1,
+                                0)?.label
                             }}
                         </UButton>
                     </div>
@@ -399,13 +464,13 @@ onMounted(async () => {
                     <div v-show="activeIndex.value == `phase${reflection.title}-reflection`">
                         <div class="lifecycle-content">
                             <h1 class="text-2xl font-bold mb-1 text-center">{{ `${reflection.title}`
-                                }}
+                            }}
                             </h1>
 
 
                             <div class="prose dark:prose-invert lg:prose-xl mb-2 text-justify"> {{
                                 reflection.description
-                                }}</div>
+                            }}</div>
 
                             <p class="font-semibold mb-4">In your answer, you might consider:</p>
 
@@ -430,6 +495,14 @@ onMounted(async () => {
                                     <UProgress v-model="recommendationProgress[phaseIndex][reflectionIndex].percent"
                                         status />
                                 </div>
+
+                                <div class="mt-8">
+                                    <h2 class="text-xl font-bold mb-2">Further Reflection</h2>
+                                    <QuestionnaireForm :questionnaire="reflection.furtherReflectionForm!"
+                                        :answer="furtherReflectionAnswers[phaseIndex][reflectionIndex]?.form"
+                                        @on-submit="(data: any) => createOrEditFurtherReflectionAnswer(data, phaseIndex, reflectionIndex)" />
+                                </div>
+
                             </div>
                         </div>
 
@@ -454,20 +527,20 @@ onMounted(async () => {
             </template>
 
             <!-- EXPORT AS PDF -->
-                <div v-show="activeIndex.value == `export-as-pdf` || activeIndex.value == 'export'">
-                    <div class="lifecycle-content text-center mt-4">
-                        <h1 class="text-2xl font-bold mb-6 text-center">Export</h1>
-                        <UButton label="Export as PDF" icon="i-lucide-download" size="lg" variant="outline"
-                            @click="exportLifecycle" />
-                    </div>
-
-                    <div class="flex justify-between my-8">
-                        <UButton v-if="lifeCycle.Phases?.length" icon="i-lucide-arrow-left" size="md" variant="outline"
-                            class="lifecycle-navigate-btn justify-between"
-                            @click="activeIndex = getBackIndex(lifeCycle.Phases?.length + 1, 0)">
-                            {{ getBackIndex(lifeCycle.Phases?.length + 1, 0)?.label }}</UButton>
-                    </div>
+            <div v-show="activeIndex.value == `export-as-pdf` || activeIndex.value == 'export'">
+                <div class="lifecycle-content text-center mt-4">
+                    <h1 class="text-2xl font-bold mb-6 text-center">Export</h1>
+                    <UButton label="Export as PDF" icon="i-lucide-download" size="lg" variant="outline"
+                        @click="exportLifecycle" />
                 </div>
+
+                <div class="flex justify-between my-8">
+                    <UButton v-if="lifeCycle.Phases?.length" icon="i-lucide-arrow-left" size="md" variant="outline"
+                        class="lifecycle-navigate-btn justify-between"
+                        @click="activeIndex = getBackIndex(lifeCycle.Phases?.length + 1, 0)">
+                        {{ getBackIndex(lifeCycle.Phases?.length + 1, 0)?.label }}</UButton>
+                </div>
+            </div>
         </template>
     </section>
 </template>
