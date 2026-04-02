@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { FurtherReflectionAnswer, Lifecycle, Recommendation, RecommendationAnswer, ReflectionAnswer } from "~/utils/types";
+import type { FurtherReflectionAnswer, Lifecycle, Recommendation, RecommendationAnswer, ReflectionAnswer, TreeNode } from "~/utils/types";
 import { isRecommendationDone, isGetRecommendationsActive, openPdfInFullscreen } from '~/utils/helpers';
 import { FurtherReflectionAnswerService } from "~/services/furtherReflectionAnswer";
 import { LifecycleService } from "~/services/lifecycle";
@@ -27,19 +27,15 @@ const furtherReflectionAnswers = ref<(FurtherReflectionAnswer | undefined)[][]>(
 const reflectionAnswers = ref<(ReflectionAnswer | undefined)[][]>([]);
 const recommendationAnswers = ref<RecommendationAnswer[][][]>([]);
 const activeIndex = ref();
+const expandedIndices = ref<string[]>([]);
 
 // Add indices Get Started
-const indices = ref([{
+const indices = ref<TreeNode[]>([{ 
     label: 'Get Started',
     value: 'get-started',
     defaultExpanded: true,
+    trailingIcon: 'none',
     children: [
-        {
-            label: 'Welcome',
-            value: 'get-started-welcome',
-            icon: 'i-lucide-home',
-            defaultExpanded: true
-        },
         {
             label: 'Introduction',
             value: 'get-started-introduction',
@@ -210,11 +206,22 @@ const recommendationProgress = computed(() => {
 // }
 
 function getBackIndex(index: number, childrenIndex: number) {
-    return childrenIndex > 0 ? indices.value[index].children[childrenIndex - 1] : indices.value[index - 1].children.at(-1);
+    const currentGroup = indices.value[index];
+    const previousGroup = indices.value[index - 1];
+    const currentChildren = currentGroup?.children ?? [];
+    const previousChildren = previousGroup?.children ?? [];
+
+    if (childrenIndex === -1) return previousChildren.at(-1) ?? previousGroup;
+    if (childrenIndex === 0) return currentGroup;
+    return currentChildren[childrenIndex - 1];
 }
 
 function getNextIndex(index: number, childrenIndex: number) {
-    return childrenIndex < indices.value[index].children.length - 1 ? indices.value[index].children[childrenIndex + 1] : indices.value[index + 1]?.children[0];
+    const currentGroup = indices.value[index];
+    const currentChildren = currentGroup?.children ?? [];
+
+    if (childrenIndex === -1) return currentChildren[0] ?? indices.value[index + 1];
+    return childrenIndex < currentChildren.length - 1 ? currentChildren[childrenIndex + 1] : indices.value[index + 1];
 }
 
 async function openPdfPreviewForReflection(reflectionId: number) {
@@ -225,6 +232,13 @@ watch(() => activeIndex.value?.value, (value) => {
     if (!value) return;
     window.scrollTo({ top: 0, behavior: 'smooth' }); //scroll to top
     router.push({ hash: `#${value}` }); //update url
+});
+
+watch(expandedIndices, (value) => {
+    const fixed = indices.value.filter((index) => index.children?.length).map((index) => index.value);
+    if (value.length !== fixed.length || fixed.some((v, i) => v !== value[i])) {
+        expandedIndices.value = fixed;
+    }
 });
 
 onMounted(async () => {
@@ -241,19 +255,14 @@ onMounted(async () => {
     }
 
     const hash = route.hash.substring(1);
-    let hashIndex = indices.value[0].children.find(x => x.value == hash);
+    let hashIndex = indices.value[0].value === hash
+        ? indices.value[0]
+        : indices.value[0].children?.find(x => x.value == hash);
 
     for (const phase of lifeCycle.value.Phases) {
 
         // Add indices phases
-        const phaseChildren: any[] = [
-            {
-                label: 'Introduction',
-                value: `phase${phase.title}-introduction`,
-                icon: 'i-lucide-home',
-                defaultExpanded: true,
-            }
-        ];
+        const phaseChildren: TreeNode[] = [];
 
         // Add reflections
         if (phase.Reflections) {
@@ -271,11 +280,14 @@ onMounted(async () => {
             label: `${phase.title}`,
             value: `phase-${phase.title}`,
             defaultExpanded: true,
-            children: phaseChildren
+            children: phaseChildren,
+            trailingIcon: 'none'
         });
 
         if (!hashIndex) {
-            const hit = indices.value.at(-1)?.children.find(x => x.value == hash)
+            const hit = indices.value.at(-1)?.value === hash
+                ? indices.value.at(-1)
+                : indices.value.at(-1)?.children?.find(x => x.value == hash)
             if (hit) {
                 hashIndex = hit;
             }
@@ -321,25 +333,23 @@ onMounted(async () => {
     indices.value.push({
         label: 'Export',
         value: 'export',
+        icon: 'i-lucide-download',
         defaultExpanded: true,
-        children: [{
-            label: 'Export as PDF',
-            value: 'export-as-pdf',
-            icon: 'i-lucide-download',
-            defaultExpanded: true,
-        }]
+        trailingIcon: 'none'
     });
 
     // hash was export
     if (!hashIndex) {
-        const hit = indices.value.at(-1)?.children.find(x => x.value == hash)
+        const hit = indices.value.at(-1)?.value === hash ? indices.value.at(-1) : undefined;
         if (hit) {
             hashIndex = hit;
         }
     }
 
+    expandedIndices.value = indices.value.filter((index) => index.children?.length).map((index) => index.value);
+
     // Set active index, Lifecycle General by default
-    activeIndex.value = hashIndex ?? indices.value[0].children[0];
+    activeIndex.value = hashIndex ?? indices.value[0];
 })
 
 </script>
@@ -351,7 +361,7 @@ onMounted(async () => {
             <UButton label="Indices" trailing-icon="i-lucide-square-menu" class="ml-4 fixed left-[1em]" />
 
             <template #body>
-                <UTree v-model="activeIndex" :items="indices" />
+                <UTree class="indices-tree" v-model="activeIndex" v-model:expanded="expandedIndices" :items="indices" />
             </template>
         </USlideover>
 
@@ -359,15 +369,15 @@ onMounted(async () => {
             <!-- GET STARTED -->
 
             <!-- WELCOME -->
-            <div v-show="activeIndex.value == 'get-started-welcome' || activeIndex.value == 'get-started'">
+            <div v-show="activeIndex.value == 'get-started'">
                 <div class="lifecycle-content">
                     <div class="prose dark:prose-invert lg:prose-xl" v-html="marked.parse(lifeCycle.welcome)" />
                 </div>
 
                 <div class="flex justify-end my-8">
                     <UButton trailing-icon="i-lucide-arrow-right" size="md" variant="outline"
-                        class="lifecycle-navigate-btn justify-between" @click="activeIndex = getNextIndex(0, 0)">
-                        {{ getNextIndex(0, 0)?.label }}
+                        class="lifecycle-navigate-btn justify-between" @click="activeIndex = getNextIndex(0, -1)">
+                        {{ getNextIndex(0, -1)?.label }}
                     </UButton>
                 </div>
             </div>
@@ -380,11 +390,11 @@ onMounted(async () => {
 
                 <div class="flex justify-between my-8">
                     <UButton icon="i-lucide-arrow-left" size="md" variant="outline"
-                        class="lifecycle-navigate-btn justify-between" @click="activeIndex = getBackIndex(0, 1)">
-                        {{ getBackIndex(0, 1)?.label }}</UButton>
+                        class="lifecycle-navigate-btn justify-between" @click="activeIndex = getBackIndex(0, 0)">
+                        {{ getBackIndex(0, 0)?.label }}</UButton>
                     <UButton trailing-icon="i-lucide-arrow-right" size="md" variant="outline"
-                        class="lifecycle-navigate-btn justify-between" @click="activeIndex = getNextIndex(0, 1)">
-                        {{ getNextIndex(0, 1)?.label }}
+                        class="lifecycle-navigate-btn justify-between" @click="activeIndex = getNextIndex(0, 0)">
+                        {{ getNextIndex(0, 0)?.label }}
                     </UButton>
                 </div>
             </div>
@@ -397,12 +407,12 @@ onMounted(async () => {
 
                 <div class="flex justify-between my-8">
                     <UButton icon="i-lucide-arrow-left" size="md" variant="outline"
-                        class="lifecycle-navigate-btn justify-between" @click="activeIndex = getBackIndex(0, 2)">
-                        {{ getBackIndex(0, 2)?.label }}</UButton>
+                        class="lifecycle-navigate-btn justify-between" @click="activeIndex = getBackIndex(0, 1)">
+                        {{ getBackIndex(0, 1)?.label }}</UButton>
                     <UButton v-if="lifeCycle.Phases?.length" trailing-icon="i-lucide-arrow-right" size="md"
                         variant="outline" class="lifecycle-navigate-btn justify-between"
-                        @click="activeIndex = getNextIndex(0, 2)">
-                        {{ getNextIndex(0, 2)?.label }}
+                        @click="activeIndex = getNextIndex(0, 1)">
+                        {{ getNextIndex(0, 1)?.label }}
                     </UButton>
                 </div>
             </div>
@@ -411,7 +421,7 @@ onMounted(async () => {
             <template v-for="(phase, phaseIndex) in lifeCycle.Phases" :key="phase.id">
 
                 <!-- PHASE INTRODUCTION  -->
-                <div v-show="activeIndex.value == `phase${phase.title}-introduction`">
+                <div v-show="activeIndex.value == `phase-${phase.title}`">
 
                     <div class="lifecycle-content">
                         <h1 class="text-2xl font-bold mb-6 text-center">{{ `${phase.title}`
@@ -426,12 +436,12 @@ onMounted(async () => {
                     <div class="flex justify-between my-8">
                         <UButton icon="i-lucide-arrow-left" size="md" variant="outline"
                             class="lifecycle-navigate-btn justify-between"
-                            @click="activeIndex = getBackIndex(phaseIndex + 1, 0)">
-                            {{ getBackIndex(phaseIndex + 1, 0)?.label }}</UButton>
+                            @click="activeIndex = getBackIndex(phaseIndex + 1, -1)">
+                            {{ getBackIndex(phaseIndex + 1, -1)?.label }}</UButton>
                         <UButton v-if="phase.Reflections?.length" trailing-icon="i-lucide-arrow-right"
                             class="lifecycle-navigate-btn justify-between" size="md" variant="outline"
-                            @click="activeIndex = getNextIndex(phaseIndex + 1, 0)"> {{ getNextIndex(phaseIndex + 1,
-                                0)?.label
+                            @click="activeIndex = getNextIndex(phaseIndex + 1, -1)"> {{ getNextIndex(phaseIndex + 1,
+                                -1)?.label
                             }}
                         </UButton>
                     </div>
@@ -490,8 +500,8 @@ onMounted(async () => {
                         <div class="flex justify-between my-8">
                             <UButton icon="i-lucide-arrow-left" size="md" variant="outline"
                                 class="lifecycle-navigate-btn justify-between"
-                                @click="activeIndex = getBackIndex(phaseIndex + 1, 1 + reflectionIndex)">
-                                {{ getBackIndex(phaseIndex + 1, 1 + reflectionIndex)?.label
+                                @click="activeIndex = getBackIndex(phaseIndex + 1, reflectionIndex)">
+                                {{ getBackIndex(phaseIndex + 1, reflectionIndex)?.label
                                 }}</UButton>
 
                             <UButton icon="i-lucide-eye" size="md" variant="outline"
@@ -499,8 +509,8 @@ onMounted(async () => {
                                 @click="openPdfPreviewForReflection(reflection.id)">See preview</UButton>
                             <UButton trailing-icon="i-lucide-arrow-right" size="md" variant="outline"
                                 class="lifecycle-navigate-btn justify-between"
-                                @click="activeIndex = getNextIndex(phaseIndex + 1, 1 + reflectionIndex)">
-                                {{ getNextIndex(phaseIndex + 1, 1 + reflectionIndex)?.label
+                                @click="activeIndex = getNextIndex(phaseIndex + 1, reflectionIndex)">
+                                {{ getNextIndex(phaseIndex + 1, reflectionIndex)?.label
                                 }}
                             </UButton>
                         </div>
@@ -510,22 +520,22 @@ onMounted(async () => {
             </template>
 
             <!-- EXPORT AS PDF -->
-            <div v-show="activeIndex.value == `export-as-pdf` || activeIndex.value == 'export'">
+            <div v-show="activeIndex.value == 'export'">
                 <div class="lifecycle-content mt-4">
                     <h1 class="text-2xl font-bold mb-6 text-center">Export</h1>
 
                     <LifecyclePdfExport
                         :lifecycle-id="lifecycleId"
                         :lifecycle-title="lifeCycle.title"
-                        :active="activeIndex?.value === 'export-as-pdf' || activeIndex?.value === 'export'"
+                        :active="activeIndex?.value === 'export'"
                     />
                 </div>
 
                 <div class="flex justify-between my-8">
                     <UButton v-if="lifeCycle.Phases?.length" icon="i-lucide-arrow-left" size="md" variant="outline"
                         class="lifecycle-navigate-btn justify-between"
-                        @click="activeIndex = getBackIndex(lifeCycle.Phases?.length + 1, 0)">
-                        {{ getBackIndex(lifeCycle.Phases?.length + 1, 0)?.label }}</UButton>
+                        @click="activeIndex = getBackIndex(lifeCycle.Phases?.length + 1, -1)">
+                        {{ getBackIndex(lifeCycle.Phases?.length + 1, -1)?.label }}</UButton>
                 </div>
             </div>
         </template>

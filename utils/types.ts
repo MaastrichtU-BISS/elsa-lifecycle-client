@@ -98,3 +98,12 @@ export type Form = {
     }
   >;
 };
+
+export type TreeNode = {
+  label: string;
+  value: string;
+  icon?: string;
+  defaultExpanded?: boolean;
+  children?: TreeNode[];
+  trailingIcon?: string | null;
+};
