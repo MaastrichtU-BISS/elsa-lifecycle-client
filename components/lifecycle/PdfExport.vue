@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { LifecycleService } from "~/services/lifecycle";
+import { openPdfInFullscreen } from "~/utils/helpers";
 
 const props = defineProps<{
     lifecycleId: number;
@@ -62,8 +63,8 @@ const exportLifecycle = async () => {
     }
 };
 
-const openPdfFullscreen = () => {
-    if (pdfPreviewUrl.value) window.open(pdfPreviewUrl.value, '_blank');
+const openPdfFullscreen = async () => {
+    await openPdfInFullscreen(props.lifecycleId, lifecycleService, auth, toast);
 };
 
 watch(

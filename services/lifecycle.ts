@@ -41,4 +41,20 @@ export class LifecycleService extends BaseService {
       throw new Error(`Failed to generate PDF: ${error}`);
     }
   }
+
+  async generatePDFByIdForPhase(id: number, phaseId: number): Promise<Blob> {
+    try {
+      const response = await $fetch(`${this.url}/lifecycles/${id}/pdf?phaseId=${phaseId}`, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${this.token}`,
+        },
+        responseType: 'blob',
+      });
+
+      return response as Blob;
+    } catch (error) {
+      throw new Error(`Failed to generate PDF: ${error}`);
+    }
+  }
 }
