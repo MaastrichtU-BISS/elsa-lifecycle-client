@@ -217,8 +217,8 @@ function getNextIndex(index: number, childrenIndex: number) {
     return childrenIndex < indices.value[index].children.length - 1 ? indices.value[index].children[childrenIndex + 1] : indices.value[index + 1]?.children[0];
 }
 
-async function openPdfPreviewForPhase(phaseId: number) {
-    await openPdfInFullscreen(lifecycleId, lifecycleService, auth, toast, phaseId);
+async function openPdfPreviewForReflection(reflectionId: number) {
+    await openPdfInFullscreen(lifecycleId, lifecycleService, auth, toast, reflectionId);
 }
 
 watch(activeIndex, (val) => {
@@ -495,7 +495,7 @@ onMounted(async () => {
 
                             <UButton icon="i-lucide-eye" size="md" variant="outline"
                                 class="lifecycle-navigate-btn justify-center"
-                                @click="openPdfPreviewForPhase(phase.id)">See preview</UButton>
+                                @click="openPdfPreviewForReflection(reflection.id)">See preview</UButton>
                             <UButton trailing-icon="i-lucide-arrow-right" size="md" variant="outline"
                                 class="lifecycle-navigate-btn justify-between"
                                 @click="activeIndex = getNextIndex(phaseIndex + 1, 1 + reflectionIndex)">

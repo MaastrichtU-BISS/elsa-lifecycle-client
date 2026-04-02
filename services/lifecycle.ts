@@ -42,9 +42,9 @@ export class LifecycleService extends BaseService {
     }
   }
 
-  async generatePDFByIdForPhase(id: number, phaseId: number): Promise<Blob> {
+  async generatePDFByIdForReflection(id: number, reflectionId: number): Promise<Blob> {
     try {
-      const response = await $fetch(`${this.url}/lifecycles/${id}/pdf?phaseId=${phaseId}`, {
+      const response = await $fetch(`${this.url}/lifecycles/${id}/pdf?reflectionId=${reflectionId}`, {
         method: "GET",
         headers: {
           Authorization: `Bearer ${this.token}`,

@@ -59,7 +59,7 @@ export async function openPdfInFullscreen(
   lifecycleService: LifecycleService,
   auth: ReturnType<typeof useAuthStore>,
   toast: ReturnType<typeof useToast>,
-  phaseId?: number
+  reflectionId?: number
 ) {
   if (!auth.token) {
     toast.add({ title: 'Error', description: 'You need to be logged in!', color: 'error' });
@@ -68,8 +68,8 @@ export async function openPdfInFullscreen(
 
   try {
     lifecycleService.setToken(auth.token);
-    const blob = phaseId
-      ? await lifecycleService.generatePDFByIdForPhase(lifecycleId, phaseId)
+    const blob = reflectionId
+      ? await lifecycleService.generatePDFByIdForReflection(lifecycleId, reflectionId)
       : await lifecycleService.generatePDFById(lifecycleId);
     const pdfUrl = window.URL.createObjectURL(blob);
     window.open(pdfUrl, '_blank');
