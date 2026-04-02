@@ -71,12 +71,12 @@ const createReflectionAnswer = async (data: any, reflectionId: number) => {
     }
 };
 
-const editReflectionAnswer = async (data: any, reflectionId: number) => {
+const editReflectionAnswer = async (data: any, reflectionAnswerId: number) => {
     try {
         const newAnswer: Partial<ReflectionAnswer> = {
             form: JSON.stringify(data),
         }
-        const response = await reflectionAnswerService.editReflectionAnswer(newAnswer, reflectionId);
+        const response = await reflectionAnswerService.editReflectionAnswer(newAnswer, reflectionAnswerId);
         toast.add({ title: 'Success', description: 'The form has been edited.', color: 'success' });
         return response;
     } catch (error) {
@@ -102,7 +102,7 @@ const createOrEditReflectionAnswer = async (data: any, phaseIndex: number, refle
     let answer: ReflectionAnswer | undefined;
 
     if (reflectionAnswers.value[phaseIndex][reflectionIndex]?.id) {
-        answer = await editReflectionAnswer(data, reflectionId);
+        answer = await editReflectionAnswer(data, reflectionAnswers.value[phaseIndex][reflectionIndex].id!);
     } else {
         answer = await createReflectionAnswer(data, reflectionId);
     }
@@ -226,6 +226,8 @@ watch(activeIndex, (val) => {
 onMounted(async () => {
 
     if (!lifeCycle.value.Phases?.length) throw new Error("Lifecycle has no phases");
+
+    console.log(reflectionAnswers.value)
 
     if (auth.token) {
         // Set the user authentication token to the protected services (this has to be done on client side, because the token may be stored in the browser)
