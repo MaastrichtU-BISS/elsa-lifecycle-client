@@ -49,8 +49,6 @@ const exportLifecycle = async () => {
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
-
-        toast.add({ title: 'Success', description: 'The PDF has been downloaded.', color: 'success' });
     } catch (error) {
         toast.add({ title: 'Error', description: error as string, color: 'error' });
     }
