@@ -78,7 +78,7 @@ onUnmounted(() => {
         class="w-full h-[75vh] border rounded-lg mb-6" />
 
     <div class="flex justify-center gap-4 mt-4">
-        <UButton label="See Preview" icon="i-lucide-maximize" size="lg" variant="solid"
+        <UButton label="See in fullscreen" icon="i-lucide-maximize" size="lg" variant="solid"
             :disabled="!pdfPreviewUrl"
             @click="openPdfFullscreen" />
         <UButton label="Export as PDF" icon="i-lucide-download" size="lg" variant="solid"
