@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { FurtherReflectionAnswer, Lifecycle, Recommendation, RecommendationAnswer, ReflectionAnswer } from "~/utils/types";
-import { isRecommendationDone, isGetRecommendationsActive } from '~/utils/helpers';
+import { isRecommendationDone, isGetRecommendationsActive, openPdfInFullscreen } from '~/utils/helpers';
 import { FurtherReflectionAnswerService } from "~/services/furtherReflectionAnswer";
 import { LifecycleService } from "~/services/lifecycle";
 import { ReflectionAnswerService } from "~/services/reflectionAnswer";
@@ -217,7 +217,10 @@ function getNextIndex(index: number, childrenIndex: number) {
     return childrenIndex < indices.value[index].children.length - 1 ? indices.value[index].children[childrenIndex + 1] : indices.value[index + 1]?.children[0];
 }
 
-// utils
+async function openPdfPreviewForPhase(phaseId: number) {
+    await openPdfInFullscreen(lifecycleId, lifecycleService, auth, toast, phaseId);
+}
+
 watch(activeIndex, (val) => {
     window.scrollTo({ top: 0, behavior: 'smooth' }); //scroll to top
     router.push({ hash: `#${val.value}` }); //update url
@@ -490,9 +493,9 @@ onMounted(async () => {
                                 {{ getBackIndex(phaseIndex + 1, 1 + reflectionIndex)?.label
                                 }}</UButton>
 
-                            <!-- <UButton icon="i-lucide-arrow-eye" size="md" variant="outline"
-                                class="lifecycle-navigate-btn justify-between"
-                                @click="">See preview</UButton> -->
+                            <UButton icon="i-lucide-eye" size="md" variant="outline"
+                                class="lifecycle-navigate-btn justify-center"
+                                @click="openPdfPreviewForPhase(phase.id)">See preview</UButton>
                             <UButton trailing-icon="i-lucide-arrow-right" size="md" variant="outline"
                                 class="lifecycle-navigate-btn justify-between"
                                 @click="activeIndex = getNextIndex(phaseIndex + 1, 1 + reflectionIndex)">

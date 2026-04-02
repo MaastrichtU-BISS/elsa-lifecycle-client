@@ -1,4 +1,5 @@
 import { ReflectionAnswerGetRecommendations } from "~/utils/types";
+import type { LifecycleService } from "~/services/lifecycle";
 
 export function isRecommendationDone(
   rec: Recommendation | undefined,
@@ -51,4 +52,28 @@ export function isGetRecommendationsActive(form: string | undefined): boolean {
   return (
     parsedForm["get_recommendations"] === ReflectionAnswerGetRecommendations.YES
   );
+}
+
+export async function openPdfInFullscreen(
+  lifecycleId: number,
+  lifecycleService: LifecycleService,
+  auth: ReturnType<typeof useAuthStore>,
+  toast: ReturnType<typeof useToast>,
+  phaseId?: number
+) {
+  if (!auth.token) {
+    toast.add({ title: 'Error', description: 'You need to be logged in!', color: 'error' });
+    return;
+  }
+
+  try {
+    lifecycleService.setToken(auth.token);
+    const blob = phaseId
+      ? await lifecycleService.generatePDFByIdForPhase(lifecycleId, phaseId)
+      : await lifecycleService.generatePDFById(lifecycleId);
+    const pdfUrl = window.URL.createObjectURL(blob);
+    window.open(pdfUrl, '_blank');
+  } catch (error) {
+    toast.add({ title: 'Error', description: error as string, color: 'error' });
+  }
 }
