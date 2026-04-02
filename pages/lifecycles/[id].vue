@@ -1,9 +1,8 @@
 <script setup lang="ts">
-import type { JournalAnswer, Lifecycle, Recommendation, RecommendationAnswer, ReflectionAnswer } from "~/utils/types";
+import type { Lifecycle, Recommendation, RecommendationAnswer, ReflectionAnswer } from "~/utils/types";
 import { isRecommendationDone, isGetRecommendationsActive } from '~/utils/helpers';
 import { LifecycleService } from "~/services/lifecycle";
 import { ReflectionAnswerService } from "~/services/reflectionAnswer";
-import { JournalAnswerService } from "~/services/journalAnswer";
 import { RecommendationService } from "~/services/recommendation";
 import { RecommendationAnswerService } from "~/services/recommendationAnswer";
 import { marked } from 'marked'
@@ -17,14 +16,12 @@ const lifecycleId = +route.params.id;
 
 const lifecycleService = new LifecycleService(config.public.apiBase);
 const reflectionAnswerService = new ReflectionAnswerService(config.public.apiBase);
-const journalAnswerService = new JournalAnswerService(config.public.apiBase);
 const recommendationService = new RecommendationService(config.public.apiBase);
 const recommendationAnswerService = new RecommendationAnswerService(config.public.apiBase);
 
 const lifeCycle = ref<Lifecycle>(await lifecycleService.getLifecycleById(lifecycleId));
 const recommendations = ref<Recommendation[][][]>([]);
 const reflectionAnswers = ref<(ReflectionAnswer | undefined)[][]>([]);
-const journalAnswers = ref<(JournalAnswer | undefined)[][]>([]);
 const recommendationAnswers = ref<RecommendationAnswer[][][]>([]);
 const activeIndex = ref();
 
@@ -145,66 +142,6 @@ const recommendationProgress = computed(() => {
     return res;
 });
 
-// Handle Journals
-const createJournalAnswer = async (data: any, journalId: number) => {
-    try {
-        const newAnswer: Omit<JournalAnswer, "id" | "userId"> = {
-            journalId: journalId,
-            form: JSON.stringify(data)
-        }
-        const response = await journalAnswerService.createJournalAnswer(newAnswer);
-        toast.add({ title: 'Success', description: 'The form has been submitted.', color: 'success' });
-        return response;
-    } catch (error) {
-        toast.add({ title: 'Error', description: error as string, color: 'error' });
-    }
-};
-
-const editJournalAnswer = async (data: any, journalAnswerId: number) => {
-    try {
-        const newAnswer: Partial<JournalAnswer> = {
-            form: JSON.stringify(data),
-        }
-        const response = await journalAnswerService.editJournalAnswer(newAnswer, journalAnswerId);
-        toast.add({ title: 'Success', description: 'The form has been edited.', color: 'success' });
-        return response;
-    } catch (error) {
-        toast.add({ title: 'Error', description: error as string, color: 'error' });
-    }
-}
-
-const createOrEditJournalAnswer = async (data: any, phaseIndex: number, reflectionIndex: number) => {
-    if (!lifeCycle.value.Phases?.length) throw new Error("Lifecycle has no phases");
-
-    if (!auth.token) {
-        toast.add({ title: 'Error', description: 'You need to be logged in!', color: 'error' });
-        return
-    }
-
-    const phase = lifeCycle.value.Phases[phaseIndex];
-
-    if (!phase.Reflections?.length) throw new Error(`Phase ${phase.title} has no reflections`);
-
-    const reflection = phase.Reflections[reflectionIndex];
-    const journalId = reflection.Journal?.id;
-
-    if (!journalId) throw new Error(`Reflection ${reflection.title} has no journal`);
-
-    let answer: JournalAnswer | undefined;
-
-    const existingAnswer = journalAnswers.value[phaseIndex][reflectionIndex];
-    if (existingAnswer?.id) {
-        answer = await editJournalAnswer(data, existingAnswer.id);
-    } else {
-        answer = await createJournalAnswer(data, journalId);
-    }
-
-    if (answer) {
-        // update answer
-        journalAnswers.value[phaseIndex][reflectionIndex] = answer;
-    }
-}
-
 // Handle RecommendationAnswers
 
 // const updateRecommendationAnswer = (newRecommendationAnswer: any, answerIndex: number, index: number) => {
@@ -255,11 +192,12 @@ onMounted(async () => {
 
     if (!lifeCycle.value.Phases?.length) throw new Error("Lifecycle has no phases");
 
+    console.log('lifeCycle', lifeCycle.value);
+
     if (auth.token) {
         // Set the user authentication token to the protected services (this has to be done on client side, because the token may be stored in the browser)
         lifecycleService.setToken(auth.token);
         reflectionAnswerService.setToken(auth.token);
-        journalAnswerService.setToken(auth.token);
         recommendationAnswerService.setToken(auth.token);
     }
 
@@ -278,19 +216,13 @@ onMounted(async () => {
             }
         ];
 
-        // Add reflections and their journals (assuming every reflection has a journal)
+        // Add reflections
         if (phase.Reflections) {
             phase.Reflections.forEach((r) => {
                 phaseChildren.push({
                     label: r.title,
                     value: `phase${r.title}-reflection`,
                     icon: 'i-lucide-circle-question-mark',
-                    defaultExpanded: true,
-                });
-                phaseChildren.push({
-                    label: `${r.title} - Journal`,
-                    value: `phase${r.title}-journal`,
-                    icon: 'i-lucide-book-open-text',
                     defaultExpanded: true,
                 });
             });
@@ -313,7 +245,6 @@ onMounted(async () => {
         reflectionAnswers.value.push([]);
         recommendations.value.push([]);
         recommendationAnswers.value.push([]);
-        journalAnswers.value.push([]);
 
         if (auth.token && phase.Reflections?.length) {
             for (const reflection of phase.Reflections) {
@@ -338,14 +269,6 @@ onMounted(async () => {
                     reflectionAnswers.value.at(-1)?.push(undefined);
                     recommendations.value.at(-1)?.push([]);
                     recommendationAnswers.value.at(-1)?.push([]);
-                }
-
-                // Add journal answers (now at reflection level)
-                if (auth.token && reflection.Journal) {
-                    const jouAnswer = await journalAnswerService.GetJournalAnswerByUserIdAndJournalID(reflection.Journal.id);
-                    journalAnswers.value.at(-1)?.push(jouAnswer || undefined);
-                } else {
-                    journalAnswers.value.at(-1)?.push(undefined);
                 }
             }
         }
@@ -515,51 +438,13 @@ onMounted(async () => {
                         <div class="flex justify-between my-8">
                             <UButton icon="i-lucide-arrow-left" size="md" variant="outline"
                                 class="lifecycle-navigate-btn justify-between"
-                                @click="activeIndex = getBackIndex(phaseIndex + 1, 1 + reflectionIndex * 2)">
-                                {{ getBackIndex(phaseIndex + 1, 1 + reflectionIndex * 2)?.label
+                                @click="activeIndex = getBackIndex(phaseIndex + 1, 1 + reflectionIndex)">
+                                {{ getBackIndex(phaseIndex + 1, 1 + reflectionIndex)?.label
                                 }}</UButton>
                             <UButton trailing-icon="i-lucide-arrow-right" size="md" variant="outline"
                                 class="lifecycle-navigate-btn justify-between"
-                                @click="activeIndex = getNextIndex(phaseIndex + 1, 1 + reflectionIndex * 2)">
-                                {{ getNextIndex(phaseIndex + 1, 1 + reflectionIndex * 2)?.label
-                                }}
-                            </UButton>
-                        </div>
-                    </div>
-
-                    <!-- JOURNAL (separate page after reflection) -->
-                    <div v-show="activeIndex.value == `phase${reflection.title}-journal`">
-                        <div class="lifecycle-content">
-                            <h1 class="text-2xl font-bold mb-6 text-center">{{ reflection.title }} - Journal</h1>
-
-                            <!-- Completed Tools List -->
-                            <div v-if="recommendationAnswers[phaseIndex]?.[reflectionIndex]?.some(answer => answer?.checked_done)" class="mb-6">
-                                <h2 class="text-lg font-semibold mb-3">Recommended Tools Used:</h2>
-                                <ul class="list-disc list-inside space-y-1">
-                                    <li v-for="(answer, idx) in recommendationAnswers[phaseIndex]?.[reflectionIndex]?.filter(a => a?.checked_done)" :key="idx">
-                                        {{ answer?.Recommendation?.Tool?.title }} 
-                                        <a v-if="answer?.Recommendation?.Tool?.url" :href="answer.Recommendation.Tool.url" target="_blank" class="text-blue-600 dark:text-blue-300 hover:underline">
-                                            ({{ answer.Recommendation.Tool.url }})
-                                        </a>
-                                    </li>
-                                </ul>
-                            </div>
-
-                            <QuestionnaireForm :questionnaire="reflection.Journal?.form!"
-                                :answer="journalAnswers[phaseIndex][reflectionIndex]?.form"
-                                @on-submit="(data: any) => createOrEditJournalAnswer(data, phaseIndex, reflectionIndex)" />
-                        </div>
-
-                        <div class="flex justify-between my-8">
-                            <UButton icon="i-lucide-arrow-left" size="md" variant="outline"
-                                class="lifecycle-navigate-btn justify-between"
-                                @click="activeIndex = getBackIndex(phaseIndex + 1, 2 + reflectionIndex * 2)">
-                                {{ getBackIndex(phaseIndex + 1, 2 + reflectionIndex * 2)?.label
-                                }}</UButton>
-                            <UButton trailing-icon="i-lucide-arrow-right" size="md" variant="outline"
-                                class="lifecycle-navigate-btn justify-between"
-                                @click="activeIndex = getNextIndex(phaseIndex + 1, 2 + reflectionIndex * 2)">
-                                {{ getNextIndex(phaseIndex + 1, 2 + reflectionIndex * 2)?.label
+                                @click="activeIndex = getNextIndex(phaseIndex + 1, 1 + reflectionIndex)">
+                                {{ getNextIndex(phaseIndex + 1, 1 + reflectionIndex)?.label
                                 }}
                             </UButton>
                         </div>

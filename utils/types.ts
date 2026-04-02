@@ -34,14 +34,6 @@ export type Reflection = {
   form: string;
   phaseId: number;
   Phase?: Phase;
-  Journal?: Journal;
-};
-
-export type Journal = {
-  id: number;
-  form: string;
-  reflectionId: number;
-  Reflection?: Reflection;
 };
 
 export type ReflectionAnswer = {
@@ -50,14 +42,6 @@ export type ReflectionAnswer = {
   form: string;
   reflectionId: number;
   Reflection?: Reflection;
-};
-
-export type JournalAnswer = {
-  id: number;
-  userId: string;
-  form: string;
-  journalId: number;
-  Journal?: Journal;
 };
 
 export type Tool = {
