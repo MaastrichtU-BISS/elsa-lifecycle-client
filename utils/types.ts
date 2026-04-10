@@ -32,16 +32,9 @@ export type Reflection = {
   title: string;
   considerations: string;
   form: string;
+  furtherReflectionForm: string;
   phaseId: number;
   Phase?: Phase;
-  Journal?: Journal;
-};
-
-export type Journal = {
-  id: number;
-  form: string;
-  reflectionId: number;
-  Reflection?: Reflection;
 };
 
 export type ReflectionAnswer = {
@@ -52,12 +45,12 @@ export type ReflectionAnswer = {
   Reflection?: Reflection;
 };
 
-export type JournalAnswer = {
+export type FurtherReflectionAnswer = {
   id: number;
   userId: string;
   form: string;
-  journalId: number;
-  Journal?: Journal;
+  reflectionId: number;
+  Reflection?: Reflection;
 };
 
 export type Tool = {
@@ -104,4 +97,13 @@ export type Form = {
       baseInput?: boolean;
     }
   >;
+};
+
+export type TreeNode = {
+  label: string;
+  value: string;
+  icon?: string;
+  defaultExpanded?: boolean;
+  children?: TreeNode[];
+  trailingIcon?: string;
 };
