@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { FurtherReflectionAnswer, Lifecycle, Recommendation, RecommendationAnswer, ReflectionAnswer, TreeNode } from "~/utils/types";
-import { isRecommendationDone, isGetRecommendationsActive, openPdfInFullscreen } from '~/utils/helpers';
+import { isRecommendationDone, isGetRecommendationsActive, isReflectionFinished, openPdfInFullscreen } from '~/utils/helpers';
 import { FurtherReflectionAnswerService } from "~/services/furtherReflectionAnswer";
 import { LifecycleService } from "~/services/lifecycle";
 import { ReflectionAnswerService } from "~/services/reflectionAnswer";
@@ -201,6 +201,31 @@ const recommendationProgress = computed(() => {
     return res;
 });
 
+// Update indices with checkmarks for finished reflections
+const updateIndicesWithCheckmarks = () => {
+    if (!lifeCycle.value.Phases?.length) return;
+
+    lifeCycle.value.Phases.forEach((phase, phaseIndex) => {
+        if (!phase.Reflections?.length) return;
+
+        const indicesPhaseIndex = phaseIndex + 1; // +1 because indices[0] is "Get Started"
+        const phaseIndices = indices.value[indicesPhaseIndex];
+
+        if (!phaseIndices?.children) return;
+
+        phase.Reflections.forEach((reflection, reflectionIndex) => {
+            const child = phaseIndices.children?.[reflectionIndex];
+            if (child) {
+                const isFinished = isReflectionFinished(
+                    reflectionAnswers.value[phaseIndex]?.[reflectionIndex],
+                    furtherReflectionAnswers.value[phaseIndex]?.[reflectionIndex]
+                );
+                child.trailingIcon = isFinished ? 'i-lucide-circle-check-big' : undefined;
+            }
+        });
+    });
+};
+
 // Handle RecommendationAnswers
 
 // const updateRecommendationAnswer = (newRecommendationAnswer: any, answerIndex: number, index: number) => {
@@ -253,6 +278,11 @@ watch(expandedIndices, (value) => {
         expandedIndices.value = fixed;
     }
 });
+
+// Watch for changes in reflection and further reflection answers to update checkmarks
+watch([reflectionAnswers, furtherReflectionAnswers], () => {
+    updateIndicesWithCheckmarks();
+}, { deep: true });
 
 onMounted(async () => {
 
@@ -364,6 +394,9 @@ onMounted(async () => {
     // Set active index, Lifecycle General by default
     activeIndex.value = hashIndex ?? indices.value[0];
     lastActiveIndex.value = activeIndex.value;
+
+    // Update indices with checkmarks for finished reflections
+    updateIndicesWithCheckmarks();
 })
 
 </script>
@@ -562,5 +595,10 @@ onMounted(async () => {
 
 .lifecycle-navigate-btn {
     min-width: 170px !important;
+}
+
+/* Style for green checkmark on finished reflections */
+.indices-tree :deep(.i-lucide-circle-check-big) {
+    color: rgb(34, 197, 94) !important; /* green-500 */
 }
 </style>

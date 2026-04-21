@@ -1,4 +1,5 @@
 import { ReflectionAnswerGetRecommendations } from "~/utils/types";
+import type { ReflectionAnswer, FurtherReflectionAnswer } from "~/utils/types";
 import type { LifecycleService } from "~/services/lifecycle";
 
 export function isRecommendationDone(
@@ -52,6 +53,51 @@ export function isGetRecommendationsActive(form: string | undefined): boolean {
   return (
     parsedForm["get_recommendations"] === ReflectionAnswerGetRecommendations.YES
   );
+}
+
+export function isReflectionFinished(
+  reflectionAnswer: ReflectionAnswer | undefined,
+  furtherReflectionAnswer: FurtherReflectionAnswer | undefined
+): boolean {
+  // No reflection answer at all
+  if (!reflectionAnswer?.form) return false;
+
+  let parsedForm;
+  try {
+    parsedForm = JSON.parse(reflectionAnswer.form);
+  } catch {
+    return false;
+  }
+
+  // Check if first textarea is filled (assuming it's the main reflection answer)
+  const hasMainAnswer = Object.keys(parsedForm).some(key => {
+    const value = parsedForm[key];
+    return typeof value === 'string' && value.trim().length > 0;
+  });
+
+  if (!hasMainAnswer) return false;
+
+  // If recommendations were requested, check if further reflection is also filled
+  if (isGetRecommendationsActive(reflectionAnswer.form)) {
+    if (!furtherReflectionAnswer?.form) return false;
+
+    let parsedFurtherForm;
+    try {
+      parsedFurtherForm = JSON.parse(furtherReflectionAnswer.form);
+    } catch {
+      return false;
+    }
+
+    // Check if further reflection has answers
+    const hasFurtherAnswer = Object.keys(parsedFurtherForm).some(key => {
+      const value = parsedFurtherForm[key];
+      return typeof value === 'string' && value.trim().length > 0;
+    });
+
+    return hasFurtherAnswer;
+  }
+
+  return true;
 }
 
 export async function openPdfInFullscreen(
