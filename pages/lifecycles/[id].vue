@@ -221,7 +221,7 @@ const updateIndicesWithCheckmarks = () => {
                     reflectionAnswers.value[phaseIndex]?.[reflectionIndex],
                     furtherReflectionAnswers.value[phaseIndex]?.[reflectionIndex]
                 );
-                child.trailingIcon = isFinished ? 'i-lucide-circle-check-big' : undefined;
+                child.trailingIcon = isFinished ? 'i-lucide-check' : undefined;
             }
         });
 
@@ -230,7 +230,7 @@ const updateIndicesWithCheckmarks = () => {
             reflectionAnswers.value[phaseIndex] || [],
             furtherReflectionAnswers.value[phaseIndex] || []
         );
-        phaseIndices.trailingIcon = allReflectionsFinished ? 'i-lucide-circle-check-big' : 'none';
+        phaseIndices.trailingIcon = allReflectionsFinished ? 'i-lucide-check' : 'none';
     });
 };
 
@@ -606,7 +606,7 @@ onMounted(async () => {
 }
 
 /* Global styles to ensure checkmark icon displays correctly */
-.indices-tree .i-lucide\:circle-check-big {
+.indices-tree .i-lucide\:check {
     color: rgb(34, 197, 94) !important; /* green-500 */
     rotate: 0deg !important;
 }
