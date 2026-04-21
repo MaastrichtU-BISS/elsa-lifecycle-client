@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { FurtherReflectionAnswer, Lifecycle, Recommendation, RecommendationAnswer, ReflectionAnswer, TreeNode } from "~/utils/types";
-import { isRecommendationDone, isGetRecommendationsActive, isReflectionFinished, openPdfInFullscreen } from '~/utils/helpers';
+import { isRecommendationDone, isGetRecommendationsActive, isReflectionFinished, isPhaseFinished, openPdfInFullscreen } from '~/utils/helpers';
 import { FurtherReflectionAnswerService } from "~/services/furtherReflectionAnswer";
 import { LifecycleService } from "~/services/lifecycle";
 import { ReflectionAnswerService } from "~/services/reflectionAnswer";
@@ -213,6 +213,7 @@ const updateIndicesWithCheckmarks = () => {
 
         if (!phaseIndices?.children) return;
 
+        // Update reflection checkmarks
         phase.Reflections.forEach((reflection, reflectionIndex) => {
             const child = phaseIndices.children?.[reflectionIndex];
             if (child) {
@@ -223,6 +224,13 @@ const updateIndicesWithCheckmarks = () => {
                 child.trailingIcon = isFinished ? 'i-lucide-circle-check-big' : undefined;
             }
         });
+
+        // Update phase checkmark if all reflections are finished
+        const allReflectionsFinished = isPhaseFinished(
+            reflectionAnswers.value[phaseIndex] || [],
+            furtherReflectionAnswers.value[phaseIndex] || []
+        );
+        phaseIndices.trailingIcon = allReflectionsFinished ? 'i-lucide-circle-check-big' : 'none';
     });
 };
 
@@ -597,8 +605,10 @@ onMounted(async () => {
     min-width: 170px !important;
 }
 
-/* Style for green checkmark on finished reflections */
-.indices-tree :deep(.i-lucide-circle-check-big) {
+/* Global styles to ensure checkmark icon displays correctly */
+.indices-tree .i-lucide\:circle-check-big {
     color: rgb(34, 197, 94) !important; /* green-500 */
+    rotate: 0deg !important;
 }
+
 </style>

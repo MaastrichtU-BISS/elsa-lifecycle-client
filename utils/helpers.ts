@@ -100,6 +100,22 @@ export function isReflectionFinished(
   return true;
 }
 
+export function isPhaseFinished(
+  reflectionAnswers: (ReflectionAnswer | undefined)[],
+  furtherReflectionAnswers: (FurtherReflectionAnswer | undefined)[]
+): boolean {
+  // Check if phase has reflections
+  if (reflectionAnswers.length === 0) return false;
+
+  // Check if all reflections are finished
+  return reflectionAnswers.every((reflectionAnswer, index) => {
+    return isReflectionFinished(
+      reflectionAnswer,
+      furtherReflectionAnswers[index]
+    );
+  });
+}
+
 export async function openPdfInFullscreen(
   lifecycleId: number,
   lifecycleService: LifecycleService,
