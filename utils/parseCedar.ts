@@ -39,7 +39,11 @@ export async function parseCedar(cedarForm: any, answerForm: any | undefined): P
       defaultValue = [];
     }
 
-    if(answerForm && answerForm[fieldId]) {
+    if(type == "textarea" || type == "textfield" || type == "radio" || type == "list" || type == "temporal") {
+      defaultValue = "";
+    }
+
+    if(answerForm && answerForm[fieldId] !== undefined && answerForm[fieldId] !== null) {
       defaultValue = answerForm[fieldId];
     }
 
@@ -52,16 +56,24 @@ export async function parseCedar(cedarForm: any, answerForm: any | undefined): P
         };
         break;
       case "textfield":
-        schema[fieldId] = z.string();
         if (currentProp._valueConstraints?.branches?.length) {
           // pull options from ontology
           const options = await fetchOptions(
             currentProp._valueConstraints.branches[0].uri
           );
-          schema[fieldId] = z.string();
+          if (required) {
+            schema[fieldId] = z.string({ required_error: "This field is required" }).min(1, "This field is required");
+          } else {
+            schema[fieldId] = z.string().optional();
+          }
           ui[fieldId] = { label: title, inputType: "list", options, required };
         } else {
           // regular text field
+          if (required) {
+            schema[fieldId] = z.string({ required_error: "This field is required" }).min(1, "This field is required");
+          } else {
+            schema[fieldId] = z.string().optional();
+          }
           ui[fieldId] = {
             label: title,
             inputType: "text",
@@ -71,9 +83,15 @@ export async function parseCedar(cedarForm: any, answerForm: any | undefined): P
         }
         break;
       case "temporal":
-        schema[fieldId] = z.string().refine((val) => !isNaN(Date.parse(val)), {
-          message: "Invalid datetime",
-        });
+        if (required) {
+          schema[fieldId] = z.string({ required_error: "This field is required" }).min(1, "This field is required").refine((val) => !isNaN(Date.parse(val)), {
+            message: "Invalid datetime",
+          });
+        } else {
+          schema[fieldId] = z.string().refine((val) => !val || !isNaN(Date.parse(val)), {
+            message: "Invalid datetime",
+          }).optional();
+        }
         ui[fieldId] = {
           inputType: "datetime-local",
           label: title,
@@ -103,7 +121,11 @@ export async function parseCedar(cedarForm: any, answerForm: any | undefined): P
         };
         break;
       case "textarea":
-        schema[fieldId] = z.string().optional();
+        if (required) {
+          schema[fieldId] = z.string({ required_error: "This field is required" }).min(1, "This field is required");
+        } else {
+          schema[fieldId] = z.string().optional();
+        }
         ui[fieldId] = {
           label: title,
           inputType: "textarea",
@@ -112,7 +134,14 @@ export async function parseCedar(cedarForm: any, answerForm: any | undefined): P
         };
         break;
       case "numeric":
-        schema[fieldId] = z.number();
+        if (required) {
+          schema[fieldId] = z.number({
+            required_error: "This field is required",
+            invalid_type_error: "Must be a number"
+          });
+        } else {
+          schema[fieldId] = z.number().optional();
+        }
         ui[fieldId] = {
           label: title,
           inputType: "number",
@@ -121,15 +150,27 @@ export async function parseCedar(cedarForm: any, answerForm: any | undefined): P
         };
         break;
       case "radio":
-        schema[fieldId] = z.string();
+        if (required) {
+          schema[fieldId] = z.string({ required_error: "This field is required" }).min(1, "This field is required");
+        } else {
+          schema[fieldId] = z.string().optional();
+        }
         ui[fieldId] = { label: title, inputType: "radio", options, required };
         break;
       case "checkbox":
-        schema[fieldId] = z.string().array();
+        if (required) {
+          schema[fieldId] = z.string().array().min(1, "At least one option is required");
+        } else {
+          schema[fieldId] = z.string().array();
+        }
         ui[fieldId] = { label: title, inputType: "checkbox", options, required };
         break;
       case "list":
-        schema[fieldId] = z.string();
+        if (required) {
+          schema[fieldId] = z.string({ required_error: "This field is required" }).min(1, "This field is required");
+        } else {
+          schema[fieldId] = z.string().optional();
+        }
         ui[fieldId] = { label: title, inputType: "list", options, required };
         break;
       default:
