@@ -4,7 +4,7 @@ import type { FormSubmitEvent } from '@nuxt/ui';
 
 import { parseCedar } from '~/utils/parseCedar';
 
-const emits = defineEmits(["onSubmit"]);
+const emits = defineEmits(["onSubmit", "formChanged"]);
 
 const props = defineProps<{
     questionnaire: string;
@@ -30,12 +30,22 @@ const state = reactive<Schema>({
     ...form.state
 });
 
+const initialState = JSON.stringify(form.state);
+const hasChanges = ref(false);
+
+watch(state, () => {
+    hasChanges.value = JSON.stringify(state) !== initialState;
+    emits('formChanged', hasChanges.value);
+}, { deep: true });
+
 const schema = z.object({
     ...form.schema
 });
 
 const onSubmit = (event: FormSubmitEvent<Schema>) => {
     emits('onSubmit', event.data);
+    hasChanges.value = false;
+    emits('formChanged', false);
 };
 
 

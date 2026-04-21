@@ -29,6 +29,8 @@ const recommendationAnswers = ref<RecommendationAnswer[][][]>([]);
 const activeIndex = ref();
 const expandedIndices = ref<string[]>([]);
 const lastActiveIndex = ref<TreeNode | undefined>(undefined);
+const hasUnsavedChanges = ref(false);
+const unsavedChangesIndices = ref<Set<string>>(new Set());
 
 // Add indices Get Started
 const indices = ref<TreeNode[]>([{ 
@@ -122,6 +124,13 @@ const createOrEditReflectionAnswer = async (data: any, phaseIndex: number, refle
         });
 
         recommendationAnswers.value[phaseIndex][reflectionIndex] = await Promise.all(promises);
+        
+        // Clear unsaved changes and update checkmarks
+        hasUnsavedChanges.value = false;
+        if (activeIndex.value?.value) {
+            unsavedChangesIndices.value.delete(activeIndex.value.value);
+        }
+        updateIndicesWithCheckmarks();
     }
 };
 
@@ -180,6 +189,13 @@ const createOrEditFurtherReflectionAnswer = async (data: any, phaseIndex: number
 
     if (answer) {
         furtherReflectionAnswers.value[phaseIndex][reflectionIndex] = answer;
+        
+        // Clear unsaved changes and update checkmarks
+        hasUnsavedChanges.value = false;
+        if (activeIndex.value?.value) {
+            unsavedChangesIndices.value.delete(activeIndex.value.value);
+        }
+        updateIndicesWithCheckmarks();
     }
 };
 
@@ -217,11 +233,16 @@ const updateIndicesWithCheckmarks = () => {
         phase.Reflections.forEach((reflection, reflectionIndex) => {
             const child = phaseIndices.children?.[reflectionIndex];
             if (child) {
-                const isFinished = isReflectionFinished(
-                    reflectionAnswers.value[phaseIndex]?.[reflectionIndex],
-                    furtherReflectionAnswers.value[phaseIndex]?.[reflectionIndex]
-                );
-                child.trailingIcon = isFinished ? 'i-lucide-check' : undefined;
+                // If this reflection has unsaved changes, show warning icon
+                if (unsavedChangesIndices.value.has(child.value)) {
+                    child.trailingIcon = 'i-lucide-triangle-alert';
+                } else {
+                    const isFinished = isReflectionFinished(
+                        reflectionAnswers.value[phaseIndex]?.[reflectionIndex],
+                        furtherReflectionAnswers.value[phaseIndex]?.[reflectionIndex]
+                    );
+                    child.trailingIcon = isFinished ? 'i-lucide-check' : undefined;
+                }
             }
         });
 
@@ -269,14 +290,34 @@ watch(() => activeIndex.value?.value, (value) => {
     router.push({ hash: `#${value}` }); //update url
 });
 
-watch(activeIndex, (value) => {
-    if (value?.value) {
-        lastActiveIndex.value = value;
+watch(activeIndex, async (newValue, oldValue) => {
+    if (newValue?.value) {
+        // Show toast warning if there are unsaved changes
+        if (hasUnsavedChanges.value && oldValue?.value !== newValue?.value) {
+            toast.add({
+                title: 'Unsaved changes',
+                description: 'You have unsaved changes. Remember to save before leaving.',
+                icon: 'i-lucide-triangle-alert',
+                color: 'warning'
+            });
+            // Keep the unsavedChangesIndexValue set to show the warning icon
+        }
+        hasUnsavedChanges.value = false;
+        lastActiveIndex.value = newValue;
+        updateIndicesWithCheckmarks();
         return;
     }
 
     if (lastActiveIndex.value) {
         activeIndex.value = lastActiveIndex.value;
+    }
+});
+
+// Watch for form changes and update indices
+watch(hasUnsavedChanges, (changed) => {
+    if (changed && activeIndex.value?.value) {
+        unsavedChangesIndices.value.add(activeIndex.value.value);
+        updateIndicesWithCheckmarks();
     }
 });
 
@@ -537,7 +578,8 @@ onMounted(async () => {
                             <QuestionnaireForm :questionnaire="reflection.form!"
                                 :answer="reflectionAnswers[phaseIndex][reflectionIndex]?.form"
                                 :disabled="!auth.token"
-                                @on-submit="(data: any) => createOrEditReflectionAnswer(data, phaseIndex, reflectionIndex)" />
+                                @on-submit="(data: any) => createOrEditReflectionAnswer(data, phaseIndex, reflectionIndex)"
+                                @form-changed="(changed: boolean) => hasUnsavedChanges = changed" />
 
                             <!-- RECOMMENDATIONS -->
                             <div v-show="isGetRecommendationsActive(reflectionAnswers[phaseIndex][reflectionIndex]?.form)"
@@ -556,7 +598,8 @@ onMounted(async () => {
                                     <QuestionnaireForm :questionnaire="reflection.furtherReflectionForm!"
                                         :answer="furtherReflectionAnswers[phaseIndex][reflectionIndex]?.form"
                                         :disabled="!auth.token"
-                                        @on-submit="(data: any) => createOrEditFurtherReflectionAnswer(data, phaseIndex, reflectionIndex)" />
+                                        @on-submit="(data: any) => createOrEditFurtherReflectionAnswer(data, phaseIndex, reflectionIndex)"
+                                        @form-changed="(changed: boolean) => hasUnsavedChanges = changed" />
                                 </div>
 
                             </div>
@@ -620,6 +663,12 @@ onMounted(async () => {
 /* Global styles to ensure checkmark icon displays correctly */
 .indices-tree .i-lucide\:check {
     color: rgb(34, 197, 94) !important; /* green-500 */
+    rotate: 0deg !important;
+}
+
+/* Global styles to ensure warning icon displays correctly */
+.indices-tree .i-lucide\:triangle-alert {
+    color: rgb(234, 179, 8) !important; /* yellow-500 */
     rotate: 0deg !important;
 }
 
