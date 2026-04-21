@@ -2,6 +2,8 @@
 import type { NavigationMenuItem } from '@nuxt/ui'
 
 const auth = useAuthStore();
+const route = useRoute();
+const router = useRouter();
 
 const userEmail = computed(() => {
   return auth.user?.email || null;
@@ -63,7 +65,13 @@ const items = computed((): NavigationMenuItem[][] => {
   return [...fixedItems.value, [lightDarkButton, {
     label: 'Login',
     icon: 'i-lucide-log-in',
-    to: '/auth/login',
+    onSelect: () => {
+      // Build redirect URL with current path and hash
+      const currentPath = route.path;
+      const currentHash = route.hash;
+      const redirectUrl = currentPath + currentHash;
+      router.push(`/auth/login?redirect=${encodeURIComponent(redirectUrl)}`);
+    },
   }]];
 });
 
