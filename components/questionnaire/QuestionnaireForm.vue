@@ -9,6 +9,7 @@ const emits = defineEmits(["onSubmit"]);
 const props = defineProps<{
     questionnaire: string;
     answer?: string;
+    disabled?: boolean;
 }>();
 
 type Schema = z.output<typeof form.schema>
@@ -50,29 +51,29 @@ const onSubmit = (event: FormSubmitEvent<Schema>) => {
                     <template v-if="form.ui[fieldId]?.baseInput">
                         <UInput 
                             v-model="state[fieldId]" :type="form.ui[fieldId]?.inputType"
-                            :required="form.ui[fieldId]?.required"/>
+                            :required="form.ui[fieldId]?.required" :disabled="disabled"/>
                     </template>
                     <template v-else-if="form.ui[fieldId].inputType == 'textarea'">
-                        <UTextarea v-model="state[fieldId]" autoresize :rows="8" class="w-full"/>
+                        <UTextarea v-model="state[fieldId]" autoresize :rows="8" class="w-full" :disabled="disabled"/>
                     </template>
                     <template v-else-if="form.ui[fieldId]?.inputType === 'radio'">
                         <URadioGroup 
                             v-model="state[fieldId]" :items="form.ui[fieldId]?.options"
-                            :required="form.ui[fieldId]?.required" />
+                            :required="form.ui[fieldId]?.required" :disabled="disabled" />
                     </template>
                     <template v-else-if="form.ui[fieldId]?.inputType === 'checkbox'">
                         <UCheckboxGroup 
                             v-model="state[fieldId]" :items="form.ui[fieldId]?.options"
-                            :required="form.ui[fieldId]?.required" />
+                            :required="form.ui[fieldId]?.required" :disabled="disabled" />
                     </template>
                     <template v-else-if="form.ui[fieldId]?.inputType === 'list'">
                         <USelectMenu 
                             v-model="state[fieldId]" :items="form.ui[fieldId]?.options"
-                            :required="form.ui[fieldId]?.required" class="w-48" />
+                            :required="form.ui[fieldId]?.required" class="w-48" :disabled="disabled" />
                     </template>
                 </UFormField>
 
-                <UButton type="submit" class="flex justify-self-center" icon="i-lucide-save">
+                <UButton type="submit" class="flex justify-self-center" icon="i-lucide-save" :disabled="disabled">
                     Save
                 </UButton>
             </UForm>

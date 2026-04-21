@@ -524,8 +524,19 @@ onMounted(async () => {
                                 </li>
                             </ul>
 
+                            <UAlert 
+                                v-if="!auth.token"
+                                icon="i-lucide-info"
+                                color="warning"
+                                variant="subtle"
+                                title="Please log in to save your answers"
+                                description="You need to be logged in to fill and save reflection forms."
+                                class="mb-4"
+                            />
+
                             <QuestionnaireForm :questionnaire="reflection.form!"
                                 :answer="reflectionAnswers[phaseIndex][reflectionIndex]?.form"
+                                :disabled="!auth.token"
                                 @on-submit="(data: any) => createOrEditReflectionAnswer(data, phaseIndex, reflectionIndex)" />
 
                             <!-- RECOMMENDATIONS -->
@@ -544,6 +555,7 @@ onMounted(async () => {
                                     <h2 class="text-xl font-bold mb-2">Further Reflection</h2>
                                     <QuestionnaireForm :questionnaire="reflection.furtherReflectionForm!"
                                         :answer="furtherReflectionAnswers[phaseIndex][reflectionIndex]?.form"
+                                        :disabled="!auth.token"
                                         @on-submit="(data: any) => createOrEditFurtherReflectionAnswer(data, phaseIndex, reflectionIndex)" />
                                 </div>
 
