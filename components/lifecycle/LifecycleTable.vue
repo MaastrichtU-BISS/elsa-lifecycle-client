@@ -1,9 +1,14 @@
 <script lang="ts" setup>
 import { ref } from 'vue';
+import { useAuthStore } from '~/stores/auth';
 import type { Lifecycle } from '~/utils/types';
 import type { TableColumn } from '@nuxt/ui';
 import { getPaginationRowModel } from '@tanstack/vue-table';
 import { h, resolveComponent } from 'vue';
+
+// Stores
+
+const auth = useAuthStore();
 
 // API calls
 
@@ -48,12 +53,13 @@ const columns: TableColumn<Lifecycle>[] = [
         id: 'actions',
         header: 'Actions',
         cell: ({ row }) => {
+            const label = auth.user ? 'Start' : 'View';
             return h('div', { class: 'flex gap-2' }, [
                 h(resolveComponent('UButton'), {
-                    label: 'View',
+                    label,
                     icon: 'i-lucide-eye',
                     color: 'primary',
-                    variant: 'outline',
+                    variant: 'solid',
                     size: 'sm',
                     to: `/lifecycles/${row.original.id}`
                 }),
