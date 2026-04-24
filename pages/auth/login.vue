@@ -30,10 +30,10 @@ async function onSubmit(event: FormSubmitEvent<typeof state>) {
             toast.add({ title: 'Error', description: 'Email and password are required', color: 'error' })
             return
         }
-        await auth.login(state.email, state.password, )
+        await auth.login(state.email, state.password,)
         await auth.init()
         toast.add({ title: 'Logged In Succesfully', description: `Welcome ${auth.user.email}`, color: 'success' })
-        
+
         // Redirect to previous page if available, otherwise go to home
         const redirect = route.query.redirect as string || '/'
         await router.push(redirect)
@@ -49,9 +49,6 @@ async function onSubmit(event: FormSubmitEvent<typeof state>) {
         <div class="text-center mt-10 mb-4">
             <h1 class="text-2xl font-bold">Login</h1>
             <p class="text-gray-400">Please enter your credentials to login.</p>
-            <p class="text-gray-400">Or create a new account 
-                <ULink class="text-primary" :to="`/auth/register${route.query.redirect ? '?redirect=' + encodeURIComponent(route.query.redirect as string) : ''}`">here</ULink>
-            </p>
         </div>
         <div class="flex justify-center">
             <UForm :validate="validate" :state="state" class="space-y-4" @submit="onSubmit">
@@ -67,6 +64,11 @@ async function onSubmit(event: FormSubmitEvent<typeof state>) {
                     Login
                 </UButton>
             </UForm>
+        </div>
+        <div class="text-center mt-6">
+            <ULink class="text-primary underline" to="/auth/register">
+                Or create a new account
+            </ULink>
         </div>
     </div>
 </template>

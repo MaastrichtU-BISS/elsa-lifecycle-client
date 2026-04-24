@@ -38,7 +38,7 @@ async function onSubmit(event: FormSubmitEvent<typeof state>) {
         await auth.register(state.email, state.password, state.confirmPassword)
         await auth.init()
         toast.add({ title: 'Registered Succesfully', description: `Welcome ${auth.user.email}`, color: 'success' })
-        
+
         // Redirect to previous page if available, otherwise go to lifecycles
         const redirect = route.query.redirect as string || '/lifecycles'
         await router.push(redirect)
@@ -51,31 +51,35 @@ async function onSubmit(event: FormSubmitEvent<typeof state>) {
 
 <template>
     <div>
-        <div class="text-center mt-10 mb-4">
-            <h1 class="text-2xl font-bold">Register</h1>
-            <p class="text-gray-400">Please enter your credentials to register.</p>
-            <p class="text-gray-400">Or login with an existing account
-                <ULink class="text-primary" :to="`/auth/login${route.query.redirect ? '?redirect=' + encodeURIComponent(route.query.redirect as string) : ''}`">here</ULink>
-            </p>
+        <div>
+            <div class="text-center mt-10 mb-4">
+                <h1 class="text-2xl font-bold">Register</h1>
+                <p class="text-gray-400">Please enter your credentials to register.</p>
+            </div>
+            <div class="flex justify-center">
+                <UForm :validate="validate" :state="state" class="space-y-4" @submit="onSubmit">
+                    <UFormField label="Email" name="email">
+                        <UInput v-model="state.email" />
+                    </UFormField>
+
+                    <UFormField label="Password" name="password">
+                        <UInput v-model="state.password" type="password" />
+                    </UFormField>
+
+                    <UFormField label="Confirm Password" name="confirmPassword">
+                        <UInput v-model="state.confirmPassword" type="password" />
+                    </UFormField>
+
+                    <UButton type="submit" class="w-full justify-center">
+                        Register
+                    </UButton>
+                </UForm>
+            </div>
         </div>
-        <div class="flex justify-center">
-            <UForm :validate="validate" :state="state" class="space-y-4" @submit="onSubmit">
-                <UFormField label="Email" name="email">
-                    <UInput v-model="state.email" />
-                </UFormField>
-
-                <UFormField label="Password" name="password">
-                    <UInput v-model="state.password" type="password" />
-                </UFormField>
-
-                <UFormField label="Confirm Password" name="confirmPassword">
-                    <UInput v-model="state.confirmPassword" type="password" />
-                </UFormField>
-
-                <UButton type="submit" class="w-full justify-center">
-                    Register
-                </UButton>
-            </UForm>
+        <div class="text-center mt-6">
+            <ULink class="text-primary underline" to="/auth/login">
+                Or login with an existing account
+            </ULink>
         </div>
     </div>
 </template>
