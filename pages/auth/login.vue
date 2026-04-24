@@ -40,12 +40,10 @@ async function onSubmit(event: FormSubmitEvent<typeof state>) {
 </script>
 
 <template>
+
     <div class="text-center mt-10 mb-4">
         <h1 class="text-2xl font-bold">Login</h1>
         <p class="text-gray-400">Please enter your credentials to login.</p>
-        <p class="text-gray-400">Or create a new account 
-            <ULink class="text-primary" to="/auth/register">here</ULink />
-        </p>
     </div>
     <div class="flex justify-center">
         <UForm :validate="validate" :state="state" class="space-y-4" @submit="onSubmit">
@@ -61,6 +59,11 @@ async function onSubmit(event: FormSubmitEvent<typeof state>) {
                 Login
             </UButton>
         </UForm>
+    </div>
+    <div class="text-center mt-6">
+        <ULink class="text-primary underline" to="/auth/register">
+            Or create a new account
+        </ULink>
     </div>
 
 </template>
