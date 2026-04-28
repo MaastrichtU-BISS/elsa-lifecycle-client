@@ -39,8 +39,8 @@ async function onSubmit(event: FormSubmitEvent<typeof state>) {
         await auth.init()
         toast.add({ title: 'Registered Succesfully', description: `Welcome ${auth.user.email}`, color: 'success' })
 
-        // Redirect to previous page if available, otherwise go to lifecycles
-        const redirect = route.query.redirect as string || '/lifecycles'
+        // Redirect to previous page if available, otherwise go to home
+        const redirect = route.query.redirect as string || '/'
         await router.push(redirect)
     } catch (e) {
         toast.add({ title: 'Register failed', description: `${e.data.error}`, color: 'error' })
@@ -77,7 +77,7 @@ async function onSubmit(event: FormSubmitEvent<typeof state>) {
             </div>
         </div>
         <div class="text-center mt-6">
-            <ULink class="text-primary underline" to="/auth/login">
+            <ULink class="text-primary underline" :to="`/auth/login${route.query.redirect ? '?redirect=' + encodeURIComponent(route.query.redirect as string) : ''}`">
                 Or login with an existing account
             </ULink>
         </div>

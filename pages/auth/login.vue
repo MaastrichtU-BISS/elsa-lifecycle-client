@@ -30,7 +30,7 @@ async function onSubmit(event: FormSubmitEvent<typeof state>) {
             toast.add({ title: 'Error', description: 'Email and password are required', color: 'error' })
             return
         }
-        await auth.login(state.email, state.password,)
+        await auth.login(state.email, state.password)
         await auth.init()
         toast.add({ title: 'Logged In Succesfully', description: `Welcome ${auth.user.email}`, color: 'success' })
 
@@ -66,7 +66,7 @@ async function onSubmit(event: FormSubmitEvent<typeof state>) {
             </UForm>
         </div>
         <div class="text-center mt-6">
-            <ULink class="text-primary underline" to="/auth/register">
+            <ULink class="text-primary underline" :to="`/auth/register${route.query.redirect ? '?redirect=' + encodeURIComponent(route.query.redirect as string) : ''}`">
                 Or create a new account
             </ULink>
         </div>
