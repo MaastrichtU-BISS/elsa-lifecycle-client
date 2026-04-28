@@ -54,10 +54,11 @@ const columns: TableColumn<Lifecycle>[] = [
         header: 'Actions',
         cell: ({ row }) => {
             const label = auth.user ? 'Start' : 'View';
+            const icon = auth.user ? 'i-lucide-play' : 'i-lucide-eye';
             return h('div', { class: 'flex gap-2' }, [
                 h(resolveComponent('UButton'), {
                     label,
-                    icon: 'i-lucide-eye',
+                    icon,
                     color: 'primary',
                     variant: 'solid',
                     size: 'sm',
