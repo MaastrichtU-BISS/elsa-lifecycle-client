@@ -1,8 +1,6 @@
 import { BaseService } from "./base";
 import type { Lifecycle } from "~/utils/types";
-
 export class LifecycleService extends BaseService {
-
   async getAllLifecycles(): Promise<Lifecycle[]> {
     try {
       const response = await $fetch(`${this.url}/lifecycles`, {
@@ -33,7 +31,7 @@ export class LifecycleService extends BaseService {
         headers: {
           Authorization: `Bearer ${this.token}`,
         },
-        responseType: 'blob',
+        responseType: "blob",
       });
 
       return response as Blob;
@@ -42,19 +40,45 @@ export class LifecycleService extends BaseService {
     }
   }
 
-  async generatePDFByIdForReflection(id: number, reflectionId: number): Promise<Blob> {
+  async generatePDFByIdForReflection(
+    id: number,
+    reflectionId: number,
+  ): Promise<Blob> {
     try {
-      const response = await $fetch(`${this.url}/lifecycles/${id}/pdf?reflectionId=${reflectionId}`, {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${this.token}`,
+      const response = await $fetch(
+        `${this.url}/lifecycles/${id}/pdf?reflectionId=${reflectionId}`,
+        {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${this.token}`,
+          },
+          responseType: "blob",
         },
-        responseType: 'blob',
-      });
+      );
 
       return response as Blob;
     } catch (error) {
       throw new Error(`Failed to generate PDF: ${error}`);
+    }
+  }
+
+  async getLastLifecycleForUser(): Promise<Lifecycle | null> {
+    try {
+      const response = await $fetch(
+        `${this.url}/reflectionAnswers/latest-lifecycle`,
+        {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${this.token}`,
+          },
+        },
+      );
+      return response as Lifecycle;
+    } catch (error) {
+      if (error instanceof Error && error.message.includes("404")) {
+        return null;
+      }
+      throw new Error(`Failed to fetch last lifecycle: ${error}`);
     }
   }
 }
