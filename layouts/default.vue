@@ -82,12 +82,14 @@ onMounted(async () => {
 </script>
 
 <template>
-  <ClientOnly>
-    <UNavigationMenu :items="items"
-      class="w-full px-2 grid grid-cols-3 [&>*:nth-child(2)]:justify-self-center [&>*:nth-child(3)]:justify-self-end"
-      arrow content-orientation="vertical" />
-  </ClientOnly>
-  <main class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-2">
-    <slot />
-  </main>
+  <div>
+    <ClientOnly>
+      <UNavigationMenu :items="items"
+        class="w-full px-2 grid grid-cols-3 [&>*:nth-child(2)]:justify-self-center [&>*:nth-child(3)]:justify-self-end"
+        arrow content-orientation="vertical" />
+    </ClientOnly>
+    <main class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-2">
+      <slot />
+    </main>
+  </div>
 </template>
