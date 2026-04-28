@@ -33,13 +33,13 @@ onMounted(() => {
         <div v-else>
             <div class="mt-50 flex flex-col sm:flex-row gap-6 justify-center items-center">
                 <NuxtLink to="/lifecycles"
-                    class="w-64 h-32 bg-white shadow-lg rounded-lg flex flex-col justify-center items-center border border-primary hover:bg-primary hover:text-white transition-colors duration-200">
+                    class="w-64 h-32 bg-white dark:bg-gray-800 shadow-lg rounded-lg flex flex-col justify-center items-center border border-primary hover:bg-primary hover:text-white transition-colors duration-200">
                     <i class="i-lucide:recycle text-2xl mb-2"></i>
                     <span class="text-2xl font-semibold mb-2">Lifecycles</span>
                     <span class="text-sm">Explore all available lifecycles</span>
                 </NuxtLink>
                 <NuxtLink to="/tools"
-                    class="w-64 h-32 bg-white shadow-lg rounded-lg flex flex-col justify-center items-center border border-primary hover:bg-primary hover:text-white transition-colors duration-200">
+                    class="w-64 h-32 bg-white dark:bg-gray-800 shadow-lg rounded-lg flex flex-col justify-center items-center border border-primary hover:bg-primary hover:text-white transition-colors duration-200">
                     <i class="i-lucide:wrench text-2xl mb-2"></i>
                     <span class="text-2xl font-semibold mb-2">Tools</span>
                     <span class="text-sm">Browse our tool collection</span>
