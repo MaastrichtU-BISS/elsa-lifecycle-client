@@ -4,6 +4,7 @@ export const useAuthStore = defineStore("auth", {
   state: () => ({
     token: null as string | null,
     user: null as any,
+    initialized: false,
   }),
 
   actions: {
@@ -62,6 +63,7 @@ export const useAuthStore = defineStore("auth", {
         this.token = savedToken;
         await this.getUser();
       }
+      this.initialized = true;
     },
   },
 });
