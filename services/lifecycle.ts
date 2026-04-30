@@ -1,5 +1,7 @@
 import { BaseService } from "./base";
 import type { Lifecycle } from "~/utils/types";
+import type { LastLifecycle } from "~/utils/types";
+
 export class LifecycleService extends BaseService {
   async getAllLifecycles(): Promise<Lifecycle[]> {
     try {
@@ -62,7 +64,7 @@ export class LifecycleService extends BaseService {
     }
   }
 
-  async getLastLifecycleForUser(): Promise<Lifecycle | null> {
+  async getLastLifecycleForUser(): Promise<LastLifecycle | null> {
     try {
       const response = await $fetch(
         `${this.url}/reflectionAnswers/latest-lifecycle`,
@@ -73,7 +75,7 @@ export class LifecycleService extends BaseService {
           },
         },
       );
-      return response as Lifecycle;
+      return response as LastLifecycle;
     } catch (error) {
       if (error instanceof Error && error.message.includes("404")) {
         return null;
