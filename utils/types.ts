@@ -107,3 +107,9 @@ export type TreeNode = {
   children?: TreeNode[];
   trailingIcon?: string;
 };
+
+export type LastLifecycle = { 
+  phaseTitle: string;
+  lifecycleId: number;
+  lifecycleTitle: string;
+}
