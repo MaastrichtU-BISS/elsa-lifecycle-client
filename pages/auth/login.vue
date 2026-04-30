@@ -53,20 +53,21 @@ async function onSubmit(event: FormSubmitEvent<typeof state>) {
         <div class="flex justify-center">
             <UForm :validate="validate" :state="state" class="space-y-4" @submit="onSubmit">
                 <UFormField label="Email" name="email">
-                    <UInput v-model="state.email" />
+                    <UInput v-model="state.email" data-testid="login-email" />
                 </UFormField>
 
                 <UFormField label="Password" name="password">
-                    <UInput v-model="state.password" type="password" />
+                    <UInput v-model="state.password" type="password" data-testid="login-password" />
                 </UFormField>
 
-                <UButton type="submit" class="w-full justify-center">
+                <UButton type="submit" class="w-full justify-center" data-testid="login-submit">
                     Login
                 </UButton>
             </UForm>
         </div>
         <div class="text-center mt-6">
-            <ULink class="text-primary underline" :to="`/auth/register${route.query.redirect ? '?redirect=' + encodeURIComponent(route.query.redirect as string) : ''}`">
+            <ULink class="text-primary underline"
+                :to="`/auth/register${route.query.redirect ? '?redirect=' + encodeURIComponent(route.query.redirect as string) : ''}`">
                 Or create a new account
             </ULink>
         </div>
