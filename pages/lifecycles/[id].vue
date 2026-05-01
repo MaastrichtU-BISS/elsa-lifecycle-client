@@ -6,7 +6,9 @@ import { LifecycleService } from "~/services/lifecycle";
 import { ReflectionAnswerService } from "~/services/reflectionAnswer";
 import { RecommendationService } from "~/services/recommendation";
 import { RecommendationAnswerService } from "~/services/recommendationAnswer";
+
 import { marked } from 'marked'
+import { useLifecycleStore } from '~/stores/lifecycle'
 
 const auth = useAuthStore();
 const toast = useToast();
@@ -15,11 +17,13 @@ const router = useRouter()
 const config = useRuntimeConfig();
 const lifecycleId = +route.params.id;
 
+
 const furtherReflectionAnswerService = new FurtherReflectionAnswerService(config.public.apiBase);
 const lifecycleService = new LifecycleService(config.public.apiBase);
 const reflectionAnswerService = new ReflectionAnswerService(config.public.apiBase);
 const recommendationService = new RecommendationService(config.public.apiBase);
 const recommendationAnswerService = new RecommendationAnswerService(config.public.apiBase);
+const lifecycleStore = useLifecycleStore();
 
 const lifeCycle = ref<Lifecycle>(await lifecycleService.getLifecycleById(lifecycleId));
 const recommendations = ref<Recommendation[][][]>([]);
@@ -131,6 +135,12 @@ const createOrEditReflectionAnswer = async (data: any, phaseIndex: number, refle
             unsavedChangesIndices.value.delete(activeIndex.value.value);
         }
         updateIndicesWithCheckmarks();
+
+        if (auth.token) {
+            lifecycleService.setToken(auth.token);
+            const latest = await lifecycleService.getLastLifecycleForUser();
+            lifecycleStore.setLastLifecycle(latest);
+        }
     }
 };
 
@@ -196,6 +206,12 @@ const createOrEditFurtherReflectionAnswer = async (data: any, phaseIndex: number
             unsavedChangesIndices.value.delete(activeIndex.value.value);
         }
         updateIndicesWithCheckmarks();
+
+        if (auth.token) {
+            lifecycleService.setToken(auth.token);
+            const latest = await lifecycleService.getLastLifecycleForUser();
+            lifecycleStore.setLastLifecycle(latest);
+        }
     }
 };
 
