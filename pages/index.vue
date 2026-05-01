@@ -45,8 +45,8 @@ const isLoading = computed(() => !lastLifecycle.value && (loading.value || !auth
 
 const lastLifecycleLink = computed(() => {
     const data = lastLifecycle.value
-    if (!data?.lifecycleId || !data?.phaseTitle) return null
-    return `/lifecycles/${data.lifecycleId}#phase-${encodeURIComponent(data.phaseTitle)}`
+    if (!data?.lifecycleId || !data?.reflectionTitle) return null
+    return `/lifecycles/${data.lifecycleId}#phase${encodeURIComponent(data.reflectionTitle)}-reflection`
 })
 
 defineProps({})
