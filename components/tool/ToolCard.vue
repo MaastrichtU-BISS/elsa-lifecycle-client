@@ -6,6 +6,8 @@ const tool = defineModel<Tool>('tool', { required: true });
 const recommendation = defineModel<Recommendation>('recommendation');
 const answer = defineModel<RecommendationAnswer>('answer');
 
+const emit = defineEmits<{ answered: [] }>();
+
 const auth = useAuthStore();
 const modalOpened = ref(false);
 const config = useRuntimeConfig();
@@ -157,6 +159,8 @@ const setRecommendationDoneTo = async (value: boolean) => {
 
         answer.value = newRecommendationAnswer;
 
+        emit('answered');
+
         if (newRecommendationAnswer.checked_done) {
             $toast.add({
                 title: 'Success',
@@ -218,12 +222,12 @@ onMounted(() => {
             </div>
             <div class="flex flex-col gap-4 items-start">
                 <template v-if="tool.url">
-                    <UButton :to="tool.url" label="Visit Tool" icon="lucide-external-link" size="sm" variant="outline"
+                    <UButton :to="tool.url" label="Visit Tool" icon="i-lucide-external-link" size="sm" variant="outline"
                         target="_blank" aria-placeholder="ss" />
                 </template>
                 <template v-if="recommendation && tool.form">
                     <UModal v-model:open="modalOpened" :title="tool.title" :description="tool.description">
-                        <UButton :label="fillInFormMessage" icon="lucide-edit" size="sm" />
+                        <UButton :label="fillInFormMessage" icon="i-lucide-edit" size="sm" />
                         <template #body>
                             <QuestionnaireForm :questionnaire="tool.form" :answer="answer?.form"
                                 @on-submit="submitForm" />
@@ -232,7 +236,7 @@ onMounted(() => {
                 </template>
                 <template v-if="recommendation && tool.file_upload">
                     <UInput :id="`recommendation-file-${recommendation?.id}`" type="file" size="sm" class="mt-2"
-                        icon="lucide-upload" @change="uploadFile" />
+                        icon="i-lucide-upload" @change="uploadFile" />
                     <label :for="`recommendation-file-${recommendation?.id}`" class="text-xs text-gray-400">
                         {{ uploadFileMessage }}
                     </label>
