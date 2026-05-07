@@ -25,6 +25,12 @@ const recommendationService = new RecommendationService(config.public.apiBase);
 const recommendationAnswerService = new RecommendationAnswerService(config.public.apiBase);
 const lifecycleStore = useLifecycleStore();
 
+async function refreshLastLifecycleInStore() {
+    lifecycleService.setToken(auth.token!);
+    const latest = await lifecycleService.getLatestLifecycleForUser();
+    lifecycleStore.setLastLifecycle(latest);
+}
+
 const lifeCycle = ref<Lifecycle>(await lifecycleService.getLifecycleById(lifecycleId));
 const recommendations = ref<Recommendation[][][]>([]);
 const furtherReflectionAnswers = ref<(FurtherReflectionAnswer | undefined)[][]>([]);
@@ -137,9 +143,7 @@ const createOrEditReflectionAnswer = async (data: any, phaseIndex: number, refle
         updateIndicesWithCheckmarks();
 
         if (auth.token) {
-            lifecycleService.setToken(auth.token);
-            const latest = await lifecycleService.getLastLifecycleForUser();
-            lifecycleStore.setLastLifecycle(latest);
+            await refreshLastLifecycleInStore();
         }
     }
 };
@@ -208,9 +212,7 @@ const createOrEditFurtherReflectionAnswer = async (data: any, phaseIndex: number
         updateIndicesWithCheckmarks();
 
         if (auth.token) {
-            lifecycleService.setToken(auth.token);
-            const latest = await lifecycleService.getLastLifecycleForUser();
-            lifecycleStore.setLastLifecycle(latest);
+            await refreshLastLifecycleInStore();
         }
     }
 };
@@ -302,7 +304,9 @@ async function openPdfPreviewForReflection(reflectionId: number) {
 
 watch(() => activeIndex.value?.value, (value) => {
     if (!value) return;
-    window.scrollTo({ top: 0, behavior: 'smooth' }); //scroll to top
+    if (!route.query.scrollTo) {
+        window.scrollTo({ top: 0, behavior: 'smooth' }); //scroll to top
+    }
     router.push({ hash: `#${value}` }); //update url
 });
 
@@ -462,6 +466,23 @@ onMounted(async () => {
 
     // Update indices with checkmarks for finished reflections
     updateIndicesWithCheckmarks();
+
+    // Scroll to the specific sub-section if requested
+    const scrollTo = route.query.scrollTo as string | undefined;
+    const reflectionTitle = activeIndex.value?.label;
+    if (scrollTo && reflectionTitle) {
+        await nextTick();
+        const elementId = scrollTo === 'recommendation'
+            ? `recommendations-${reflectionTitle}`
+            : scrollTo === 'further'
+                ? `further-reflection-${reflectionTitle}`
+                : null;
+        if (elementId) {
+            setTimeout(() => {
+                document.getElementById(elementId)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }, 300);
+        }
+    }
 })
 
 </script>
@@ -601,9 +622,12 @@ onMounted(async () => {
                             <div v-show="isGetRecommendationsActive(reflectionAnswers[phaseIndex][reflectionIndex]?.form)"
                                 class="mt-10">
                                 <h2 class="text-xl font-bold mb-2">Recommended Tools</h2>
+                                <div :id="`recommendations-${reflection.title}`">
                                 <ToolList :tools="recommendations[phaseIndex][reflectionIndex]?.map(r => r.Tool!) || []"
                                     v-model:recommendations="recommendations[phaseIndex][reflectionIndex]"
-                                    v-model:answers="recommendationAnswers[phaseIndex][reflectionIndex]" />
+                                    v-model:answers="recommendationAnswers[phaseIndex][reflectionIndex]"
+                                    @answered="refreshLastLifecycleInStore" />
+                                </div>
                                 <div v-if="recommendations[phaseIndex][reflectionIndex]?.length" class="my-4">
                                     <UProgress v-model="recommendationProgress[phaseIndex][reflectionIndex].percent"
                                         status />
@@ -611,11 +635,13 @@ onMounted(async () => {
 
                                 <div class="mt-10">
                                     <h2 class="text-xl font-bold mb-2">Further Reflection</h2>
+                                    <div :id="`further-reflection-${reflection.title}`">
                                     <QuestionnaireForm :questionnaire="reflection.furtherReflectionForm!"
                                         :answer="furtherReflectionAnswers[phaseIndex][reflectionIndex]?.form"
                                         :disabled="!auth.token"
                                         @on-submit="(data: any) => createOrEditFurtherReflectionAnswer(data, phaseIndex, reflectionIndex)"
                                         @form-changed="(changed: boolean) => hasUnsavedChanges = changed" />
+                                    </div>
                                 </div>
 
                             </div>
