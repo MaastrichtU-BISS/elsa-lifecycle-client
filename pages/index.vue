@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, watch } from 'vue'
+import { computed } from 'vue'
 import { LifecycleService } from '~/services/lifecycle'
 import { useLifecycleStore } from '~/stores/lifecycle'
 
@@ -8,21 +8,14 @@ const config = useRuntimeConfig()
 const lifecycleService = new LifecycleService(config.public.apiBase)
 
 const lifecycleStore = useLifecycleStore()
-lifecycleStore.hydrateFromLocalStorage()
 
-
-const CACHE_MAX_AGE = 10 * 60 * 1000
-
-const { data: lastLifecycle, pending: loading, refresh } = await useLazyAsyncData(
+const { data: lastLifecycle, pending: loading } = await useLazyAsyncData(
     'lastLifecycle',
     async () => {
         if (!auth.initialized || !auth.token) return null
-        if (lifecycleStore.isLastLifecycleFresh(CACHE_MAX_AGE) && lifecycleStore.lastLifecycle) {
-            return lifecycleStore.lastLifecycle
-        }
         lifecycleService.setToken(auth.token)
-        const data = await lifecycleService.getLastLifecycleForUser()
-        const plain = data ? JSON.parse(JSON.stringify(data)) : null
+        const latest = await lifecycleService.getLatestLifecycleForUser()
+        const plain = latest ? JSON.parse(JSON.stringify(latest)) : null
         lifecycleStore.setLastLifecycle(plain)
         return plain
     },
@@ -33,20 +26,15 @@ const { data: lastLifecycle, pending: loading, refresh } = await useLazyAsyncDat
     }
 )
 
-watch(lastLifecycle, (value) => {
-    if (value) {
-        lifecycleStore.setLastLifecycle(value)
-    } else {
-        lifecycleStore.clearLastLifecycle()
-    }
-})
-
 const isLoading = computed(() => !lastLifecycle.value && (loading.value || !auth.initialized))
 
 const lastLifecycleLink = computed(() => {
     const data = lastLifecycle.value
-    if (!data?.lifecycleId || !data?.reflectionTitle) return null
-    return `/lifecycles/${data.lifecycleId}#phase${encodeURIComponent(data.reflectionTitle)}-reflection`
+    if (!data?.lifecycleId || !data?.title) return null
+    const hash = `#phase${data.title}-reflection`
+    if (data.type === 'recommendation') return `/lifecycles/${data.lifecycleId}?scrollTo=recommendation${hash}`
+    if (data.type === 'further_reflection') return `/lifecycles/${data.lifecycleId}?scrollTo=further${hash}`
+    return `/lifecycles/${data.lifecycleId}${hash}`
 })
 
 defineProps({})
@@ -58,32 +46,39 @@ defineProps({})
             <div v-if="isLoading" class="min-h-[300px] flex justify-center items-center">
                 <Icon name="lucide:loader" class="animate-spin text-4xl text-primary" />
             </div>
-            <div v-else-if="auth.token && lastLifecycle">
+            <div v-else-if="auth.token">
                 <div class="max-w-xl mx-auto mt-12 p-6
                  bg-primary/10 border border-primary/20
                  dark:bg-gray-800 dark:border-gray-700
                  rounded-xl shadow flex flex-col items-center">
                     <div class="flex items-center mb-4 gap-2">
-                        <Icon name="lucide:clock" class="text-3xl text-primary dark:text-white" />
+                        <Icon :name="lastLifecycle ? 'lucide:clock' : 'lucide:recycle'"
+                            class="text-3xl text-primary dark:text-white" />
                         <h2 class="text-xl font-semibold text-primary dark:text-white">
-                            Continue where you left off
+                            {{ lastLifecycle ? 'Continue where you left off' : 'Start your first lifecycle' }}
                         </h2>
                     </div>
                     <p class="text-primary dark:text-white mb-4 text-center">
-                        You were last working on
-                        <span class="font-semibold text-primary dark:text-primary-light">
-                            {{ lastLifecycle?.lifecycleTitle || 'your last lifecycle' }}
-                        </span>.
-                        Pick up right where you stopped.
+                        <template v-if="lastLifecycle">
+                            You were last working on
+                            <span class="font-semibold text-primary dark:text-primary-light">
+                                {{ lastLifecycle.lifecycleTitle || 'your last lifecycle' }}
+                            </span>.
+                            Pick up right where you stopped.
+                        </template>
+                        <template v-else>
+                            You haven't started a lifecycle yet. Head over to Lifecycles to begin.
+                        </template>
                     </p>
                     <NuxtLink v-if="lastLifecycleLink" :to="lastLifecycleLink" class="px-6 py-3 bg-primary text-white rounded-lg font-medium shadow
                  hover:bg-primary-dark transition-all duration-200
                  hover:-translate-y-0.5 hover:shadow-lg">
                         Continue to your last lifecycle
                     </NuxtLink>
-                    <NuxtLink v-else to="/lifecycles"
-                        class="text-primary underline mt-2 hover:text-primary-dark transition-colors">
-                        Go to Lifecycles to start a new one
+                    <NuxtLink v-else to="/lifecycles" class="px-6 py-3 bg-primary text-white rounded-lg font-medium shadow
+                 hover:bg-primary-dark transition-all duration-200
+                 hover:-translate-y-0.5 hover:shadow-lg">
+                        Go to Lifecycles
                     </NuxtLink>
                 </div>
             </div>
