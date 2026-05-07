@@ -109,7 +109,9 @@ export type TreeNode = {
 };
 
 export type LastLifecycle = { 
-  reflectionTitle: string;
+  type: string;
+  title: string;
   lifecycleId: number;
   lifecycleTitle: string;
+  updatedAt?: string;
 }
