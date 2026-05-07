@@ -64,23 +64,16 @@ export class LifecycleService extends BaseService {
     }
   }
 
-  async getLastLifecycleForUser(): Promise<LastLifecycle | null> {
+  async getLatestLifecycleForUser(): Promise<LastLifecycle | null> {
     try {
-      const response = await $fetch(
-        `${this.url}/reflectionAnswers/latest-lifecycle`,
-        {
-          method: "GET",
-          headers: {
-            Authorization: `Bearer ${this.token}`,
-          },
-        },
-      );
+      const response = await $fetch(`${this.url}/progress/last-updated`, {
+        method: "GET",
+        headers: { Authorization: `Bearer ${this.token}` },
+      });
       return response as LastLifecycle;
     } catch (error) {
-      if (error instanceof Error && error.message.includes("404")) {
-        return null;
-      }
-      throw new Error(`Failed to fetch last lifecycle: ${error}`);
+      if (error instanceof Error && error.message.includes("404")) return null;
+      throw new Error(`Failed to fetch latest lifecycle: ${error}`);
     }
   }
 }
