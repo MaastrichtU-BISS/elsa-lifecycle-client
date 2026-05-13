@@ -32,7 +32,10 @@ const lastLifecycleLink = computed(() => {
     const data = lastLifecycle.value
     if (!data?.lifecycleId || !data?.title) return null
     const hash = `#phase${data.title}-reflection`
-    if (data.type === 'recommendation') return `/lifecycles/${data.lifecycleId}?scrollTo=recommendation${hash}`
+    if (data.type === 'recommendation') {
+        const query = new URLSearchParams({ scrollTo: 'recommendation', toolId: String(data.toolId) })
+        return `/lifecycles/${data.lifecycleId}?${query.toString()}${hash}`
+    }
     if (data.type === 'further_reflection') return `/lifecycles/${data.lifecycleId}?scrollTo=further${hash}`
     return `/lifecycles/${data.lifecycleId}${hash}`
 })

@@ -31,6 +31,35 @@ async function refreshLastLifecycleInStore() {
     lifecycleStore.setLastLifecycle(latest);
 }
 
+function waitForScrollIdle(timeout = 450) {
+    return new Promise<void>((resolve) => {
+        let done = false;
+        const finish = () => {
+            if (done) return;
+            done = true;
+            window.removeEventListener('scrollend', finish as EventListener);
+            resolve();
+        };
+
+        if ('onscrollend' in window) {
+            window.addEventListener('scrollend', finish as EventListener, { once: true });
+            setTimeout(finish, timeout);
+        } else {
+            setTimeout(finish, timeout);
+        }
+    });
+}
+
+async function waitForElement(id: string, maxMs = 1500) {
+    const start = Date.now();
+    while (Date.now() - start < maxMs) {
+        const el = document.getElementById(id);
+        if (el) return el;
+        await new Promise((resolve) => requestAnimationFrame(resolve));
+    }
+    return null;
+}
+
 const lifeCycle = ref<Lifecycle>(await lifecycleService.getLifecycleById(lifecycleId));
 const recommendations = ref<Recommendation[][][]>([]);
 const furtherReflectionAnswers = ref<(FurtherReflectionAnswer | undefined)[][]>([]);
@@ -469,6 +498,7 @@ onMounted(async () => {
 
     // Scroll to the specific sub-section if requested
     const scrollTo = route.query.scrollTo as string | undefined;
+    const toolId = Number(route.query.toolId);
     const reflectionTitle = activeIndex.value?.label;
     if (scrollTo && reflectionTitle) {
         await nextTick();
@@ -478,9 +508,14 @@ onMounted(async () => {
                 ? `further-reflection-${reflectionTitle}`
                 : null;
         if (elementId) {
-            setTimeout(() => {
-                document.getElementById(elementId)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            }, 300);
+            const sectionEl = document.getElementById(elementId);
+            sectionEl?.scrollIntoView({ behavior: 'auto', block: 'start' });
+            await waitForScrollIdle();
+
+            if (scrollTo === 'recommendation' && Number.isFinite(toolId) && toolId > 0) {
+                const toolEl = await waitForElement(`tool-${toolId}`);
+                toolEl?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
         }
     }
 })
