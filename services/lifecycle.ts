@@ -1,7 +1,9 @@
 import { BaseService } from "./base";
 import type { Lifecycle } from "~/utils/types";
-import type { LastLifecycle } from "~/utils/types";
+import type { ReflectionLastLifecycle, RecommendationLastLifecycle } from "~/utils/types";
 
+type LastLifecycle = RecommendationLastLifecycle | ReflectionLastLifecycle;
+  
 export class LifecycleService extends BaseService {
   async getAllLifecycles(): Promise<Lifecycle[]> {
     try {
@@ -70,7 +72,8 @@ export class LifecycleService extends BaseService {
         method: "GET",
         headers: { Authorization: `Bearer ${this.token}` },
       });
-      return response as LastLifecycle;
+      const payload = response as LastLifecycle | { data?: LastLifecycle };
+      return ("data" in payload && payload.data ? payload.data : payload) as LastLifecycle;
     } catch (error) {
       if (error instanceof Error && error.message.includes("404")) return null;
       throw new Error(`Failed to fetch latest lifecycle: ${error}`);

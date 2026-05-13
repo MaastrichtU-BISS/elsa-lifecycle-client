@@ -108,10 +108,18 @@ export type TreeNode = {
   trailingIcon?: string;
 };
 
-export type LastLifecycle = { 
-  type: string;
+export type BaseLastLifecycle = {
   title: string;
   lifecycleId: number;
   lifecycleTitle: string;
-  updatedAt?: string;
-}
+  updatedAt: string;
+};
+
+export type RecommendationLastLifecycle = BaseLastLifecycle & {
+  type: "recommendation";
+  toolId: number;
+};
+
+export type ReflectionLastLifecycle = BaseLastLifecycle & {
+  type: "reflection" | "further_reflection";
+};
