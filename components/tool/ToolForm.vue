@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import * as z from 'zod';
+import { watch } from 'vue';
 
 const emits = defineEmits(['create']);
 
@@ -9,6 +10,15 @@ const newTool = ref({
     url: '',
     cover: undefined as File | undefined,
 });
+
+const initialState = JSON.stringify({
+    title: '',
+    description: '',
+    url: '',
+    cover: undefined,
+});
+
+const hasChanges = ref(false);
 
 // Define accepted image MIME types
 const imageMimeTypes = ["image/jpeg", "image/png", "image/webp", "image/avif"];
@@ -26,6 +36,15 @@ const schema = z.object({
     url: z.string().url('Invalid URL'),
     cover: imageFileSchema
 });
+
+watch(newTool, () => {
+    hasChanges.value = JSON.stringify({ 
+        title: newTool.value.title, 
+        description: newTool.value.description, 
+        url: newTool.value.url,
+        cover: newTool.value.cover 
+    }) !== initialState;
+}, { deep: true });
 
 function handleFileChange(event: Event) {
     const file = (event.target as HTMLInputElement).files?.[0];
@@ -50,6 +69,7 @@ const onSubmit = () => {
         url: '',
         cover: undefined,
     };
+    hasChanges.value = false;
 };
 </script>
 
@@ -69,7 +89,11 @@ const onSubmit = () => {
                 <UInput type="file" accept=".jpeg, .jpg, .webp, .avif" @change="handleFileChange" />
             </UFormField>
 
-            <UButton type="submit">
+            <UButton 
+                type="submit"
+                :variant="hasChanges ? 'solid' : 'outline'"
+                :disabled="!hasChanges"
+                :color="hasChanges ? 'primary' : 'secondary'">
                 Submit
             </UButton>
         </UForm>

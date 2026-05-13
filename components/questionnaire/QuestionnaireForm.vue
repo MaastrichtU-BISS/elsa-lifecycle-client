@@ -83,7 +83,13 @@ const onSubmit = (event: FormSubmitEvent<Schema>) => {
                     </template>
                 </UFormField>
 
-                <UButton type="submit" class="flex justify-self-center" icon="i-lucide-save" :disabled="disabled">
+                <UButton 
+                    type="submit" 
+                    class="flex justify-self-center" 
+                    icon="i-lucide-save"
+                    :variant="hasChanges && !disabled ? 'solid' : 'outline'"
+                    :disabled="!hasChanges || disabled"
+                    :color="hasChanges && !disabled ? 'primary' : 'secondary'">
                     Save
                 </UButton>
             </UForm>
