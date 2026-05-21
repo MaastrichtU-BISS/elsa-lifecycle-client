@@ -20,26 +20,57 @@ const isDark = computed({
   }
 })
 
-const fixedItems = computed(() => [
-  [
-    {
-      label: 'Home',
-      icon: 'i-lucide-house',
-      to: '/',
-    }
-  ],
-  [
-    {
-      label: 'Life Cycles',
-      icon: 'i-lucide-recycle',
-      to: '/lifecycles',
-    },
-    {
-      label: 'Tools',
-      icon: 'i-lucide-wrench',
-      to: '/tools',
-    },
-  ]]);
+const fixedItems = computed(() => {
+  const navGroups: NavigationMenuItem[][] = [
+    [
+      {
+        label: 'Home',
+        icon: 'i-lucide-house',
+        to: '/',
+      },
+      {
+        label: 'Life Cycles',
+        icon: 'i-lucide-recycle',
+        to: '/lifecycles',
+      },
+      {
+        label: 'Tools',
+        icon: 'i-lucide-wrench',
+        to: '/tools',
+      }
+    ]
+  ];
+
+  if (route.path === '/') {
+    navGroups.push([
+      {
+        label: 'What is it?',
+        icon: 'i-lucide-circle-help',
+        to: '#what-is',
+      },
+      {
+        label: 'Why use it?',
+        icon: 'i-lucide-sparkles',
+        to: '#why',
+      },
+      {
+        label: 'How it works',
+        icon: 'i-lucide-workflow',
+        to: '#how',
+      }
+    ]);
+  }
+
+  return navGroups;
+});
+
+const navMenuClass = computed(() => {
+  if (route.path === '/') {
+    return 'w-full px-2 grid grid-cols-3 [&>*:nth-child(2)]:justify-self-center [&>*:nth-child(3)]:justify-self-end'
+  }
+
+  return 'w-full px-2 grid grid-cols-2 [&>*:nth-child(2)]:justify-self-end'
+})
 
 const items = computed((): NavigationMenuItem[][] => {
   const lightDarkButton = {
@@ -83,11 +114,14 @@ onMounted(async () => {
 
 <template>
   <div>
-    <ClientOnly>
-      <UNavigationMenu :items="items"
-        class="w-full px-2 grid grid-cols-3 [&>*:nth-child(2)]:justify-self-center [&>*:nth-child(3)]:justify-self-end"
-        arrow content-orientation="vertical" />
-    </ClientOnly>
+    <header class="sticky top-0 z-50 border-b border-gray-200/70 bg-white/90 backdrop-blur dark:border-gray-800 dark:bg-gray-900/90">
+      <ClientOnly>
+        <UNavigationMenu
+          :items="items"
+          :class="navMenuClass"
+          arrow content-orientation="vertical" />
+      </ClientOnly>
+    </header>
     <main class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-2">
       <slot />
     </main>
