@@ -10,10 +10,6 @@ const props = defineProps<{
   lastLifecycleLink?: string | null
 }>()
 
-const scrollToWhatIs = () => {
-  const section = document.getElementById('what-is')
-  section?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-}
 </script>
 
 <template>
@@ -32,7 +28,7 @@ const scrollToWhatIs = () => {
           Start journaling
           <UIcon name="i-lucide-arrow-right" class="size-4" />
         </UButton>
-        <UButton color="neutral" variant="outline" size="lg" class="rounded-full" @click="scrollToWhatIs">
+        <UButton color="neutral" variant="outline" size="lg" class="rounded-full" to="#what-is">
           How it works
         </UButton>
       </div>
