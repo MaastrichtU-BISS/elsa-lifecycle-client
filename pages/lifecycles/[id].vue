@@ -716,6 +716,14 @@ onMounted(async () => {
     rotate: 0deg !important;
 }
 
+/* Hide expansion chevrons in indices tree (folder rows) */
+.indices-tree .i-lucide\:chevron-down,
+.indices-tree .i-lucide\:chevron-up,
+.indices-tree .i-lucide\:chevron-right,
+.indices-tree .i-lucide\:chevron-left {
+    display: none !important;
+}
+
 @media (max-width: 1024px) {
     .lifecycle-main.indices-open {
         padding-left: 0;
