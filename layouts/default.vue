@@ -77,6 +77,10 @@ const mainClass = computed(() => {
     return 'w-full mx-auto px-2 sm:px-3 lg:px-4 py-2'
   }
 
+  if (route.path.startsWith('/lifecycles/')) {
+    return 'w-full mx-auto max-w-none px-2 sm:px-3 lg:px-4 py-2'
+  }
+
   return 'max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-2'
 })
 

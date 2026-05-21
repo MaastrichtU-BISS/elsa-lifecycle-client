@@ -35,6 +35,7 @@ const expandedIndices = ref<string[]>([]);
 const lastActiveIndex = ref<TreeNode | undefined>(undefined);
 const hasUnsavedChanges = ref(false);
 const unsavedChangesIndices = ref<Set<string>>(new Set());
+const isIndicesOpen = ref(true);
 
 // Add indices Get Started
 const indices = ref<TreeNode[]>([{ 
@@ -468,7 +469,14 @@ onMounted(async () => {
 
 <template>
     <section id="content" class="mt-2 mb-8">
-        <USlideover :overlay="false" side="left" :title="lifeCycle.title" :description="lifeCycle.description"
+        <USlideover
+            v-model:open="isIndicesOpen"
+            :modal="false"
+            :dismissible="false"
+            :overlay="false"
+            side="left"
+            :title="lifeCycle.title"
+            :description="lifeCycle.description"
             :ui="{ overlay: 'max-w-sm' }">
             <UButton label="Indices" trailing-icon="i-lucide-square-menu" class="ml-4 fixed left-[1em]" />
 
@@ -477,6 +485,7 @@ onMounted(async () => {
             </template>
         </USlideover>
 
+        <div :class="['lifecycle-main', { 'indices-open': isIndicesOpen }]">
         <template v-if="activeIndex">
             <!-- GET STARTED -->
 
@@ -569,7 +578,7 @@ onMounted(async () => {
                             </h1>
 
 
-                            <div class="prose dark:prose-invert lg:prose-xl mb-2 text-justify"> {{
+                            <div class="dark:prose-invert prose lg:prose-xl mb-2 text-justify"> {{
                                 reflection.description
                             }}</div>
 
@@ -665,9 +674,28 @@ onMounted(async () => {
                 </div>
             </div>
         </template>
+        </div>
     </section>
 </template>
 <style lang="css">
+.lifecycle-main {
+    max-width: 1220px;
+    margin: 0 auto;
+    transition: padding-left 220ms ease, max-width 220ms ease;
+}
+
+.lifecycle-main.indices-open {
+    padding-left: 22rem;
+    max-width: 1650px;
+}
+
+.lifecycle-main .prose {
+    width: 100%;
+    max-width: 95ch;
+    margin-left: auto;
+    margin-right: auto;
+}
+
 .lifecycle-content {
     min-height: calc(100vh - 200px);
 }
@@ -686,6 +714,12 @@ onMounted(async () => {
 .indices-tree .i-lucide\:triangle-alert {
     color: rgb(234, 179, 8) !important; /* yellow-500 */
     rotate: 0deg !important;
+}
+
+@media (max-width: 1024px) {
+    .lifecycle-main.indices-open {
+        padding-left: 0;
+    }
 }
 
 </style>
