@@ -35,7 +35,9 @@ const props = defineProps<{
     </div>
 
     <div class="animate-[fade-up_0.6s_ease] flex flex-col justify-center space-y-3 rounded-xl bg-elevated/50 p-4 ring-1 ring-inset ring-accented bg-[linear-gradient(rgba(120,120,120,0.12)_1px,transparent_1px),linear-gradient(90deg,rgba(120,120,120,0.12)_1px,transparent_1px)] bg-[size:30px_30px]">
-      <p class="text-xs font-semibold uppercase tracking-[0.12em] text-toned">Sign in or get started</p>
+      <p class="text-xs font-semibold uppercase tracking-[0.12em] text-toned">
+        {{ !props.isAuthenticated ? 'Sign in or get started' : 'Get started or continue where you left off' }}
+      </p>
 
       <div v-if="props.isLoading" class="grid min-h-52 place-items-center rounded-lg border border-default bg-default">
         <UIcon name="i-lucide-loader-circle" class="size-9 animate-spin text-primary" />
@@ -47,8 +49,8 @@ const props = defineProps<{
             <p class="text-lg font-semibold text-highlighted">Continue your latest lifecycle</p>
           </template>
           <p class="text-sm leading-7 text-toned">
-            You were last working on
-            <span class="font-medium text-highlighted">{{ props.lastLifecycle.lifecycleTitle || 'your lifecycle' }}</span>.
+            
+            <span class="font-medium text-highlighted">{{ props.lastLifecycle.lifecycleTitle ? 'You were last working on ' + props.lastLifecycle.lifecycleTitle : 'See our lifecycles and get started' }}</span>.
           </p>
           <UButton
             v-if="props.lastLifecycleLink"
@@ -78,7 +80,7 @@ const props = defineProps<{
           <p class="text-sm leading-7 text-toned">
             Let us walk you through the ELSA Journal and set up your first project.
           </p>
-          <UButton to="/auth/register" class="mt-4 w-full justify-center rounded-full" color="primary">
+          <UButton to="/lifecycles" class="mt-4 w-full justify-center rounded-full" color="primary">
             Walk me through it
           </UButton>
         </UCard>

@@ -14,7 +14,7 @@ defineProps<{
       size="lg"
       class="mt-5 self-center rounded-full"
     >
-      {{ isAuthenticated ? 'Open my lifecycles' : 'Get started' }}
+      {{ isAuthenticated ? 'See our lifecycles' : 'Get started' }}
       <UIcon name="i-lucide-arrow-right" class="size-4" />
     </UButton>
   </section>
