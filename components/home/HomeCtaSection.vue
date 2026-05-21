@@ -5,14 +5,14 @@ defineProps<{
 </script>
 
 <template>
-  <section id="cta" class="cta-shell reveal-up">
-    <h2 class="cta-title">Ready to start your first ELSA Journal?</h2>
-    <p class="cta-desc">It takes a few minutes to set up. Your team will thank you at review time.</p>
+  <section id="cta" class="rounded-2xl border border-primary/30 bg-primary/10 p-6 text-center min-h-[28svh] lg:min-h-[34svh] flex flex-col justify-center bg-[linear-gradient(rgba(120,120,120,0.1)_1px,transparent_1px),linear-gradient(90deg,rgba(120,120,120,0.1)_1px,transparent_1px)] bg-[size:30px_30px] animate-[fade-up_0.7s_ease] sm:p-10">
+    <h2 class="text-3xl font-semibold tracking-tight text-highlighted sm:text-4xl">Ready to start your first ELSA Journal?</h2>
+    <p class="mx-auto mt-3 max-w-2xl text-sm leading-7 text-toned">It takes a few minutes to set up. Your team will thank you at review time.</p>
     <UButton
       :to="isAuthenticated ? '/lifecycles' : '/auth/register'"
-      color="neutral"
+      color="primary"
       size="lg"
-      class="rounded-full bg-white text-[var(--ej-teal-dark)] hover:bg-white/90"
+      class="mt-5 self-center rounded-full"
     >
       {{ isAuthenticated ? 'Open my lifecycles' : 'Get started' }}
       <UIcon name="i-lucide-arrow-right" class="size-4" />
@@ -21,36 +21,12 @@ defineProps<{
 </template>
 
 <style scoped>
-.cta-shell {
-  background: var(--ej-teal);
-  border-radius: 1.25rem;
-  border: 1px solid color-mix(in srgb, var(--ej-teal) 65%, black 35%);
-  padding: clamp(2.2rem, 5vw, 4.2rem);
-  text-align: center;
-}
-
-.cta-title {
-  color: #fff;
-  font-family: var(--ej-serif);
-  font-size: clamp(1.9rem, 4vw, 2.6rem);
-  line-height: 1.2;
-}
-
-.cta-desc {
-  margin-top: 0.9rem;
-  margin-bottom: 1.6rem;
-  color: rgba(255, 255, 255, 0.82);
-}
-
-.reveal-up {
-  animation: revealUp 650ms ease both;
-}
-
-@keyframes revealUp {
+@keyframes fade-up {
   from {
     opacity: 0;
-    transform: translateY(14px);
+    transform: translateY(10px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);

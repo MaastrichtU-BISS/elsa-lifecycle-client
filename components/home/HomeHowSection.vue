@@ -1,31 +1,33 @@
 <template>
-  <section id="how" class="section-shell reveal-up">
-    <div class="head">
-      <p class="kicker">How it works</p>
-      <h2 class="title">Non-linear, <em>flexible</em> reflection built into your workflow</h2>
+  <section id="how" class="scroll-mt-[8svh] lg:scroll-mt-[10svh] rounded-2xl border border-default bg-default p-4 md:p-8 min-h-[82svh] lg:min-h-[88svh] flex flex-col justify-center animate-[fade-up_0.65s_ease]">
+    <div class="mb-8">
+      <p class="text-xs font-semibold uppercase tracking-[0.12em] text-primary">How it works</p>
+      <h2 class="mt-2 max-w-3xl text-3xl font-semibold tracking-tight text-highlighted sm:text-4xl">
+        Non-linear, <span class="text-primary">flexible</span> reflection built into your workflow
+      </h2>
     </div>
 
-    <div class="layout-grid">
-      <div class="steps">
-        <article v-for="(step, index) in steps" :key="step.title" class="step-item">
-          <p class="step-number">{{ roman[index] }}</p>
+    <div class="grid gap-6 lg:grid-cols-[1fr_0.95fr]">
+      <div>
+        <article v-for="(step, index) in steps" :key="step.title" class="flex gap-4 border-b border-default py-5 first:pt-0 last:border-none last:pb-0">
+          <p class="w-8 shrink-0 text-primary">{{ roman[index] }}</p>
           <div>
-            <h3 class="step-title">{{ step.title }}</h3>
-            <p class="step-desc">{{ step.description }}</p>
+            <h3 class="font-semibold text-highlighted">{{ step.title }}</h3>
+            <p class="mt-2 text-sm leading-6 text-toned">{{ step.description }}</p>
           </div>
         </article>
       </div>
 
-      <div class="notebook-wrap">
-        <div class="notebook-head">
-          <p class="notebook-title">Demand Forecasting v2</p>
+      <div class="sticky top-24 self-start rounded-xl border border-default bg-elevated p-4 bg-[linear-gradient(rgba(120,120,120,0.12)_1px,transparent_1px),linear-gradient(90deg,rgba(120,120,120,0.12)_1px,transparent_1px)] bg-[size:26px_26px]">
+        <div class="mb-2 flex items-center justify-between">
+          <p class="font-semibold text-highlighted">Demand Forecasting v2</p>
           <UBadge color="primary" variant="soft" size="sm">Active</UBadge>
         </div>
 
-        <UCard v-for="entry in notebookEntries" :key="entry.meta" class="notebook-entry" :class="{ active: entry.active }">
-          <p class="entry-meta">{{ entry.meta }}</p>
-          <p class="entry-text">{{ entry.text }}</p>
-          <div class="tag-list">
+        <UCard v-for="entry in notebookEntries" :key="entry.meta" class="mb-3 last:mb-0" :class="entry.active ? 'ring-1 ring-inset ring-primary/40' : ''">
+          <p class="text-xs uppercase tracking-[0.1em] text-toned">{{ entry.meta }}</p>
+          <p class="mt-2 text-sm leading-6 text-toned">{{ entry.text }}</p>
+          <div class="mt-3 flex flex-wrap gap-1.5">
             <UBadge
               v-for="tag in entry.tags"
               :key="tag"
@@ -96,157 +98,15 @@ const notebookEntries = [
 </script>
 
 <style scoped>
-.section-shell {
-  padding: clamp(2.5rem, 5vw, 5rem);
-  border-radius: 1.25rem;
-  border: 1px solid var(--ej-rule);
-  background: #fff;
-}
-
-.head {
-  margin-bottom: 2.4rem;
-}
-
-.kicker {
-  color: var(--ej-teal);
-  font-size: 0.72rem;
-  text-transform: uppercase;
-  letter-spacing: 0.12em;
-  font-weight: 600;
-}
-
-.title {
-  margin-top: 0.7rem;
-  color: var(--ej-ink);
-  font-family: var(--ej-serif);
-  font-size: clamp(1.9rem, 4vw, 2.7rem);
-  line-height: 1.2;
-  max-width: 22ch;
-}
-
-.title em {
-  color: var(--ej-teal);
-}
-
-.layout-grid {
-  display: grid;
-  grid-template-columns: 1fr 0.95fr;
-  gap: clamp(1.2rem, 3vw, 4rem);
-}
-
-.step-item {
-  display: flex;
-  gap: 1rem;
-  padding: 1.4rem 0;
-  border-bottom: 1px solid var(--ej-rule);
-}
-
-.step-item:first-child {
-  padding-top: 0;
-}
-
-.step-item:last-child {
-  border-bottom: none;
-  padding-bottom: 0;
-}
-
-.step-number {
-  color: var(--ej-teal);
-  font-family: var(--ej-serif);
-  width: 2rem;
-  flex-shrink: 0;
-}
-
-.step-title {
-  color: var(--ej-ink);
-  font-weight: 600;
-}
-
-.step-desc {
-  margin-top: 0.4rem;
-  color: var(--ej-ink-mid);
-  line-height: 1.7;
-  font-size: 0.92rem;
-}
-
-.notebook-wrap {
-  position: sticky;
-  top: 5.5rem;
-  align-self: start;
-  background: var(--ej-ink);
-  border-radius: 1rem;
-  padding: 1.2rem;
-  display: grid;
-  gap: 0.7rem;
-  background-image: linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
-  background-size: 26px 26px;
-}
-
-.notebook-head {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 0.3rem;
-}
-
-.notebook-title {
-  color: #fff;
-  font-family: var(--ej-serif);
-}
-
-.notebook-entry {
-  background: rgba(255, 255, 255, 0.07);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-}
-
-.notebook-entry.active {
-  border-color: rgba(94, 201, 185, 0.9);
-}
-
-.entry-meta {
-  color: rgba(255, 255, 255, 0.6);
-  font-size: 0.7rem;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-}
-
-.entry-text {
-  color: rgba(255, 255, 255, 0.86);
-  font-size: 0.88rem;
-  line-height: 1.65;
-  margin-top: 0.45rem;
-}
-
-.tag-list {
-  margin-top: 0.8rem;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.35rem;
-}
-
-.reveal-up {
-  animation: revealUp 650ms ease both;
-}
-
-@keyframes revealUp {
+@keyframes fade-up {
   from {
     opacity: 0;
-    transform: translateY(14px);
+    transform: translateY(10px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
-  }
-}
-
-@media (max-width: 960px) {
-  .layout-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .notebook-wrap {
-    position: static;
   }
 }
 </style>

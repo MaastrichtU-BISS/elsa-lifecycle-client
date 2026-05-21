@@ -72,6 +72,14 @@ const navMenuClass = computed(() => {
   return 'w-full px-2 grid grid-cols-2 [&>*:nth-child(2)]:justify-self-end'
 })
 
+const mainClass = computed(() => {
+  if (route.path === '/') {
+    return 'w-full mx-auto px-2 sm:px-3 lg:px-4 py-2'
+  }
+
+  return 'max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-2'
+})
+
 const items = computed((): NavigationMenuItem[][] => {
   const lightDarkButton = {
     icon: isDark.value ? 'i-lucide-moon' : 'i-lucide-sun',
@@ -122,7 +130,7 @@ onMounted(async () => {
           arrow content-orientation="vertical" />
       </ClientOnly>
     </header>
-    <main class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-2">
+    <main :class="mainClass">
       <slot />
     </main>
   </div>

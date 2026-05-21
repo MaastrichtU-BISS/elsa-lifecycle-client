@@ -1,22 +1,22 @@
 <template>
-  <section id="why" class="section-shell reveal-up">
-    <div class="intro">
-      <p class="kicker">Why use it?</p>
-      <h2 class="title">
+  <section id="why" class="scroll-mt-[8svh] lg:scroll-mt-[10svh] rounded-2xl border border-default bg-elevated/40 p-4 md:p-8 min-h-[82svh] lg:min-h-[88svh] flex flex-col justify-center animate-[fade-up_0.6s_ease]">
+    <div class="mb-7 max-w-3xl">
+      <p class="text-xs font-semibold uppercase tracking-[0.12em] text-primary">Why use it?</p>
+      <h2 class="mt-2 text-3xl font-semibold tracking-tight text-highlighted sm:text-4xl">
         Just as a lab notebook anchors experimental science, the ELSA Journal
-        <em>anchors responsible data science</em>
+        <span class="text-primary">anchors responsible data science</span>
       </h2>
-      <p class="desc">
+      <p class="mt-4 leading-7 text-toned">
         Without documentation, ethical reasoning stays buried in memory and chat threads. The ELSA Journal
         makes it explicit, searchable, and shareable, turning good intentions into good practice.
       </p>
     </div>
 
-    <div class="benefits-grid">
-      <UCard v-for="(benefit, index) in benefits" :key="benefit.title" class="benefit-card">
-        <p class="number">{{ String(index + 1).padStart(2, '0') }}</p>
-        <h3 class="benefit-title">{{ benefit.title }}</h3>
-        <p class="benefit-desc">{{ benefit.description }}</p>
+    <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+      <UCard v-for="(benefit, index) in benefits" :key="benefit.title">
+        <p class="text-3xl font-semibold text-primary/70">{{ String(index + 1).padStart(2, '0') }}</p>
+        <h3 class="mt-2 font-semibold text-highlighted">{{ benefit.title }}</h3>
+        <p class="mt-2 text-sm leading-6 text-toned">{{ benefit.description }}</p>
       </UCard>
     </div>
   </section>
@@ -52,100 +52,15 @@ const benefits = [
 </script>
 
 <style scoped>
-.section-shell {
-  padding: clamp(2.5rem, 5vw, 5rem);
-  border-radius: 1.25rem;
-  border: 1px solid var(--ej-rule);
-  background: var(--ej-cream);
-}
-
-.intro {
-  max-width: 62ch;
-  margin-bottom: 2rem;
-}
-
-.kicker {
-  color: var(--ej-teal);
-  font-size: 0.72rem;
-  text-transform: uppercase;
-  letter-spacing: 0.12em;
-  font-weight: 600;
-}
-
-.title {
-  margin-top: 0.7rem;
-  color: var(--ej-ink);
-  font-family: var(--ej-serif);
-  font-size: clamp(1.9rem, 4vw, 2.7rem);
-  line-height: 1.2;
-}
-
-.title em {
-  color: var(--ej-teal);
-  font-style: italic;
-}
-
-.desc {
-  margin-top: 1rem;
-  color: var(--ej-ink-mid);
-  line-height: 1.8;
-}
-
-.benefits-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 1px;
-  background: var(--ej-rule);
-  border: 1px solid var(--ej-rule);
-  border-radius: 1rem;
-  overflow: hidden;
-}
-
-.benefit-card {
-  border: none;
-  border-radius: 0;
-  background: var(--ej-cream);
-}
-
-.number {
-  font-family: var(--ej-serif);
-  color: transparent;
-  -webkit-text-stroke: 1.2px var(--ej-teal);
-  font-size: 2.8rem;
-  line-height: 1;
-}
-
-.benefit-title {
-  margin-top: 0.8rem;
-  color: var(--ej-ink);
-  font-weight: 600;
-}
-
-.benefit-desc {
-  margin-top: 0.55rem;
-  color: var(--ej-ink-mid);
-  line-height: 1.7;
-  font-size: 0.9rem;
-}
-
-.reveal-up {
-  animation: revealUp 650ms ease both;
-}
-
-@keyframes revealUp {
+@keyframes fade-up {
   from {
     opacity: 0;
-    transform: translateY(14px);
+    transform: translateY(10px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
-  }
-}
-
-@media (max-width: 960px) {
-  .benefits-grid {
-    grid-template-columns: 1fr;
   }
 }
 </style>

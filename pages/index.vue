@@ -52,51 +52,33 @@ const lastLifecycleLink = computed(() => {
 
 <template>
     <div class="home-page">
-        <ClientOnly>
-            <HomeHeroSection
-                :is-authenticated="Boolean(auth.token)"
-                :is-loading="isLoading"
-                :last-lifecycle="lastLifecycle"
-                :last-lifecycle-link="lastLifecycleLink"
-            />
-        </ClientOnly>
-        <HomeWhatIsSection />
-        <HomeWhySection />
-        <HomeHowSection />
-        <HomeCtaSection :is-authenticated="Boolean(auth.token)" />
+        <div class="home-content">
+            <ClientOnly>
+                <HomeHeroSection
+                    :is-authenticated="Boolean(auth.token)"
+                    :is-loading="isLoading"
+                    :last-lifecycle="lastLifecycle"
+                    :last-lifecycle-link="lastLifecycleLink"
+                />
+            </ClientOnly>
+            <HomeWhatIsSection />
+            <HomeWhySection />
+            <HomeHowSection />
+            <HomeCtaSection :is-authenticated="Boolean(auth.token)" />
+        </div>
     </div>
 </template>
 
 <style scoped>
 .home-page {
-    --ej-ink: #0f1117;
-    --ej-ink-mid: #3a3d47;
-    --ej-ink-light: #6b7080;
-    --ej-cream: #f7f4ee;
-    --ej-teal: #0d7a6b;
-    --ej-teal-light: #def0ec;
-    --ej-teal-dark: #085548;
-    --ej-rule: rgba(15, 17, 23, 0.13);
-    --ej-serif: 'Fraunces', 'DM Serif Display', Georgia, serif;
+    padding: 1rem 0 2rem;
+}
 
-    width: 100vw;
-    margin-left: calc(50% - 50vw);
-    padding: 1rem clamp(1rem, 2.8vw, 2.2rem) 2.5rem;
-    background:
-        radial-gradient(circle at 12% 0%, rgba(13, 122, 107, 0.08), transparent 34%),
-        linear-gradient(180deg, #ffffff, #f8f8f6 55%, #ffffff);
+.home-content {
+    width: min(1560px, 100%);
+    margin: 0 auto;
+    padding: 0 clamp(0.5rem, 1.4vw, 1.2rem);
     display: grid;
-    gap: 1rem;
-    color: var(--ej-ink);
-}
-
-.home-page :deep(*) {
-    font-family: 'Manrope', 'DM Sans', 'Segoe UI', sans-serif;
-}
-
-.home-page :deep(h1),
-.home-page :deep(h2),
-.home-page :deep(h3) {
-    font-family: var(--ej-serif);
+    gap: clamp(1.25rem, 2.5vh, 3rem);
 }
 </style>
