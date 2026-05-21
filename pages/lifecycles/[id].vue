@@ -477,7 +477,10 @@ onMounted(async () => {
             side="left"
             :title="lifeCycle.title"
             :description="lifeCycle.description"
-            :ui="{ overlay: 'max-w-sm' }">
+            :ui="{
+                overlay: 'max-w-sm',
+                content: 'top-[48px] h-[calc(100dvh-48px)]'
+            }">
             <UButton label="Indices" trailing-icon="i-lucide-square-menu" class="ml-4 fixed left-[1em]" />
 
             <template #body>
