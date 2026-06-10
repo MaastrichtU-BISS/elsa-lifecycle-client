@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { computed, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
+import { useElementVisibility } from '@vueuse/core'
 import { LifecycleService } from '~/services/lifecycle'
 import { useLifecycleStore } from '~/stores/lifecycle'
 
@@ -13,7 +14,7 @@ lifecycleStore.hydrateFromLocalStorage()
 
 const CACHE_MAX_AGE = 10 * 60 * 1000
 
-const { data: lastLifecycle, pending: loading, refresh } = await useLazyAsyncData(
+const { data: lastLifecycle, pending: loading } = await useLazyAsyncData(
     'lastLifecycle',
     async () => {
         if (!auth.initialized || !auth.token) return null
@@ -45,70 +46,103 @@ const isLoading = computed(() => !lastLifecycle.value && (loading.value || !auth
 
 const lastLifecycleLink = computed(() => {
     const data = lastLifecycle.value
-    if (!data?.lifecycleId || !data?.phaseTitle) return null
-    return `/lifecycles/${data.lifecycleId}#phase-${encodeURIComponent(data.phaseTitle)}`
+    if (!data?.lifecycleId || !data?.reflectionTitle) return null
+    return `/lifecycles/${data.lifecycleId}#phase${encodeURIComponent(data.reflectionTitle)}-reflection`
 })
 
-defineProps({})
+const landingRef = ref<HTMLElement | null>(null)
+const whatRef = ref<HTMLElement | null>(null)
+const whyRef = ref<HTMLElement | null>(null)
+const howRef = ref<HTMLElement | null>(null)
+const ctaRef = ref<HTMLElement | null>(null)
+
+const visibilityOptions = { threshold: 0.12 }
+
+const landingInView = useElementVisibility(landingRef, visibilityOptions)
+const whatInView = useElementVisibility(whatRef, visibilityOptions)
+const whyInView = useElementVisibility(whyRef, visibilityOptions)
+const howInView = useElementVisibility(howRef, visibilityOptions)
+const ctaInView = useElementVisibility(ctaRef, visibilityOptions)
+
+const landingShown = ref(false)
+const whatShown = ref(false)
+const whyShown = ref(false)
+const howShown = ref(false)
+const ctaShown = ref(false)
+
+watch(landingInView, (visible) => {
+    if (visible) landingShown.value = true
+}, { immediate: true })
+
+watch(whatInView, (visible) => {
+    if (visible) whatShown.value = true
+}, { immediate: true })
+
+watch(whyInView, (visible) => {
+    if (visible) whyShown.value = true
+}, { immediate: true })
+
+watch(howInView, (visible) => {
+    if (visible) howShown.value = true
+}, { immediate: true })
+
+watch(ctaInView, (visible) => {
+    if (visible) ctaShown.value = true
+}, { immediate: true })
 </script>
 
 <template>
-    <div>
-        <ClientOnly>
-            <div v-if="isLoading" class="min-h-[300px] flex justify-center items-center">
-                <Icon name="lucide:loader" class="animate-spin text-4xl text-primary" />
+    <div class="home-page">
+        <div class="home-content">
+            <div ref="landingRef" class="reveal-section" :class="{ 'in-view': landingShown }">
+                <ClientOnly>
+                    <HomeHeroSection
+                        :is-authenticated="Boolean(auth.token)"
+                        :is-loading="isLoading"
+                        :last-lifecycle="lastLifecycle"
+                        :last-lifecycle-link="lastLifecycleLink"
+                    />
+                </ClientOnly>
             </div>
-            <div v-else-if="auth.token && lastLifecycle">
-                <div class="max-w-xl mx-auto mt-12 p-6
-                 bg-primary/10 border border-primary/20
-                 dark:bg-gray-800 dark:border-gray-700
-                 rounded-xl shadow flex flex-col items-center">
-                    <div class="flex items-center mb-4 gap-2">
-                        <Icon name="lucide:clock" class="text-3xl text-primary dark:text-white" />
-                        <h2 class="text-xl font-semibold text-primary dark:text-white">
-                            Continue where you left off
-                        </h2>
-                    </div>
-                    <p class="text-primary dark:text-white mb-4 text-center">
-                        You were last working on
-                        <span class="font-semibold text-primary dark:text-primary-light">
-                            {{ lastLifecycle?.lifecycleTitle || 'your last lifecycle' }}
-                        </span>.
-                        Pick up right where you stopped.
-                    </p>
-                    <NuxtLink v-if="lastLifecycleLink" :to="lastLifecycleLink" class="px-6 py-3 bg-primary text-white rounded-lg font-medium shadow
-                 hover:bg-primary-dark transition-all duration-200
-                 hover:-translate-y-0.5 hover:shadow-lg">
-                        Continue to your last lifecycle
-                    </NuxtLink>
-                    <NuxtLink v-else to="/lifecycles"
-                        class="text-primary underline mt-2 hover:text-primary-dark transition-colors">
-                        Go to Lifecycles to start a new one
-                    </NuxtLink>
-                </div>
+            <div ref="whatRef" class="reveal-section" :class="{ 'in-view': whatShown }">
+                <HomeWhatIsSection />
             </div>
-            <div v-else>
-                <div class="mt-50 flex flex-col sm:flex-row gap-6 justify-center items-center">
-                    <NuxtLink to="/lifecycles" class="w-64 h-32 bg-white dark:bg-gray-800 shadow-lg rounded-lg
-                 flex flex-col justify-center items-center
-                 border border-primary
-                 hover:bg-primary hover:text-white
-                 transition-colors duration-200">
-                        <Icon name="lucide:recycle" class="text-2xl mb-2" />
-                        <span class="text-2xl font-semibold mb-2">Lifecycles</span>
-                        <span class="text-sm">Explore all available lifecycles</span>
-                    </NuxtLink>
-                    <NuxtLink to="/tools" class="w-64 h-32 bg-white dark:bg-gray-800 shadow-lg rounded-lg
-                 flex flex-col justify-center items-center
-                 border border-primary
-                 hover:bg-primary hover:text-white
-                 transition-colors duration-200">
-                        <Icon name="lucide:wrench" class="text-2xl mb-2" />
-                        <span class="text-2xl font-semibold mb-2">Tools</span>
-                        <span class="text-sm">Browse our tool collection</span>
-                    </NuxtLink>
-                </div>
+            <div ref="whyRef" class="reveal-section" :class="{ 'in-view': whyShown }">
+                <HomeWhySection />
             </div>
-        </ClientOnly>
+            <div ref="howRef" class="reveal-section" :class="{ 'in-view': howShown }">
+                <HomeHowSection />
+            </div>
+            <div ref="ctaRef" class="reveal-section" :class="{ 'in-view': ctaShown }">
+                <HomeCtaSection :is-authenticated="Boolean(auth.token)" />
+            </div>
+        </div>
     </div>
 </template>
+
+<style scoped>
+.home-page {
+    padding: 1rem 0 2rem;
+}
+
+.home-content {
+    width: min(1560px, 100%);
+    margin: 0 auto;
+    padding: 0 clamp(0.5rem, 1.4vw, 1.2rem);
+    display: grid;
+    gap: clamp(1.25rem, 2.5vh, 3rem);
+}
+
+.reveal-section {
+    opacity: 0;
+    transform: translateY(34px) scale(0.985);
+    transition: opacity 860ms cubic-bezier(0.2, 0.75, 0.2, 1), transform 860ms cubic-bezier(0.2, 0.75, 0.2, 1);
+    transition-delay: 100ms;
+    will-change: opacity, transform;
+}
+
+.reveal-section.in-view {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+}
+</style>

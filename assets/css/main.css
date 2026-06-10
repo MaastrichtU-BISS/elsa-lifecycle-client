@@ -2,6 +2,10 @@
 @import "@nuxt/ui";
 @plugin "@tailwindcss/typography";
 
+html {
+  scroll-behavior: smooth;
+}
+
 :root {
   --ui-primary: var(--ui-color-primary-700);
   --ui-success: var(--ui-color-primary-700);
