@@ -455,12 +455,13 @@ onMounted(async () => {
 
 <template>
     <section id="content" class="mt-2 mb-8">
-        <USlideover v-model:open="isPhasesOpen" :modal="false" :title="lifeCycle.title"
+        <USlideover data-testid="phases-drawer" v-model:open="isPhasesOpen" :modal="false" :title="lifeCycle.title"
             :description="lifeCycle.description" :dismissible="false" :overlay="false" side="left" :ui="{
                 overlay: 'max-w-sm',
                 content: 'top-[48px] h-[calc(100dvh-48px)]'
             }">
-            <UButton label="Phases" trailing-icon="i-lucide-square-menu" class="ml-4 fixed left-[1em]" />
+            <UButton data-testid="phases-drawer-trigger" label="Phases" trailing-icon="i-lucide-square-menu"
+                class="ml-4 fixed left-[1em]" />
 
             <template #body>
                 <div class="rounded-md border border-default p-3 mb-6 text-xs leading-relaxed text-toned">
@@ -476,13 +477,14 @@ onMounted(async () => {
             </template>
         </USlideover>
 
-        <div :class="['lifecycle-main', { 'phases-open': isPhasesOpen }]">
+        <div data-testid="lifecycle-page" :class="['lifecycle-main', { 'phases-open': isPhasesOpen }]">
             <template v-if="activeIndex">
                 <!-- PHASES -->
                 <template v-for="(phase, phaseIndex) in lifeCycle.Phases" :key="phase.id">
 
                     <!-- PHASE INTRODUCTION  -->
-                    <div v-show="activeIndex.value == `phase-${phase.title}`">
+                    <div v-show="activeIndex.value == `phase-${phase.title}`"
+                        :data-testid="`phase-introduction-${phaseIndex}`">
 
                         <div class="lifecycle-content">
                             <h1 class="text-2xl font-bold mb-6 text-center">{{ `${phase.title}`
@@ -502,6 +504,7 @@ onMounted(async () => {
                                     {{ getBackIndex(phaseIndex, -1)?.label }}</UButton>
                             </div>
                             <UButton v-if="phase.Reflections?.length" trailing-icon="i-lucide-arrow-right"
+                                :data-testid="`phase-next-reflection-${phaseIndex}`"
                                 class="lifecycle-navigate-btn justify-between" size="md" variant="outline"
                                 @click="activeIndex = getNextIndex(phaseIndex, -1)"> {{ getNextIndex(phaseIndex,
                                     -1)?.label
@@ -513,7 +516,8 @@ onMounted(async () => {
                     <!-- REFLECTIONS -->
                     <template v-for="(reflection, reflectionIndex) in phase.Reflections" :key="reflection.title">
                         <!-- REFLECTION  -->
-                        <div v-show="activeIndex.value == `phase${reflection.title}-reflection`">
+                        <div v-show="activeIndex.value == `phase${reflection.title}-reflection`"
+                            :data-testid="`phase-reflection-${phaseIndex}-${reflectionIndex}`">
                             <div class="lifecycle-content">
                                 <h1 class="text-2xl font-bold mb-1 text-center">{{ `${reflection.title}`
                                     }}
@@ -537,53 +541,58 @@ onMounted(async () => {
                                     title="Please log in to save your answers"
                                     description="You need to be logged in to fill and save reflection forms."
                                     class="mb-4" />
-
-                                <QuestionnaireForm :questionnaire="reflection.form!"
-                                    :answer="reflectionAnswers[phaseIndex][reflectionIndex]?.form"
-                                    :disabled="!auth.token"
-                                    @on-submit="(data: any) => createOrEditReflectionAnswer(data, phaseIndex, reflectionIndex)"
-                                    @form-changed="(changed: boolean) => hasUnsavedChanges = changed" />
-
+                                <div :data-testid="`reflection-form-${phaseIndex}-${reflectionIndex}`">
+                                    <QuestionnaireForm :questionnaire="reflection.form!"
+                                        :answer="reflectionAnswers[phaseIndex][reflectionIndex]?.form"
+                                        :disabled="!auth.token"
+                                        @on-submit="(data: any) => createOrEditReflectionAnswer(data, phaseIndex, reflectionIndex)"
+                                        @form-changed="(changed: boolean) => hasUnsavedChanges = changed" />
+                                </div>
                                 <!-- RECOMMENDATIONS -->
                                 <div v-show="isGetRecommendationsActive(reflectionAnswers[phaseIndex][reflectionIndex]?.form)"
-                                    class="mt-10">
+                                    class="mt-10"
+                                    :data-testid="`recommendations-section-${phaseIndex}-${reflectionIndex}`">
                                     <h2 class="text-xl font-bold mb-2">Recommended Tools</h2>
                                     <ToolList
                                         :tools="recommendations[phaseIndex][reflectionIndex]?.map(r => r.Tool!) || []"
                                         v-model:recommendations="recommendations[phaseIndex][reflectionIndex]"
                                         v-model:answers="recommendationAnswers[phaseIndex][reflectionIndex]" />
                                     <div v-if="recommendations[phaseIndex][reflectionIndex]?.length" class="my-4">
-                                        <UProgress v-model="recommendationProgress[phaseIndex][reflectionIndex].percent"
+                                        <UProgress
+                                            :data-testid="`recommendation-progress-${phaseIndex}-${reflectionIndex}`"
+                                            v-model="recommendationProgress[phaseIndex][reflectionIndex].percent"
                                             status />
                                     </div>
-
-                                    <div class="mt-10">
+                                    <div class="mt-10"
+                                        :data-testid="`further-reflection-section-${phaseIndex}-${reflectionIndex}`">
                                         <h2 class="text-xl font-bold mb-2">Further Reflection</h2>
-                                        <QuestionnaireForm :questionnaire="reflection.furtherReflectionForm!"
-                                            :answer="furtherReflectionAnswers[phaseIndex][reflectionIndex]?.form"
-                                            :disabled="!auth.token"
-                                            @on-submit="(data: any) => createOrEditFurtherReflectionAnswer(data, phaseIndex, reflectionIndex)"
-                                            @form-changed="(changed: boolean) => hasUnsavedChanges = changed" />
+                                        <div :data-testid="`further-reflection-form-${phaseIndex}-${reflectionIndex}`">
+                                            <QuestionnaireForm :questionnaire="reflection.furtherReflectionForm!"
+                                                :answer="furtherReflectionAnswers[phaseIndex][reflectionIndex]?.form"
+                                                :disabled="!auth.token"
+                                                @on-submit="(data: any) => createOrEditFurtherReflectionAnswer(data, phaseIndex, reflectionIndex)"
+                                                @form-changed="(changed: boolean) => hasUnsavedChanges = changed" />
+                                        </div>
                                     </div>
-
                                 </div>
                             </div>
-
-
-
                             <div class="flex justify-between my-8">
                                 <UButton icon="i-lucide-arrow-left" size="md" variant="outline"
                                     class="lifecycle-navigate-btn justify-between"
-                                    @click="activeIndex = getBackIndex(phaseIndex, reflectionIndex)">
+                                    @click="activeIndex = getBackIndex(phaseIndex, reflectionIndex)"
+                                    :data-testid="`reflection-back-${phaseIndex}-${reflectionIndex}`">
                                     {{ getBackIndex(phaseIndex, reflectionIndex)?.label
                                     }}</UButton>
 
                                 <UButton icon="i-lucide-eye" size="md" variant="outline"
                                     class="lifecycle-navigate-btn justify-center"
-                                    @click="openPdfPreviewForReflection(reflection.id)">See preview</UButton>
+                                    @click="openPdfPreviewForReflection(reflection.id)"
+                                    :data-testid="`reflection-preview-${phaseIndex}-${reflectionIndex}`">See preview
+                                </UButton>
                                 <UButton trailing-icon="i-lucide-arrow-right" size="md" variant="outline"
                                     class="lifecycle-navigate-btn justify-between"
-                                    @click="activeIndex = getNextIndex(phaseIndex, reflectionIndex)">
+                                    @click="activeIndex = getNextIndex(phaseIndex, reflectionIndex)"
+                                    :data-testid="`reflection-next-${phaseIndex}-${reflectionIndex}`">
                                     {{ getNextIndex(phaseIndex, reflectionIndex)?.label
                                     }}
                                 </UButton>
