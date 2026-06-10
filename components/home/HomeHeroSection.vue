@@ -13,7 +13,8 @@ const props = defineProps<{
 </script>
 
 <template>
-  <section id="landing" class="grid min-h-[82svh] items-stretch gap-4 rounded-2xl border border-default bg-default p-4 md:grid-cols-2 md:p-8 lg:min-h-[88svh]">
+  <section id="landing"
+    class="grid min-h-[82svh] items-stretch gap-4 rounded-2xl border border-default bg-default p-4 md:grid-cols-2 md:p-8 lg:min-h-[88svh]">
     <div class="animate-[fade-up_0.5s_ease] flex flex-col justify-center">
       <p class="text-xs font-semibold uppercase tracking-[0.12em] text-primary">Ethical · Legal · Societal Aspects</p>
       <h1 class="mt-3 text-3xl font-semibold tracking-tight text-highlighted sm:text-4xl lg:text-5xl">
@@ -28,15 +29,17 @@ const props = defineProps<{
           Start journaling
           <UIcon name="i-lucide-arrow-right" class="size-4" />
         </UButton>
-        <UButton color="neutral" variant="outline" size="lg" class="rounded-full" to="#what-is">
-          How it works
+        <UButton color="neutral" variant="outline" size="lg" class="rounded-full" to="/auth/login">
+          Login to explore
+          <UIcon name="i-lucide-arrow-right" class="size-4" />
         </UButton>
       </div>
     </div>
 
-    <div class="animate-[fade-up_0.6s_ease] flex flex-col justify-center space-y-3 rounded-xl bg-elevated/50 p-4 ring-1 ring-inset ring-accented bg-[linear-gradient(rgba(120,120,120,0.12)_1px,transparent_1px),linear-gradient(90deg,rgba(120,120,120,0.12)_1px,transparent_1px)] bg-[size:30px_30px]">
+    <div
+      class="animate-[fade-up_0.6s_ease] flex flex-col justify-center space-y-3 rounded-xl bg-elevated/50 p-4 ring-1 ring-inset ring-accented bg-[linear-gradient(rgba(120,120,120,0.12)_1px,transparent_1px),linear-gradient(90deg,rgba(120,120,120,0.12)_1px,transparent_1px)] bg-[size:30px_30px]">
       <p class="text-xs font-semibold uppercase tracking-[0.12em] text-toned">
-        {{ !props.isAuthenticated ? 'Sign in or get started' : 'Get started or continue where you left off' }}
+        {{ !props.isAuthenticated ? 'Learn more about the ELSA journal' : 'Get started or continue where you left off' }}
       </p>
 
       <div v-if="props.isLoading" class="grid min-h-52 place-items-center rounded-lg border border-default bg-default">
@@ -49,24 +52,14 @@ const props = defineProps<{
             <p class="text-lg font-semibold text-highlighted">Continue your latest lifecycle</p>
           </template>
           <p class="text-sm leading-7 text-toned">
-            
             <span class="font-medium text-highlighted">{{ props.lastLifecycle.lifecycleTitle ? 'You were last working on ' + props.lastLifecycle.lifecycleTitle : 'See our lifecycles and get started' }}</span>.
           </p>
-          <UButton
-            v-if="props.lastLifecycleLink"
-            :to="props.lastLifecycleLink"
-            class="mt-4 w-full justify-center rounded-full"
-            color="primary"
-          >
+          <UButton v-if="props.lastLifecycleLink" :to="props.lastLifecycleLink"
+            class="mt-4 w-full justify-center rounded-full" color="primary">
             Continue where you left off
           </UButton>
-          <UButton
-            v-else
-            to="/lifecycles"
-            class="mt-4 w-full justify-center rounded-full"
-            variant="outline"
-            color="neutral"
-          >
+          <UButton v-else to="/lifecycles" class="mt-4 w-full justify-center rounded-full" variant="outline"
+            color="neutral">
             Open lifecycles
           </UButton>
         </UCard>
@@ -75,25 +68,43 @@ const props = defineProps<{
       <template v-else>
         <UCard class="ring-1 ring-inset ring-primary/40">
           <template #header>
-            <p class="text-lg font-semibold text-highlighted">First time here?</p>
+            <p class="text-lg font-semibold text-highlighted">What is it?</p>
           </template>
           <p class="text-sm leading-7 text-toned">
-            Let us walk you through the ELSA Journal and set up your first project.
+            The ELSA Journal gives data science teams a structured space to document ethical reasoning, project
+            decisions, and
+            responsible data practices.
           </p>
-          <UButton to="/lifecycles" class="mt-4 w-full justify-center rounded-full" color="primary">
-            Walk me through it
+          <UButton to="#what-is" class="mt-4 w-full justify-center rounded-full" color="primary" variant="outline">
+            Discover the journal
           </UButton>
         </UCard>
 
-        <UCard>
+        <UCard class="ring-1 ring-inset ring-primary/40">
           <template #header>
-            <p class="text-lg font-semibold text-highlighted">Been here before?</p>
+            <p class="text-lg font-semibold text-highlighted">Why use it?</p>
           </template>
           <p class="text-sm leading-7 text-toned">
-            Log in to your workspace and pick up where you left off on your ongoing projects.
+            Make ethical reasoning visible, traceable, and reusable, so your team can explain decisions clearly during
+            reviews,
+            audits, and project updates.
           </p>
-          <UButton to="/auth/login" class="mt-4 w-full justify-center rounded-full" color="neutral" variant="outline">
-            Log in
+          <UButton to="#why" class="mt-4 w-full justify-center rounded-full" color="primary" variant="outline">
+            See why it matters
+          </UButton>
+        </UCard>
+
+        <UCard class="ring-1 ring-inset ring-primary/40">
+          <template #header>
+            <p class="text-lg font-semibold text-highlighted">How it works</p>
+          </template>
+          <p class="text-sm leading-7 text-toned">
+            Move through project phases in any order, answer focused prompts, explore recommendations, revise your
+            thinking, and
+            export your reflections.
+          </p>
+          <UButton to="#how" class="mt-4 w-full justify-center rounded-full" color="primary" variant="outline">
+            Explore the workflow
           </UButton>
         </UCard>
       </template>

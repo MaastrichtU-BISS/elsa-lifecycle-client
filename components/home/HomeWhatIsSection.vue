@@ -34,13 +34,12 @@
 
       <div class="grid content-start gap-3">
         <UCard v-for="feature in features" :key="feature.title">
-          <div class="flex items-start gap-3">
+          <div class="flex items-center gap-3">
             <div class="grid size-9 shrink-0 place-items-center rounded-lg bg-primary/10 text-primary">
               <UIcon :name="feature.icon" class="size-5" />
             </div>
             <div>
               <h3 class="font-semibold text-highlighted">{{ feature.title }}</h3>
-              <p class="mt-1 text-sm leading-6 text-toned">{{ feature.description }}</p>
             </div>
           </div>
         </UCard>
@@ -53,22 +52,18 @@
 const features = [
   {
     title: 'Structured reflection prompts',
-    description: 'Curated questions guide your team through ethical checkpoints at each project stage.',
     icon: 'i-lucide-message-square-more'
   },
   {
     title: 'Checklists and curated tools',
-    description: 'Practical resources tailored to your project type, data sources, and deployment context.',
     icon: 'i-lucide-square-check-big'
   },
   {
     title: 'Traceable decision history',
-    description: 'Every entry is timestamped and linked to the project stage, creating an auditable record.',
     icon: 'i-lucide-clock-3'
   },
   {
     title: 'Project-specific reporting',
-    description: 'Export impact assessments and ethics summaries directly from your journal entries.',
     icon: 'i-lucide-chart-line'
   }
 ]

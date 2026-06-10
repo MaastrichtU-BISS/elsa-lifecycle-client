@@ -41,35 +41,14 @@ const fixedItems = computed(() => {
     ]
   ];
 
-  if (route.path === '/') {
-    navGroups.push([
-      {
-        label: 'What is it?',
-        icon: 'i-lucide-circle-help',
-        to: '#what-is',
-      },
-      {
-        label: 'Why use it?',
-        icon: 'i-lucide-sparkles',
-        to: '#why',
-      },
-      {
-        label: 'How it works',
-        icon: 'i-lucide-workflow',
-        to: '#how',
-      }
-    ]);
-  }
-
   return navGroups;
 });
 
 const navMenuClass = computed(() => {
   if (route.path === '/') {
-    return 'w-full px-2 grid grid-cols-3 [&>*:nth-child(2)]:justify-self-center [&>*:nth-child(3)]:justify-self-end'
+    return 'w-full mx-auto px-2 sm:px-3 lg:px-4 py-2'
   }
-
-  return 'w-full px-2 grid grid-cols-2 [&>*:nth-child(2)]:justify-self-end'
+  return 'w-full mx-auto px-2 sm:px-3 lg:px-4 py-2'
 })
 
 const mainClass = computed(() => {
@@ -126,12 +105,10 @@ onMounted(async () => {
 
 <template>
   <div>
-    <header class="sticky top-0 z-50 border-b border-gray-200/70 bg-white/90 backdrop-blur dark:border-gray-800 dark:bg-gray-900/90">
+    <header
+      class="sticky top-0 z-50 border-b border-gray-200/70 bg-white/90 backdrop-blur dark:border-gray-800 dark:bg-gray-900/90">
       <ClientOnly>
-        <UNavigationMenu
-          :items="items"
-          :class="navMenuClass"
-          arrow content-orientation="vertical" />
+        <UNavigationMenu :items="items" :class="navMenuClass" arrow content-orientation="vertical" />
       </ClientOnly>
     </header>
     <main :class="mainClass">
