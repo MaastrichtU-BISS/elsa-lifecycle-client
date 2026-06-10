@@ -6,8 +6,6 @@ import { LifecycleService } from "~/services/lifecycle";
 import { ReflectionAnswerService } from "~/services/reflectionAnswer";
 import { RecommendationService } from "~/services/recommendation";
 import { RecommendationAnswerService } from "~/services/recommendationAnswer";
-
-import { marked } from 'marked'
 import { useLifecycleStore } from '~/stores/lifecycle'
 
 const auth = useAuthStore();
@@ -31,34 +29,13 @@ const furtherReflectionAnswers = ref<(FurtherReflectionAnswer | undefined)[][]>(
 const reflectionAnswers = ref<(ReflectionAnswer | undefined)[][]>([]);
 const recommendationAnswers = ref<RecommendationAnswer[][][]>([]);
 const activeIndex = ref();
-const expandedIndices = ref<string[]>([]);
+const expandedPhases = ref<string[]>([]);
 const lastActiveIndex = ref<TreeNode | undefined>(undefined);
 const hasUnsavedChanges = ref(false);
-const unsavedChangesIndices = ref<Set<string>>(new Set());
-const isIndicesOpen = ref(true);
+const unsavedChangesPhases = ref<Set<string>>(new Set());
+const isPhasesOpen = ref(true);
 
-// Add indices Get Started
-const indices = ref<TreeNode[]>([{
-    label: 'Get Started',
-    value: 'get-started',
-    defaultExpanded: true,
-    trailingIcon: 'none',
-    icon: 'i-lucide-home',
-    children: [
-        {
-            label: 'Introduction',
-            value: 'get-started-introduction',
-            icon: 'i-lucide-book-open-text',
-            defaultExpanded: true
-        },
-        {
-            label: 'Journal',
-            value: 'get-started-journal',
-            icon: 'i-lucide-book-open-text',
-            defaultExpanded: true
-        }
-    ]
-}]);
+const phases = ref<TreeNode[]>([]);
 
 // Handle Reflections 
 const createReflectionAnswer = async (data: any, reflectionId: number) => {
@@ -133,9 +110,9 @@ const createOrEditReflectionAnswer = async (data: any, phaseIndex: number, refle
         // Clear unsaved changes and update checkmarks
         hasUnsavedChanges.value = false;
         if (activeIndex.value?.value) {
-            unsavedChangesIndices.value.delete(activeIndex.value.value);
+            unsavedChangesPhases.value.delete(activeIndex.value.value);
         }
-        updateIndicesWithCheckmarks();
+        updatePhasesWithCheckmarks();
 
         if (auth.token) {
             lifecycleService.setToken(auth.token);
@@ -204,9 +181,9 @@ const createOrEditFurtherReflectionAnswer = async (data: any, phaseIndex: number
         // Clear unsaved changes and update checkmarks
         hasUnsavedChanges.value = false;
         if (activeIndex.value?.value) {
-            unsavedChangesIndices.value.delete(activeIndex.value.value);
+            unsavedChangesPhases.value.delete(activeIndex.value.value);
         }
-        updateIndicesWithCheckmarks();
+        updatePhasesWithCheckmarks();
 
         if (auth.token) {
             lifecycleService.setToken(auth.token);
@@ -234,24 +211,22 @@ const recommendationProgress = computed(() => {
     return res;
 });
 
-// Update indices with checkmarks for finished reflections
-const updateIndicesWithCheckmarks = () => {
+// Update phases with checkmarks for finished reflections
+const updatePhasesWithCheckmarks = () => {
     if (!lifeCycle.value.Phases?.length) return;
 
     lifeCycle.value.Phases.forEach((phase, phaseIndex) => {
         if (!phase.Reflections?.length) return;
 
-        const indicesPhaseIndex = phaseIndex + 1; // +1 because indices[0] is "Get Started"
-        const phaseIndices = indices.value[indicesPhaseIndex];
-
-        if (!phaseIndices?.children) return;
+        const phaseNode = phases.value[phaseIndex];
+        if (!phaseNode?.children) return;
 
         // Update reflection checkmarks
         phase.Reflections.forEach((reflection, reflectionIndex) => {
-            const child = phaseIndices.children?.[reflectionIndex];
+            const child = phaseNode.children?.[reflectionIndex];
             if (child) {
                 // If this reflection has unsaved changes, show warning icon
-                if (unsavedChangesIndices.value.has(child.value)) {
+                if (unsavedChangesPhases.value.has(child.value)) {
                     child.trailingIcon = 'i-lucide-triangle-alert';
                 } else {
                     const isFinished = isReflectionFinished(
@@ -268,7 +243,7 @@ const updateIndicesWithCheckmarks = () => {
             reflectionAnswers.value[phaseIndex] || [],
             furtherReflectionAnswers.value[phaseIndex] || []
         );
-        phaseIndices.trailingIcon = allReflectionsFinished ? 'i-lucide-check' : 'none';
+        phaseNode.trailingIcon = allReflectionsFinished ? 'i-lucide-check' : 'none';
     });
 };
 
@@ -279,22 +254,35 @@ const updateIndicesWithCheckmarks = () => {
 // }
 
 function getBackIndex(index: number, childrenIndex: number) {
-    const currentGroup = indices.value[index];
-    const previousGroup = indices.value[index - 1];
+    const currentGroup = phases.value[index];
+    const previousGroup = phases.value[index - 1];
+
     const currentChildren = currentGroup?.children ?? [];
     const previousChildren = previousGroup?.children ?? [];
 
-    if (childrenIndex === -1) return previousChildren.at(-1) ?? previousGroup;
-    if (childrenIndex === 0) return currentGroup;
-    return currentChildren[childrenIndex - 1];
+    if (childrenIndex === -1) {
+        return previousChildren.at(-1) ?? previousGroup ?? currentGroup;
+    }
+
+    if (childrenIndex === 0) {
+        return currentGroup;
+    }
+
+    return currentChildren[childrenIndex - 1] ?? currentGroup;
 }
 
 function getNextIndex(index: number, childrenIndex: number) {
-    const currentGroup = indices.value[index];
+    const currentGroup = phases.value[index];
+    const nextGroup = phases.value[index + 1];
     const currentChildren = currentGroup?.children ?? [];
 
-    if (childrenIndex === -1) return currentChildren[0] ?? indices.value[index + 1];
-    return childrenIndex < currentChildren.length - 1 ? currentChildren[childrenIndex + 1] : indices.value[index + 1];
+    if (childrenIndex === -1) {
+        return currentChildren[0] ?? nextGroup ?? currentGroup;
+    }
+
+    return childrenIndex < currentChildren.length - 1
+        ? currentChildren[childrenIndex + 1]
+        : nextGroup ?? currentGroup;
 }
 
 async function openPdfPreviewForReflection(reflectionId: number) {
@@ -321,7 +309,7 @@ watch(activeIndex, async (newValue, oldValue) => {
         }
         hasUnsavedChanges.value = false;
         lastActiveIndex.value = newValue;
-        updateIndicesWithCheckmarks();
+        updatePhasesWithCheckmarks();
         return;
     }
 
@@ -330,24 +318,24 @@ watch(activeIndex, async (newValue, oldValue) => {
     }
 });
 
-// Watch for form changes and update indices
+// Watch for form changes and update phases
 watch(hasUnsavedChanges, (changed) => {
     if (changed && activeIndex.value?.value) {
-        unsavedChangesIndices.value.add(activeIndex.value.value);
-        updateIndicesWithCheckmarks();
+        unsavedChangesPhases.value.add(activeIndex.value.value);
+        updatePhasesWithCheckmarks();
     }
 });
 
-watch(expandedIndices, (value) => {
-    const fixed = indices.value.filter((index) => index.children?.length).map((index) => index.value);
+watch(expandedPhases, (value) => {
+    const fixed = phases.value.filter((index) => index.children?.length).map((index) => index.value);
     if (value.length !== fixed.length || fixed.some((v, i) => v !== value[i])) {
-        expandedIndices.value = fixed;
+        expandedPhases.value = fixed;
     }
 });
 
 // Watch for changes in reflection and further reflection answers to update checkmarks
 watch([reflectionAnswers, furtherReflectionAnswers], () => {
-    updateIndicesWithCheckmarks();
+    updatePhasesWithCheckmarks();
 }, { deep: true });
 
 onMounted(async () => {
@@ -364,13 +352,11 @@ onMounted(async () => {
     }
 
     const hash = route.hash.substring(1);
-    let hashIndex = indices.value[0].value === hash
-        ? indices.value[0]
-        : indices.value[0].children?.find(x => x.value == hash);
+    let hashIndex: TreeNode | undefined = undefined;
 
     for (const phase of lifeCycle.value.Phases) {
 
-        // Add indices phases
+        // Add phases phases
         const phaseChildren: TreeNode[] = [];
 
         // Add reflections
@@ -385,7 +371,7 @@ onMounted(async () => {
             });
         }
 
-        indices.value.push({
+        phases.value.push({
             label: `${phase.title}`,
             value: `phase-${phase.title}`,
             defaultExpanded: true,
@@ -394,9 +380,9 @@ onMounted(async () => {
         });
 
         if (!hashIndex) {
-            const hit = indices.value.at(-1)?.value === hash
-                ? indices.value.at(-1)
-                : indices.value.at(-1)?.children?.find(x => x.value == hash)
+            const hit = phases.value.at(-1)?.value === hash
+                ? phases.value.at(-1)
+                : phases.value.at(-1)?.children?.find(x => x.value == hash)
             if (hit) {
                 hashIndex = hit;
             }
@@ -439,7 +425,7 @@ onMounted(async () => {
     }
 
     //add export page
-    indices.value.push({
+    phases.value.push({
         label: 'Export',
         value: 'export',
         icon: 'i-lucide-download',
@@ -449,32 +435,32 @@ onMounted(async () => {
 
     // hash was export
     if (!hashIndex) {
-        const hit = indices.value.at(-1)?.value === hash ? indices.value.at(-1) : undefined;
+        const hit = phases.value.at(-1)?.value === hash ? phases.value.at(-1) : undefined;
         if (hit) {
             hashIndex = hit;
         }
     }
 
-    expandedIndices.value = indices.value.filter((index) => index.children?.length).map((index) => index.value);
+    expandedPhases.value = phases.value.filter((index) => index.children?.length).map((index) => index.value);
 
     // Set active index, Lifecycle General by default
-    activeIndex.value = hashIndex ?? indices.value[0];
+    activeIndex.value = hashIndex ?? phases.value[0];
     lastActiveIndex.value = activeIndex.value;
 
-    // Update indices with checkmarks for finished reflections
-    updateIndicesWithCheckmarks();
+    // Update phases with checkmarks for finished reflections
+    updatePhasesWithCheckmarks();
 })
 
 </script>
 
 <template>
     <section id="content" class="mt-2 mb-8">
-        <USlideover v-model:open="isIndicesOpen" :modal="false" :title="lifeCycle.title"
+        <USlideover v-model:open="isPhasesOpen" :modal="false" :title="lifeCycle.title"
             :description="lifeCycle.description" :dismissible="false" :overlay="false" side="left" :ui="{
                 overlay: 'max-w-sm',
                 content: 'top-[48px] h-[calc(100dvh-48px)]'
             }">
-            <UButton label="Indices" trailing-icon="i-lucide-square-menu" class="ml-4 fixed left-[1em]" />
+            <UButton label="Phases" trailing-icon="i-lucide-square-menu" class="ml-4 fixed left-[1em]" />
 
             <template #body>
                 <div class="rounded-md border border-default p-3 mb-6 text-xs leading-relaxed text-toned">
@@ -486,64 +472,12 @@ onMounted(async () => {
                         evolves.
                     </p>
                 </div>
-                <UTree class="indices-tree" v-model="activeIndex" v-model:expanded="expandedIndices" :items="indices" />
+                <UTree class="phases-tree" v-model="activeIndex" v-model:expanded="expandedPhases" :items="phases" />
             </template>
         </USlideover>
 
-        <div :class="['lifecycle-main', { 'indices-open': isIndicesOpen }]">
+        <div :class="['lifecycle-main', { 'phases-open': isPhasesOpen }]">
             <template v-if="activeIndex">
-                <!-- GET STARTED -->
-
-                <!-- WELCOME -->
-                <div v-show="activeIndex.value == 'get-started'">
-                    <div class="lifecycle-content">
-                        <div class="prose dark:prose-invert lg:prose-xl" v-html="marked.parse(lifeCycle.welcome)" />
-                    </div>
-
-                    <div class="flex justify-end my-8">
-                        <UButton trailing-icon="i-lucide-arrow-right" size="md" variant="outline"
-                            class="lifecycle-navigate-btn justify-between" @click="activeIndex = getNextIndex(0, -1)">
-                            {{ getNextIndex(0, -1)?.label }}
-                        </UButton>
-                    </div>
-                </div>
-
-                <!-- INTRODUCTION -->
-                <div v-show="activeIndex.value == 'get-started-introduction'">
-                    <div class="lifecycle-content">
-                        <div class="prose dark:prose-invert lg:prose-xl"
-                            v-html="marked.parse(lifeCycle.introduction)" />
-                    </div>
-
-                    <div class="flex justify-between my-8">
-                        <UButton icon="i-lucide-arrow-left" size="md" variant="outline"
-                            class="lifecycle-navigate-btn justify-between" @click="activeIndex = getBackIndex(0, 0)">
-                            {{ getBackIndex(0, 0)?.label }}</UButton>
-                        <UButton trailing-icon="i-lucide-arrow-right" size="md" variant="outline"
-                            class="lifecycle-navigate-btn justify-between" @click="activeIndex = getNextIndex(0, 0)">
-                            {{ getNextIndex(0, 0)?.label }}
-                        </UButton>
-                    </div>
-                </div>
-
-                <!-- JOURNAL -->
-                <div v-show="activeIndex.value == 'get-started-journal'">
-                    <div class="lifecycle-content">
-                        <div class="prose dark:prose-invert lg:prose-xl" v-html="marked.parse(lifeCycle.journal)" />
-                    </div>
-
-                    <div class="flex justify-between my-8">
-                        <UButton icon="i-lucide-arrow-left" size="md" variant="outline"
-                            class="lifecycle-navigate-btn justify-between" @click="activeIndex = getBackIndex(0, 1)">
-                            {{ getBackIndex(0, 1)?.label }}</UButton>
-                        <UButton v-if="lifeCycle.Phases?.length" trailing-icon="i-lucide-arrow-right" size="md"
-                            variant="outline" class="lifecycle-navigate-btn justify-between"
-                            @click="activeIndex = getNextIndex(0, 1)">
-                            {{ getNextIndex(0, 1)?.label }}
-                        </UButton>
-                    </div>
-                </div>
-
                 <!-- PHASES -->
                 <template v-for="(phase, phaseIndex) in lifeCycle.Phases" :key="phase.id">
 
@@ -561,13 +495,15 @@ onMounted(async () => {
                         </div>
 
                         <div class="flex justify-between my-8">
-                            <UButton icon="i-lucide-arrow-left" size="md" variant="outline"
-                                class="lifecycle-navigate-btn justify-between"
-                                @click="activeIndex = getBackIndex(phaseIndex + 1, -1)">
-                                {{ getBackIndex(phaseIndex + 1, -1)?.label }}</UButton>
+                            <div>
+                                <UButton v-if="phaseIndex !== 0" icon="i-lucide-arrow-left" size="md" variant="outline"
+                                    class="lifecycle-navigate-btn justify-between" :disabled="phaseIndex === 0"
+                                    @click="activeIndex = getBackIndex(phaseIndex, -1)">
+                                    {{ getBackIndex(phaseIndex, -1)?.label }}</UButton>
+                            </div>
                             <UButton v-if="phase.Reflections?.length" trailing-icon="i-lucide-arrow-right"
                                 class="lifecycle-navigate-btn justify-between" size="md" variant="outline"
-                                @click="activeIndex = getNextIndex(phaseIndex + 1, -1)"> {{ getNextIndex(phaseIndex + 1,
+                                @click="activeIndex = getNextIndex(phaseIndex, -1)"> {{ getNextIndex(phaseIndex,
                                     -1)?.label
                                 }}
                             </UButton>
@@ -638,8 +574,8 @@ onMounted(async () => {
                             <div class="flex justify-between my-8">
                                 <UButton icon="i-lucide-arrow-left" size="md" variant="outline"
                                     class="lifecycle-navigate-btn justify-between"
-                                    @click="activeIndex = getBackIndex(phaseIndex + 1, reflectionIndex)">
-                                    {{ getBackIndex(phaseIndex + 1, reflectionIndex)?.label
+                                    @click="activeIndex = getBackIndex(phaseIndex, reflectionIndex)">
+                                    {{ getBackIndex(phaseIndex, reflectionIndex)?.label
                                     }}</UButton>
 
                                 <UButton icon="i-lucide-eye" size="md" variant="outline"
@@ -647,8 +583,8 @@ onMounted(async () => {
                                     @click="openPdfPreviewForReflection(reflection.id)">See preview</UButton>
                                 <UButton trailing-icon="i-lucide-arrow-right" size="md" variant="outline"
                                     class="lifecycle-navigate-btn justify-between"
-                                    @click="activeIndex = getNextIndex(phaseIndex + 1, reflectionIndex)">
-                                    {{ getNextIndex(phaseIndex + 1, reflectionIndex)?.label
+                                    @click="activeIndex = getNextIndex(phaseIndex, reflectionIndex)">
+                                    {{ getNextIndex(phaseIndex, reflectionIndex)?.label
                                     }}
                                 </UButton>
                             </div>
@@ -669,8 +605,8 @@ onMounted(async () => {
                     <div class="flex justify-between my-8">
                         <UButton v-if="lifeCycle.Phases?.length" icon="i-lucide-arrow-left" size="md" variant="outline"
                             class="lifecycle-navigate-btn justify-between"
-                            @click="activeIndex = getBackIndex(lifeCycle.Phases?.length + 1, -1)">
-                            {{ getBackIndex(lifeCycle.Phases?.length + 1, -1)?.label }}</UButton>
+                            @click="activeIndex = getBackIndex(lifeCycle.Phases?.length, -1)">
+                            {{ getBackIndex(lifeCycle.Phases?.length, -1)?.label }}</UButton>
                     </div>
                 </div>
             </template>
@@ -684,7 +620,7 @@ onMounted(async () => {
     transition: padding-left 220ms ease, max-width 220ms ease;
 }
 
-.lifecycle-main.indices-open {
+.lifecycle-main.phases-open {
     padding-left: 22rem;
     max-width: 1650px;
 }
@@ -705,29 +641,29 @@ onMounted(async () => {
 }
 
 /* Global styles to ensure checkmark icon displays correctly */
-.indices-tree .i-lucide\:check {
+.phases-tree .i-lucide\:check {
     color: rgb(34, 197, 94) !important;
     /* green-500 */
     rotate: 0deg !important;
 }
 
 /* Global styles to ensure warning icon displays correctly */
-.indices-tree .i-lucide\:triangle-alert {
+.phases-tree .i-lucide\:triangle-alert {
     color: rgb(234, 179, 8) !important;
     /* yellow-500 */
     rotate: 0deg !important;
 }
 
-/* Hide expansion chevrons in indices tree (folder rows) */
-.indices-tree .i-lucide\:chevron-down,
-.indices-tree .i-lucide\:chevron-up,
-.indices-tree .i-lucide\:chevron-right,
-.indices-tree .i-lucide\:chevron-left {
+/* Hide expansion chevrons in phases tree (folder rows) */
+.phases-tree .i-lucide\:chevron-down,
+.phases-tree .i-lucide\:chevron-up,
+.phases-tree .i-lucide\:chevron-right,
+.phases-tree .i-lucide\:chevron-left {
     display: none !important;
 }
 
 @media (max-width: 1024px) {
-    .lifecycle-main.indices-open {
+    .lifecycle-main.phases-open {
         padding-left: 0;
     }
 }
