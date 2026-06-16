@@ -12,7 +12,6 @@ export type Lifecycle = {
   title: string;
   description: string;
   introduction: string;
-  journal: string;
   Phases?: Phase[];
 };
 

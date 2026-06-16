@@ -342,8 +342,6 @@ onMounted(async () => {
 
     if (!lifeCycle.value.Phases?.length) throw new Error("Lifecycle has no phases");
 
-    console.log(reflectionAnswers.value)
-
     if (auth.token) {
         // Set the user authentication token to the protected services (this has to be done on client side, because the token may be stored in the browser)
         furtherReflectionAnswerService.setToken(auth.token);
