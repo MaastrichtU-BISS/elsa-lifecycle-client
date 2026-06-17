@@ -18,6 +18,7 @@ export type Lifecycle = {
 export type Journal = {
   id: number;
   userId: string;
+  title: string;
   lifecycleId: number;
   Lifecycle?: Lifecycle;
 };
