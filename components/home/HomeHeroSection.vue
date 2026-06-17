@@ -18,7 +18,7 @@ const props = defineProps<{
         data science projects: structured, traceable, and practical.
       </p>
       <div class="mt-6 flex flex-wrap gap-3">
-        <UButton to="/lifecycles" size="lg" class="rounded-full px-6">
+        <UButton to="/journals" size="lg" class="rounded-full px-6">
           Start journaling
           <UIcon name="i-lucide-arrow-right" class="size-4" />
         </UButton>
