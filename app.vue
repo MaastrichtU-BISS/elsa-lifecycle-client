@@ -1,7 +1,7 @@
 <template>
-  <UApp :toaster="{ position: 'top-right'}">
+  <UApp :toaster="{ position: 'top-right' }">
     <NuxtLayout>
-        <NuxtPage />
+      <NuxtPage />
     </NuxtLayout>
   </UApp>
 </template>
