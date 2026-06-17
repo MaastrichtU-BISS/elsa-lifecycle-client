@@ -4,11 +4,12 @@ import type { ReflectionAnswer } from "~/utils/types";
 export class ReflectionAnswerService extends BaseService {
 
   // Protected
-  async GetReflectionAnswerByUserIdAndReflectionID(
+  async GetReflectionAnswerByJournalIdAndReflectionID(
+    journalId: number,
     reflectionId: number
   ): Promise<ReflectionAnswer | undefined> {
     try {
-      const response = await $fetch(`${this.url}/reflectionAnswers?rid=${reflectionId}`, {
+      const response = await $fetch(`${this.url}/reflectionAnswers?rid=${reflectionId}&jid=${journalId}`, {
         method: "GET",
         headers: {
           Authorization: `Bearer ${this.token}`,
@@ -23,7 +24,7 @@ export class ReflectionAnswerService extends BaseService {
 
   // protected
   async createReflectionAnswer(
-    answer: Omit<ReflectionAnswer, "id" | "userId">
+    answer: Omit<ReflectionAnswer, "id">
   ): Promise<ReflectionAnswer> {
     try {
       const response = await $fetch(`${this.url}/reflectionAnswers`, {
