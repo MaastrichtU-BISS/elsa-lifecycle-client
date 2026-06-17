@@ -3,12 +3,13 @@ import type { RecommendationAnswer } from "~/utils/types";
 
 export class RecommendationAnswerService extends BaseService {
   // protected
-  async GetRecommendationAnswerByUserIdAndRecommendationID(
+  async GetRecommendationAnswerByJournalIdAndRecommendationID(
+    journalId: number,
     recommendationId: number
   ): Promise<RecommendationAnswer> {
     try {
       const response = await $fetch<RecommendationAnswer>(
-        `${this.url}/recommendationAnswers?rid=${recommendationId}`,
+        `${this.url}/recommendationAnswers?rid=${recommendationId}&jid=${journalId}`,
         {
           method: "GET",
           headers: {
@@ -19,7 +20,7 @@ export class RecommendationAnswerService extends BaseService {
 
       return response;
     } catch (error) {
-      throw new Error(`Failed to fetch reflection answers: ${error}`);
+      throw new Error(`Failed to fetch recommendation answers: ${error}`);
     }
   }
 
