@@ -1,54 +1,9 @@
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
+import { ref, watch } from 'vue'
 import { useElementVisibility } from '@vueuse/core'
-import { LifecycleService } from '~/services/lifecycle'
-import { useLifecycleStore } from '~/stores/lifecycle'
 
 const auth = useAuthStore()
-const config = useRuntimeConfig()
-const lifecycleService = new LifecycleService(config.public.apiBase)
 
-const lifecycleStore = useLifecycleStore()
-lifecycleStore.hydrateFromLocalStorage()
-
-
-const CACHE_MAX_AGE = 10 * 60 * 1000
-
-const { data: lastLifecycle, pending: loading } = await useLazyAsyncData(
-    'lastLifecycle',
-    async () => {
-        if (!auth.initialized || !auth.token) return null
-        if (lifecycleStore.isLastLifecycleFresh(CACHE_MAX_AGE) && lifecycleStore.lastLifecycle) {
-            return lifecycleStore.lastLifecycle
-        }
-        lifecycleService.setToken(auth.token)
-        const data = await lifecycleService.getLastLifecycleForUser()
-        const plain = data ? JSON.parse(JSON.stringify(data)) : null
-        lifecycleStore.setLastLifecycle(plain)
-        return plain
-    },
-    {
-        default: () => lifecycleStore.lastLifecycle,
-        watch: [() => auth.token, () => auth.initialized],
-        server: false
-    }
-)
-
-watch(lastLifecycle, (value) => {
-    if (value) {
-        lifecycleStore.setLastLifecycle(value)
-    } else {
-        lifecycleStore.clearLastLifecycle()
-    }
-})
-
-const isLoading = computed(() => !lastLifecycle.value && (loading.value || !auth.initialized))
-
-const lastLifecycleLink = computed(() => {
-    const data = lastLifecycle.value
-    if (!data?.lifecycleId || !data?.reflectionTitle) return null
-    return `/lifecycles/${data.lifecycleId}#phase${encodeURIComponent(data.reflectionTitle)}-reflection`
-})
 
 const landingRef = ref<HTMLElement | null>(null)
 const whatRef = ref<HTMLElement | null>(null)
@@ -95,14 +50,7 @@ watch(ctaInView, (visible) => {
     <div class="home-page">
         <div class="home-content">
             <div ref="landingRef" class="reveal-section" :class="{ 'in-view': landingShown }">
-                <ClientOnly>
-                    <HomeHeroSection
-                        :is-authenticated="Boolean(auth.token)"
-                        :is-loading="isLoading"
-                        :last-lifecycle="lastLifecycle"
-                        :last-lifecycle-link="lastLifecycleLink"
-                    />
-                </ClientOnly>
+                <HomeHeroSection :is-authenticated="Boolean(auth.token)" />
             </div>
             <div ref="whatRef" class="reveal-section" :class="{ 'in-view': whatShown }">
                 <HomeWhatIsSection />
