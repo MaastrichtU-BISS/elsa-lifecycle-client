@@ -31,7 +31,7 @@ const fixedItems = computed(() => {
       {
         label: 'My Journals',
         icon: 'i-lucide-notebook-pen',
-        to: '/lifecycles',
+        to: '/my-journals',
       },
       {
         label: 'Tools',
