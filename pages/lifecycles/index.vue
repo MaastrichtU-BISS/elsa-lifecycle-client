@@ -10,7 +10,7 @@ const lifecycles = ref<Lifecycle[]>(await lifecycleService.getAllLifecycles());
 <template>
     <div>
         <section>
-            <h1 class="text-2xl font-bold mt-8 text-center">Life Cycles</h1>
+            <h1 class="text-2xl font-bold mt-8 text-center">My Journals</h1>
             <LifecycleTable :lifecycles="lifecycles" />
         </section>
     </div>

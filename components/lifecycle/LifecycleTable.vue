@@ -33,11 +33,6 @@ const rows = computed(() => {
 
 const columns: TableColumn<Lifecycle>[] = [
     {
-        accessorKey: 'id',
-        header: 'Id',
-        cell: ({ row }) => `#${row.getValue('id')}`
-    },
-    {
         accessorKey: 'title',
         header: 'Title',
         cell: ({ row }) => `${row.getValue('title')}`
