@@ -44,7 +44,7 @@ export type Reflection = {
 
 export type ReflectionAnswer = {
   id: number;
-  userId: string;
+  journalId: string;
   form: string;
   reflectionId: number;
   Reflection?: Reflection;
@@ -52,7 +52,7 @@ export type ReflectionAnswer = {
 
 export type FurtherReflectionAnswer = {
   id: number;
-  userId: string;
+  journalId: string;
   form: string;
   reflectionId: number;
   Reflection?: Reflection;
@@ -80,7 +80,7 @@ export type Recommendation = {
 
 export type RecommendationAnswer = {
   id: number;
-  userId: string;
+  journalId: string;
   recommendationId: number;
   form?: string;
   file?: string;
