@@ -3,12 +3,13 @@ import type { FurtherReflectionAnswer } from "~/utils/types";
 
 export class FurtherReflectionAnswerService extends BaseService {
   // Protected
-  async GetFurtherReflectionAnswerByUserIdAndReflectionID(
+  async GetFurtherReflectionAnswerByJournalIdAndReflectionID(
+    journalId: number,
     reflectionId: number
   ): Promise<FurtherReflectionAnswer | undefined> {
     try {
       const response = await $fetch(
-        `${this.url}/furtherReflectionAnswers?rid=${reflectionId}`,
+        `${this.url}/furtherReflectionAnswers?rid=${reflectionId}&jid=${journalId}`,
         {
           method: "GET",
           headers: {
@@ -25,7 +26,7 @@ export class FurtherReflectionAnswerService extends BaseService {
 
   // Protected
   async createFurtherReflectionAnswer(
-    answer: Omit<FurtherReflectionAnswer, "id" | "userId">
+    answer: Omit<FurtherReflectionAnswer, "id">
   ): Promise<FurtherReflectionAnswer> {
     try {
       const response = await $fetch(`${this.url}/furtherReflectionAnswers`, {
