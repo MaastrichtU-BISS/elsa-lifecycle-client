@@ -15,6 +15,13 @@ export type Lifecycle = {
   Phases?: Phase[];
 };
 
+export type Journal = {
+  id: number;
+  userId: string;
+  lifecycleId: number;
+  Lifecycle?: Lifecycle;
+};
+
 export type Phase = {
   id: number;
   title: string;
