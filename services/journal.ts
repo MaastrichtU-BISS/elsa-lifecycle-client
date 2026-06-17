@@ -2,10 +2,15 @@ import { BaseService } from "./base";
 import type { Journal } from "~/utils/types";
 
 export class JournalService extends BaseService {
-  async getAllJournalsByUserId(userId: number): Promise<Journal[]> {
+  //works based on the userId on the backend
+  async getAllJournals(): Promise<Journal[]> {
     try {
-      const response = await $fetch(`${this.url}/journals?userId=${userId}`, {
+      const response = await $fetch(`${this.url}/journals`, {
         method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${this.token}`,
+        },
       });
       return response as Journal[];
     } catch (error) {
