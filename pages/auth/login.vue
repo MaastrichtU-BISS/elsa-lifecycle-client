@@ -34,8 +34,11 @@ async function onSubmit(event: FormSubmitEvent<typeof state>) {
         await auth.init()
         toast.add({ title: 'Logged In Succesfully', description: `Welcome ${auth.user.email}`, color: 'success' })
 
-        // Redirect to previous page if available, otherwise go to home
-        const redirect = route.query.redirect as string || '/'
+        // Redirect to previous page except if it's the login page, then go to /journals
+        let redirect = decodeURIComponent(route.query.redirect as string)
+        if (route.query.redirect == "/") {
+            redirect = "/journals"
+        }
         await router.push(redirect)
     } catch (e) {
         toast.add({ title: 'Login failed', description: `${e.data.error}`, color: 'error' })
