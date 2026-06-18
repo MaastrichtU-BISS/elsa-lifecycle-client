@@ -40,7 +40,7 @@ watch(() => auth.token, async (newToken) => {
         <section>
             <h1 class="text-2xl font-bold mt-8 mb-4 text-center">My Journals</h1>
             <template v-if="auth.token">
-                <template v-if="journals && journals.length > 0">
+                <template v-if="journals?.length > 0">
                     <JournalsTable :journals="journals" />
                 </template>
                 <template v-else>
@@ -48,7 +48,7 @@ watch(() => auth.token, async (newToken) => {
                         description="Create your first journal to get started." class="mb-4" />
                 </template>
 
-                <JournalCreationModal :journal-service @journal-created="journals.push($event)" />
+                <JournalCreationModal :journal-service="journalService" @journal-created="journals.push($event)" />
             </template>
             <template v-else>
                 <UAlert icon="i-lucide-info" color="warning" variant="subtle" title="Please log in to continue"

@@ -20,7 +20,7 @@ const lifeCyclesOptions = ref(lifecycles.map(lifecycle => ({ label: lifecycle.ti
 
 const selectedLifecycle = computed(() => {
     return lifecycles.find(lifecycle => lifecycle.id === newJournal.value.lifecycleId);
-}); 
+});
 
 const newJournal = ref<Omit<Journal, 'id' | 'userId'>>({
     title: '',
@@ -50,7 +50,8 @@ const createNewJournal = async () => {
 </script>
 
 <template>
-    <UModal v-model:open="showModal" :title="'Create New Journal'" :description="'Fill in the title and select a template to create a new journal.'"
+    <UModal v-model:open="showModal" :title="'Create New Journal'"
+        :description="'Fill in the title and select a template to create a new journal.'"
         :ui="{ footer: 'justify-center gap-4' }">
         <UButton class="mt-4" color="primary" icon="i-lucide-plus" size="lg">Create New Journal</UButton>
 
@@ -58,8 +59,8 @@ const createNewJournal = async () => {
             <p class="text-sm font-medium mb-2">Title:</p>
             <UInput v-model="newJournal.title" placeholder="My new journal" class="w-full mb-4" />
             <p class="text-sm font-medium mb-2">Template:</p>
-             <USelect v-model="newJournal.lifecycleId" :items="lifeCyclesOptions" class="w-full mb-4"/>
-             <p class="text-sm text-gray-500">{{ selectedLifecycle?.description }}</p>
+            <USelect v-model="newJournal.lifecycleId" :items="lifeCyclesOptions" class="w-full mb-4" />
+            <p class="text-sm text-gray-500">{{ selectedLifecycle?.description }}</p>
         </template>
         <template #footer>
             <UButton color="primary" variant="outline" icon="i-lucide-x" size="lg" @click="showModal = false">Cancel
