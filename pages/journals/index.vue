@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { JournalService } from '~/services/journal';
 import type { Journal } from '~/utils/types';
-import JournalsTable from '~/components/lifecycle/JournalsTable.vue';
-import JournalCreationModal from '~/components/lifecycle/JournalCreationModal.vue';
+import JournalsTable from '~/components/journal/JournalsTable.vue';
+import JournalCreationModal from '~/components/journal/JournalCreationModal.vue';
 
 const auth = useAuthStore();
 

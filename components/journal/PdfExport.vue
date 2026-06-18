@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import { LifecycleService } from "~/services/lifecycle";
+import { JournalService } from "~/services/journal";
 import { openPdfInFullscreen } from "~/utils/helpers";
 
 const props = defineProps<{
-    lifecycleId: number;
-    lifecycleTitle: string;
+    journalId: number;
+    journalTitle: string;
     active: boolean;
 }>();
 
@@ -12,7 +12,7 @@ const auth = useAuthStore();
 const toast = useToast();
 const config = useRuntimeConfig();
 
-const lifecycleService = new LifecycleService(config.public.apiBase);
+const journalService = new JournalService(config.public.apiBase);
 
 const pdfPreviewUrl = ref<string | null>(null);
 const pdfPreviewLoading = ref(false);
@@ -27,10 +27,10 @@ const setPdfPreviewFromBlob = (blob: Blob) => {
 const loadPdfPreview = async () => {
     if (pdfPreviewLoading.value || !auth.token) return;
 
-    lifecycleService.setToken(auth.token);
+    journalService.setToken(auth.token);
     pdfPreviewLoading.value = true;
     try {
-        const blob = await lifecycleService.generatePDFById(props.lifecycleId);
+        const blob = await journalService.generatePDFById(props.journalId);
         setPdfPreviewFromBlob(blob);
     } catch {
         // silent — download button still works
@@ -39,7 +39,7 @@ const loadPdfPreview = async () => {
     }
 };
 
-const exportLifecycle = async () => {
+const exportJournal = async () => {
     if (!auth.token) {
         toast.add({ title: 'Error', description: 'You need to be logged in!', color: 'error' });
         return;
@@ -47,14 +47,14 @@ const exportLifecycle = async () => {
 
     try {
         if (!pdfPreviewUrl.value) {
-            lifecycleService.setToken(auth.token);
-            const blob = await lifecycleService.generatePDFById(props.lifecycleId);
+            journalService.setToken(auth.token);
+            const blob = await journalService.generatePDFById(props.journalId);
             pdfPreviewUrl.value = window.URL.createObjectURL(blob);
         }
 
         const link = document.createElement('a');
         link.href = pdfPreviewUrl.value!;
-        link.download = `${props.lifecycleTitle}.pdf`;
+        link.download = `${props.journalTitle}.pdf`;
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
@@ -64,7 +64,7 @@ const exportLifecycle = async () => {
 };
 
 const openPdfFullscreen = async () => {
-    await openPdfInFullscreen(props.lifecycleId, lifecycleService, auth, toast);
+    await openPdfInFullscreen(props.journalId, journalService, auth, toast);
 };
 
 watch(
@@ -94,6 +94,6 @@ onUnmounted(() => {
             @click="openPdfFullscreen" />
         <UButton 
         label="Export as PDF" icon="i-lucide-download" size="lg" variant="solid"
-            @click="exportLifecycle" />
+            @click="exportJournal" />
     </div>
 </template>

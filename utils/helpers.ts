@@ -1,6 +1,6 @@
 import { ReflectionAnswerGetRecommendations } from "~/utils/types";
 import type { ReflectionAnswer, FurtherReflectionAnswer } from "~/utils/types";
-import type { LifecycleService } from "~/services/lifecycle";
+import type { JournalService } from "~/services/journal";
 
 export function isRecommendationDone(
   rec: Recommendation | undefined,
@@ -117,8 +117,8 @@ export function isPhaseFinished(
 }
 
 export async function openPdfInFullscreen(
-  lifecycleId: number,
-  lifecycleService: LifecycleService,
+  journalId: number,
+  journalService: JournalService,
   auth: ReturnType<typeof useAuthStore>,
   toast: ReturnType<typeof useToast>,
   reflectionId?: number
@@ -129,10 +129,10 @@ export async function openPdfInFullscreen(
   }
 
   try {
-    lifecycleService.setToken(auth.token);
+    journalService.setToken(auth.token);
     const blob = reflectionId
-      ? await lifecycleService.generatePDFByIdForReflection(lifecycleId, reflectionId)
-      : await lifecycleService.generatePDFById(lifecycleId);
+      ? await journalService.generatePDFByIdForReflection(journalId, reflectionId)
+      : await journalService.generatePDFById(journalId);
     const pdfUrl = window.URL.createObjectURL(blob);
     window.open(pdfUrl, '_blank');
   } catch (error) {

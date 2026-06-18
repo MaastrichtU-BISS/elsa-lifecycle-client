@@ -279,9 +279,9 @@ function getNextIndex(index: number, childrenIndex: number) {
 }
 
 async function openPdfPreviewForReflection(reflectionId: number) {
-    if (!journal.value.Lifecycle) throw new Error("Journal has no lifecycle");
+    if (!journal.value) throw new Error("No journal loaded");
 
-    await openPdfInFullscreen(journal.value.Lifecycle.id, lifecycleService, auth, toast, reflectionId);
+    await openPdfInFullscreen(journal.value.id, journalService, auth, toast, reflectionId);
 }
 
 watch(() => activeIndex.value?.value, (value) => {
@@ -617,7 +617,7 @@ onMounted(async () => {
                     <div class="lifecycle-content mt-4">
                         <h1 class="text-2xl font-bold mb-6 text-center">Export</h1>
 
-                        <LifecyclePdfExport :lifecycle-id="journal.lifecycleId" :lifecycle-title="journal.title"
+                        <JournalPdfExport :journal-id="journal.id" :journal-title="journal.title"
                             :active="activeIndex?.value === 'export'" />
                     </div>
 
