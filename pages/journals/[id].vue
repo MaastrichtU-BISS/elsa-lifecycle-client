@@ -17,7 +17,6 @@ const journalId = +route.params.id;
 
 const journalLoaded = ref(false);
 
-
 const furtherReflectionAnswerService = new FurtherReflectionAnswerService(config.public.apiBase);
 const journalService = new JournalService(config.public.apiBase);
 const reflectionAnswerService = new ReflectionAnswerService(config.public.apiBase);
@@ -72,7 +71,7 @@ const editReflectionAnswer = async (data: any, reflectionAnswerId: number) => {
 
 const createOrEditReflectionAnswer = async (data: any, phaseIndex: number, reflectionIndex: number) => {
 
-    if (!journal.value.Lifecycle?.Phases?.length) throw new Error("Lifecycle has no phases");
+    if (!journal.value?.Lifecycle?.Phases?.length) throw new Error("Lifecycle has no phases");
 
     if (!auth.token) {
         toast.add({ title: 'Error', description: 'You need to be logged in!', color: 'error' });
@@ -153,7 +152,7 @@ const editFurtherReflectionAnswer = async (data: any, furtherReflectionAnswerId:
 
 const createOrEditFurtherReflectionAnswer = async (data: any, phaseIndex: number, reflectionIndex: number) => {
 
-    if (!journal.value.Lifecycle?.Phases?.length) throw new Error("Lifecycle has no phases");
+    if (!journal.value?.Lifecycle?.Phases?.length) throw new Error("Lifecycle has no phases");
 
     if (!auth.token) {
         toast.add({ title: 'Error', description: 'You need to be logged in!', color: 'error' });
