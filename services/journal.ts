@@ -8,7 +8,6 @@ export class JournalService extends BaseService {
       const response = await $fetch(`${this.url}/journals`, {
         method: "GET",
         headers: {
-          "Content-Type": "application/json",
           Authorization: `Bearer ${this.token}`,
         },
       });
@@ -22,6 +21,9 @@ export class JournalService extends BaseService {
     try {
       const response = await $fetch(`${this.url}/journals/${id}`, {
         method: "GET",
+        headers: {
+          Authorization: `Bearer ${this.token}`,
+        },
       });
 
       return response as Journal;
@@ -30,7 +32,9 @@ export class JournalService extends BaseService {
     }
   }
 
-  async createJournal(journal: Omit<Journal, "id" | "userId">): Promise<Journal> {
+  async createJournal(
+    journal: Omit<Journal, "id" | "userId">,
+  ): Promise<Journal> {
     try {
       const response = await $fetch(`${this.url}/journals`, {
         method: "POST",

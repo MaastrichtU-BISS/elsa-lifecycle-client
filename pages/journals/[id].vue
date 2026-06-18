@@ -1,10 +1,11 @@
 <script setup lang="ts">
-import type { FurtherReflectionAnswer, Lifecycle, Recommendation, RecommendationAnswer, ReflectionAnswer, TreeNode } from "~/utils/types";
+import type { FurtherReflectionAnswer, Recommendation, RecommendationAnswer, ReflectionAnswer, TreeNode } from "~/utils/types";
 import { isRecommendationDone, isGetRecommendationsActive, isReflectionFinished, isPhaseFinished, openPdfInFullscreen } from '~/utils/helpers';
 import { FurtherReflectionAnswerService } from "~/services/furtherReflectionAnswer";
-import { LifecycleService } from "~/services/lifecycle";
+import { JournalService } from "~/services/journal";
 import { ReflectionAnswerService } from "~/services/reflectionAnswer";
 import { RecommendationService } from "~/services/recommendation";
+import { LifecycleService } from "~/services/lifecycle";
 import { RecommendationAnswerService } from "~/services/recommendationAnswer";
 
 const auth = useAuthStore();
@@ -12,20 +13,24 @@ const toast = useToast();
 const route = useRoute();
 const router = useRouter()
 const config = useRuntimeConfig();
-const lifecycleId = +route.params.id;
+const journalId = +route.params.id;
+
+const journalLoaded = ref(false);
 
 
 const furtherReflectionAnswerService = new FurtherReflectionAnswerService(config.public.apiBase);
-const lifecycleService = new LifecycleService(config.public.apiBase);
+const journalService = new JournalService(config.public.apiBase);
 const reflectionAnswerService = new ReflectionAnswerService(config.public.apiBase);
 const recommendationService = new RecommendationService(config.public.apiBase);
 const recommendationAnswerService = new RecommendationAnswerService(config.public.apiBase);
+const lifecycleService = new LifecycleService(config.public.apiBase);
 
-const lifeCycle = ref<Lifecycle>(await lifecycleService.getLifecycleById(lifecycleId));
+const journal = ref<Journal>();
 const recommendations = ref<Recommendation[][][]>([]);
 const furtherReflectionAnswers = ref<(FurtherReflectionAnswer | undefined)[][]>([]);
 const reflectionAnswers = ref<(ReflectionAnswer | undefined)[][]>([]);
 const recommendationAnswers = ref<RecommendationAnswer[][][]>([]);
+
 const activeIndex = ref();
 const expandedPhases = ref<string[]>([]);
 const lastActiveIndex = ref<TreeNode | undefined>(undefined);
@@ -41,6 +46,7 @@ const createReflectionAnswer = async (data: any, reflectionId: number) => {
     try {
         const newAnswer: Omit<ReflectionAnswer, "id" | "userId"> = {
             reflectionId: reflectionId,
+            journalId: journalId,
             form: JSON.stringify(data),
         }
         const response = await reflectionAnswerService.createReflectionAnswer(newAnswer);
@@ -66,14 +72,14 @@ const editReflectionAnswer = async (data: any, reflectionAnswerId: number) => {
 
 const createOrEditReflectionAnswer = async (data: any, phaseIndex: number, reflectionIndex: number) => {
 
-    if (!lifeCycle.value.Phases?.length) throw new Error("Lifecycle has no phases");
+    if (!journal.value.Lifecycle?.Phases?.length) throw new Error("Lifecycle has no phases");
 
     if (!auth.token) {
         toast.add({ title: 'Error', description: 'You need to be logged in!', color: 'error' });
         return
     }
 
-    const phase = lifeCycle.value.Phases[phaseIndex];
+    const phase = journal.value.Lifecycle.Phases[phaseIndex];
 
     if (!phase.Reflections?.length) throw new Error(`Phase ${phase.title} has no reflections`);
 
@@ -100,7 +106,7 @@ const createOrEditReflectionAnswer = async (data: any, phaseIndex: number, refle
         const promises: Promise<RecommendationAnswer>[] = [];
 
         phaseRecommendations.forEach((phaseRec: Recommendation) => {
-            promises.push(recommendationAnswerService.GetRecommendationAnswerByUserIdAndRecommendationID(phaseRec.id));
+            promises.push(recommendationAnswerService.GetRecommendationAnswerByJournalIdAndRecommendationID(journalId, phaseRec.id));
         });
 
         recommendationAnswers.value[phaseIndex][reflectionIndex] = await Promise.all(promises);
@@ -121,6 +127,7 @@ const createFurtherReflectionAnswer = async (data: any, reflectionId: number) =>
     try {
         const newAnswer: Omit<FurtherReflectionAnswer, "id" | "userId"> = {
             reflectionId: reflectionId,
+            journalId: journalId,
             form: JSON.stringify(data),
         }
         const response = await furtherReflectionAnswerService.createFurtherReflectionAnswer(newAnswer);
@@ -146,14 +153,14 @@ const editFurtherReflectionAnswer = async (data: any, furtherReflectionAnswerId:
 
 const createOrEditFurtherReflectionAnswer = async (data: any, phaseIndex: number, reflectionIndex: number) => {
 
-    if (!lifeCycle.value.Phases?.length) throw new Error("Lifecycle has no phases");
+    if (!journal.value.Lifecycle?.Phases?.length) throw new Error("Lifecycle has no phases");
 
     if (!auth.token) {
         toast.add({ title: 'Error', description: 'You need to be logged in!', color: 'error' });
         return
     }
 
-    const phase = lifeCycle.value.Phases[phaseIndex];
+    const phase = journal.value.Lifecycle.Phases[phaseIndex];
 
     if (!phase.Reflections?.length) throw new Error(`Phase ${phase.title} has no reflections`);
 
@@ -200,9 +207,9 @@ const recommendationProgress = computed(() => {
 
 // Update phases with checkmarks for finished reflections
 const updatePhasesWithCheckmarks = () => {
-    if (!lifeCycle.value.Phases?.length) return;
+    if (!journal.value.Lifecycle?.Phases?.length) return;
 
-    lifeCycle.value.Phases.forEach((phase, phaseIndex) => {
+    journal.value.Lifecycle.Phases.forEach((phase, phaseIndex) => {
         if (!phase.Reflections?.length) return;
 
         const phaseNode = phases.value[phaseIndex];
@@ -273,7 +280,9 @@ function getNextIndex(index: number, childrenIndex: number) {
 }
 
 async function openPdfPreviewForReflection(reflectionId: number) {
-    await openPdfInFullscreen(lifecycleId, lifecycleService, auth, toast, reflectionId);
+    if (!journal.value.Lifecycle) throw new Error("Journal has no lifecycle");
+
+    await openPdfInFullscreen(journal.value.Lifecycle.id, lifecycleService, auth, toast, reflectionId);
 }
 
 watch(() => activeIndex.value?.value, (value) => {
@@ -325,21 +334,23 @@ watch([reflectionAnswers, furtherReflectionAnswers], () => {
     updatePhasesWithCheckmarks();
 }, { deep: true });
 
-onMounted(async () => {
+const initJournal = async (authToken: string) => {
+    journalLoaded.value = true;
 
-    if (!lifeCycle.value.Phases?.length) throw new Error("Lifecycle has no phases");
+    journalService.setToken(authToken);
+    furtherReflectionAnswerService.setToken(authToken);
+    reflectionAnswerService.setToken(authToken);
+    recommendationAnswerService.setToken(authToken);
 
-    if (auth.token) {
-        // Set the user authentication token to the protected services (this has to be done on client side, because the token may be stored in the browser)
-        furtherReflectionAnswerService.setToken(auth.token);
-        reflectionAnswerService.setToken(auth.token);
-        recommendationAnswerService.setToken(auth.token);
-    }
+    // Refetch journal to get the latest answers
+    journal.value = await journalService.getJournalById(journalId);
+
+    if (!journal.value.Lifecycle?.Phases?.length) throw new Error("Lifecycle has no phases");
 
     const hash = route.hash.substring(1);
     let hashIndex: TreeNode | undefined = undefined;
 
-    for (const phase of lifeCycle.value.Phases) {
+    for (const phase of journal.value.Lifecycle.Phases) {
 
         // Add phases phases
         const phaseChildren: TreeNode[] = [];
@@ -380,7 +391,7 @@ onMounted(async () => {
 
         if (auth.token && phase.Reflections?.length) {
             for (const reflection of phase.Reflections) {
-                const refAnswer = await reflectionAnswerService.GetReflectionAnswerByUserIdAndReflectionID(reflection.id);
+                const refAnswer = await reflectionAnswerService.GetReflectionAnswerByJournalIdAndReflectionID(journal.value.id, reflection.id);
                 // Add reflection answers
                 if (refAnswer) {
                     reflectionAnswers.value.at(-1)?.push(refAnswer);
@@ -393,7 +404,7 @@ onMounted(async () => {
                     const promises: Promise<RecommendationAnswer>[] = [];
 
                     phaseRecommendations.forEach((phaseRec: Recommendation) => {
-                        promises.push(recommendationAnswerService.GetRecommendationAnswerByUserIdAndRecommendationID(phaseRec.id));
+                        promises.push(recommendationAnswerService.GetRecommendationAnswerByJournalIdAndRecommendationID(journal.value.id, phaseRec.id));
                     });
 
                     recommendationAnswers.value.at(-1)?.push(await Promise.all(promises));
@@ -403,7 +414,7 @@ onMounted(async () => {
                     recommendationAnswers.value.at(-1)?.push([]);
                 }
 
-                const furtherRefAnswer = await furtherReflectionAnswerService.GetFurtherReflectionAnswerByUserIdAndReflectionID(reflection.id);
+                const furtherRefAnswer = await furtherReflectionAnswerService.GetFurtherReflectionAnswerByJournalIdAndReflectionID(journal.value.id, reflection.id);
                 furtherReflectionAnswers.value.at(-1)?.push(furtherRefAnswer || undefined);
             }
         }
@@ -434,14 +445,27 @@ onMounted(async () => {
 
     // Update phases with checkmarks for finished reflections
     updatePhasesWithCheckmarks();
+}
+
+watch(auth, async () => {
+    if (!journalLoaded.value && auth.token) {
+        initJournal(auth.token);
+    }
+});
+
+onMounted(async () => {
+    if (!journalLoaded.value && auth.token) {
+        initJournal(auth.token);
+    }
 })
 
 </script>
 
 <template>
-    <section id="content" class="mt-2 mb-8">
-        <USlideover data-testid="phases-drawer" v-model:open="isPhasesOpen" :modal="false" :title="lifeCycle.title"
-            :description="lifeCycle.description" :dismissible="false" :overlay="false" side="left" :ui="{
+    <section v-if="journal" id="content" class="mt-2 mb-8">
+        <USlideover data-testid="phases-drawer" v-model:open="isPhasesOpen" :modal="false"
+            :title="journal.Lifecycle?.title" :description="journal.Lifecycle?.description" :dismissible="false"
+            :overlay="false" side="left" :ui="{
                 overlay: 'max-w-sm',
                 content: 'top-[48px] h-[calc(100dvh-48px)]'
             }">
@@ -465,7 +489,7 @@ onMounted(async () => {
         <div data-testid="lifecycle-page" :class="['lifecycle-main', { 'phases-open': isPhasesOpen }]">
             <template v-if="activeIndex">
                 <!-- PHASES -->
-                <template v-for="(phase, phaseIndex) in lifeCycle.Phases" :key="phase.id">
+                <template v-for="(phase, phaseIndex) in journal.Lifecycle?.Phases" :key="phase.id">
 
                     <!-- PHASE INTRODUCTION  -->
                     <div v-show="activeIndex.value == `phase-${phase.title}`"
@@ -473,12 +497,12 @@ onMounted(async () => {
 
                         <div class="lifecycle-content">
                             <h1 class="text-2xl font-bold mb-6 text-center">{{ `${phase.title}`
-                                }}
+                            }}
                             </h1>
 
                             <div class="prose dark:prose-invert lg:prose-xl mb-6 text-justify"> {{
                                 phase.description
-                                }}</div>
+                            }}</div>
                         </div>
 
                         <div class="flex justify-between my-8">
@@ -505,13 +529,13 @@ onMounted(async () => {
                             :data-testid="`phase-reflection-${phaseIndex}-${reflectionIndex}`">
                             <div class="lifecycle-content">
                                 <h1 class="text-2xl font-bold mb-1 text-center">{{ `${reflection.title}`
-                                    }}
+                                }}
                                 </h1>
 
 
                                 <div class="dark:prose-invert prose lg:prose-xl mb-2 text-justify"> {{
                                     reflection.description
-                                    }}</div>
+                                }}</div>
 
                                 <p class="font-semibold mb-4">In your answer, you might consider:</p>
 
@@ -540,7 +564,9 @@ onMounted(async () => {
                                     <h2 class="text-xl font-bold mb-2">Recommended Tools</h2>
                                     <ToolList
                                         :tools="recommendations[phaseIndex][reflectionIndex]?.map(r => r.Tool!) || []"
-                                        v-model:recommendations="recommendations[phaseIndex][reflectionIndex]"
+                                        :recommendation-answer-service="recommendationAnswerService"
+                                        :journal-id="journalId"
+                                        :recommendations="recommendations[phaseIndex][reflectionIndex]"
                                         v-model:answers="recommendationAnswers[phaseIndex][reflectionIndex]" />
                                     <div v-if="recommendations[phaseIndex][reflectionIndex]?.length" class="my-4">
                                         <UProgress
@@ -592,15 +618,15 @@ onMounted(async () => {
                     <div class="lifecycle-content mt-4">
                         <h1 class="text-2xl font-bold mb-6 text-center">Export</h1>
 
-                        <LifecyclePdfExport :lifecycle-id="lifecycleId" :lifecycle-title="lifeCycle.title"
+                        <LifecyclePdfExport :lifecycle-id="journal.lifecycleId" :lifecycle-title="journal.title"
                             :active="activeIndex?.value === 'export'" />
                     </div>
 
                     <div class="flex justify-between my-8">
-                        <UButton v-if="lifeCycle.Phases?.length" icon="i-lucide-arrow-left" size="md" variant="outline"
-                            class="lifecycle-navigate-btn justify-between"
-                            @click="activeIndex = getBackIndex(lifeCycle.Phases?.length, -1)">
-                            {{ getBackIndex(lifeCycle.Phases?.length, -1)?.label }}</UButton>
+                        <UButton v-if="journal.Lifecycle?.Phases?.length" icon="i-lucide-arrow-left" size="md"
+                            variant="outline" class="lifecycle-navigate-btn justify-between"
+                            @click="activeIndex = getBackIndex(journal.Lifecycle?.Phases?.length, -1)">
+                            {{ getBackIndex(journal.Lifecycle?.Phases?.length, -1)?.label }}</UButton>
                     </div>
                 </div>
             </template>

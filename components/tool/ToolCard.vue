@@ -1,37 +1,41 @@
 <script lang="ts" setup>
-import { RecommendationAnswerService } from '~/services/recommendationAnswer';
+import type { Tool, Recommendation, RecommendationAnswer } from '~/utils/types';
+import type{ RecommendationAnswerService } from '~/services/recommendationAnswer';
 import { isRecommendationDone } from '~/utils/helpers';
 
-const tool = defineModel<Tool>('tool', { required: true });
-const recommendation = defineModel<Recommendation>('recommendation');
+const props = defineProps({
+    tool: { type: Object as () => Tool, required: true },
+    journalId: { type: Number, required: false, default: null },
+    recommendation: { type: Object as () => Recommendation, required: false, default: null },
+    recommendationAnswerService: { type: Object as () => RecommendationAnswerService, required: false, default: null }
+});
+
 const answer = defineModel<RecommendationAnswer>('answer');
 
 const auth = useAuthStore();
 const modalOpened = ref(false);
-const config = useRuntimeConfig();
 const $toast = useToast();
-const recommendationAnswerService = new RecommendationAnswerService(config.public.apiBase as string);
 
 const tags = computed(() => {
-    return tool.value.tags?.split(",");
+    return props.tool.tags?.split(",");
 });
 
 const recommendationIsDone = computed(() => {
-    return isRecommendationDone(recommendation.value, answer.value);
+    return isRecommendationDone(props.recommendation, answer.value);
 });
 
 const uploadFileMessage = computed(() => {
-    if (!recommendation.value) return '';
+    if (!props.recommendation) return '';
     return answer.value?.file ? answer.value?.file.replaceAll('\\', '/').split('/').at(-1) : 'Upload tool\'s output';
 });
 
 const fillInFormMessage = computed(() => {
-    if (!recommendation.value) return '';
+    if (!props.recommendation) return '';
     return answer.value?.form ? 'Edit Form' : 'Fill in Form';
 });
 
 const submitForm = async (form: any) => {
-    if (!recommendation.value) {
+    if (!props.recommendation) {
         return;
     }
 
@@ -45,16 +49,17 @@ const submitForm = async (form: any) => {
     }
 
     const data = new FormData();
+    data.append('journalId', props.journalId?.toString() || '');
     data.append('form', JSON.stringify(form));
 
     try {
         // TODO: get the answer for the current user
         let newRecommendationAnswer;
         if (answer.value) {
-            newRecommendationAnswer = await recommendationAnswerService.editRecommendationAnswer(data, answer.value.id);
+            newRecommendationAnswer = await props.recommendationAnswerService.editRecommendationAnswer(data, answer.value.id);
         } else {
-            data.append('recommendationId', recommendation.value.id.toString());
-            newRecommendationAnswer = await recommendationAnswerService.createRecommendationAnswer(data);
+            data.append('recommendationId', props.recommendation.id.toString());
+            newRecommendationAnswer = await props.recommendationAnswerService.createRecommendationAnswer(data);
         }
 
         $toast.add({
@@ -77,7 +82,7 @@ const submitForm = async (form: any) => {
 };
 
 const uploadFile = async (event: Event) => {
-    if (!recommendation.value) return;
+    if (!props.recommendation) return;
 
     if (!auth.token) {
         $toast.add({
@@ -93,16 +98,17 @@ const uploadFile = async (event: Event) => {
 
     const file = input.files[0];
     const data = new FormData();
+    data.append('journalId', props.journalId?.toString() || '');
     data.append('file', file);
 
     let newRecommendationAnswer;
 
     try {
         if (answer.value) {
-            newRecommendationAnswer = await recommendationAnswerService.editRecommendationAnswer(data, answer.value.id);
+            newRecommendationAnswer = await props.recommendationAnswerService.editRecommendationAnswer(data, answer.value.id);
         } else {
-            data.append('recommendationId', recommendation.value.id.toString());
-            newRecommendationAnswer = await recommendationAnswerService.createRecommendationAnswer(data);
+            data.append('recommendationId', props.recommendation.id.toString());
+            newRecommendationAnswer = await props.recommendationAnswerService.createRecommendationAnswer(data);
         }
 
         $toast.add({
@@ -132,7 +138,7 @@ const checkboxModel = computed({
 });
 
 const setRecommendationDoneTo = async (value: boolean) => {
-    if (!recommendation.value) return;
+    if (!props.recommendation) return;
 
     if (!auth.token) {
         $toast.add({
@@ -144,16 +150,19 @@ const setRecommendationDoneTo = async (value: boolean) => {
     }
 
     const data = new FormData();
+    data.append('journalId', props.journalId?.toString() || '');
     data.append('checked_done', value.toString());
 
     let newRecommendationAnswer;
     try {
         if (answer.value) {
-            newRecommendationAnswer = await recommendationAnswerService.editRecommendationAnswer(data, answer.value.id);
+            newRecommendationAnswer = await props.recommendationAnswerService.editRecommendationAnswer(data, answer.value.id);
         } else {
-            data.append('recommendationId', recommendation.value.id.toString());
-            newRecommendationAnswer = await recommendationAnswerService.createRecommendationAnswer(data);
+            data.append('recommendationId', props.recommendation.id.toString());
+            newRecommendationAnswer = await props.recommendationAnswerService.createRecommendationAnswer(data);
         }
+
+        console.log(newRecommendationAnswer)
 
         answer.value = newRecommendationAnswer;
 
@@ -178,12 +187,6 @@ const setRecommendationDoneTo = async (value: boolean) => {
         });
     }
 };
-
-onMounted(() => {
-    if (auth.token) {
-        recommendationAnswerService.setToken(auth.token);
-    }
-})
 </script>
 
 <template>
