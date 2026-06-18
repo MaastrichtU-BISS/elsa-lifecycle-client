@@ -45,16 +45,16 @@ export type Reflection = {
 
 export type ReflectionAnswer = {
   id: number;
-  journalId: string;
   form: string;
+  journalId: number;
   reflectionId: number;
   Reflection?: Reflection;
 };
 
 export type FurtherReflectionAnswer = {
   id: number;
-  journalId: string;
   form: string;
+  journalId: number;
   reflectionId: number;
   Reflection?: Reflection;
 };
@@ -81,7 +81,7 @@ export type Recommendation = {
 
 export type RecommendationAnswer = {
   id: number;
-  journalId: string;
+  journalId: number;
   recommendationId: number;
   form?: string;
   file?: string;
