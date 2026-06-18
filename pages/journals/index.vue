@@ -5,6 +5,7 @@ import type { Lifecycle, Journal } from '~/utils/types';
 import JournalsTable from '~/components/lifecycle/JournalsTable.vue';
 
 const auth = useAuthStore();
+const toast = useToast();
 
 const config = useRuntimeConfig();
 const lifecycleService = new LifecycleService(config.public.apiBase as string);
@@ -37,9 +38,9 @@ const createNewJournal = async () => {
         const newJournal = await journalService.createJournal({ title: 'New Journal', lifecycleId: lifecycles[0].id });
         journals.value?.push(newJournal);
 
-        console.log('New journal created:', newJournal);
+        toast.add({ title: 'Success', description: 'New journal created successfully!', color: 'success' });
     } catch (error) {
-        console.error('Error creating new journal:', error);
+        toast.add({ title: 'Error', description: 'Error creating new journal.', color: 'error' });
     }
 }
 
