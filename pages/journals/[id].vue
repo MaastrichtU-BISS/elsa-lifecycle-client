@@ -22,7 +22,6 @@ const journalService = new JournalService(config.public.apiBase);
 const reflectionAnswerService = new ReflectionAnswerService(config.public.apiBase);
 const recommendationService = new RecommendationService(config.public.apiBase);
 const recommendationAnswerService = new RecommendationAnswerService(config.public.apiBase);
-const lifecycleService = new LifecycleService(config.public.apiBase);
 
 const journal = ref<Journal>();
 const recommendations = ref<Recommendation[][][]>([]);
@@ -466,7 +465,7 @@ onMounted(async () => {
             :title="journal?.title" :description="journal.Lifecycle?.description" :dismissible="false"
             :overlay="false" side="left" :ui="{
                 overlay: 'max-w-sm',
-                content: 'top-[48px] h-[calc(100dvh-48px)]'
+                content: 'top-[65px] h-[calc(100dvh-65px)]'
             }">
             <UButton data-testid="phases-drawer-trigger" label="Phases" trailing-icon="i-lucide-square-menu"
                 class="ml-4 fixed left-[1em]" />
