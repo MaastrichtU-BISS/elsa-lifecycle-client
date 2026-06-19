@@ -462,7 +462,7 @@ onMounted(async () => {
 <template>
     <section v-if="journal" id="content" class="mt-2 mb-8">
         <USlideover data-testid="phases-drawer" v-model:open="isPhasesOpen" :modal="false"
-            :title="journal?.title" :description="journal.Lifecycle?.description" :dismissible="false"
+            :title="journal?.title" :description="journal.Lifecycle?.title" :dismissible="false"
             :overlay="false" side="left" :ui="{
                 overlay: 'max-w-sm',
                 content: 'top-[65px] h-[calc(100dvh-65px)]'
