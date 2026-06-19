@@ -646,8 +646,6 @@ onMounted(async () => {
 .lifecycle-main .prose {
     width: 100%;
     max-width: 95ch;
-    margin-left: auto;
-    margin-right: auto;
 }
 
 .lifecycle-content {
