@@ -22,7 +22,7 @@
         <div class="mb-2 flex items-center justify-between">
           <p class="font-semibold text-highlighted">Learn how to use the app with this video</p>
         </div>
-        <video src="/demo-video.mp4" width="100%" height="100%" controls class="rounded-lg"/>
+        <video src="/demo-video.mp4" poster="/demo-video-thumbnail.png" width="100%" height="100%" controls class="rounded-lg"/>
       </div>
     </div>
   </section>
