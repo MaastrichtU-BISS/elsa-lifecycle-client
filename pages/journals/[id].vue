@@ -494,7 +494,7 @@ onMounted(async () => {
                         :data-testid="`phase-introduction-${phaseIndex}`">
 
                         <div class="lifecycle-content">
-                            <h1 class="text-2xl font-bold mb-6 text-center">{{ `${phase.title}`
+                            <h1 class="text-2xl font-bold mb-6">{{ `${phase.title}`
                             }}
                             </h1>
 
@@ -526,7 +526,7 @@ onMounted(async () => {
                         <div v-show="activeIndex.value == `phase${reflection.title}-reflection`"
                             :data-testid="`phase-reflection-${phaseIndex}-${reflectionIndex}`">
                             <div class="lifecycle-content">
-                                <h1 class="text-2xl font-bold mb-1 text-center">{{ `${reflection.title}`
+                                <h1 class="text-2xl font-bold mb-1">{{ `${reflection.title}`
                                 }}
                                 </h1>
 
