@@ -1,5 +1,5 @@
 <template>
-  <section id="why" class="scroll-mt-[8svh] lg:scroll-mt-[10svh] rounded-2xl border border-default bg-elevated/40 p-4 md:p-8 min-h-[82svh] lg:min-h-[88svh] flex flex-col justify-center animate-[fade-up_0.6s_ease]">
+  <section id="why" class="scroll-mt-[8svh] lg:scroll-mt-[10svh] rounded-2xl border border-default bg-elevated/40 p-4 md:p-8 min-h-[82svh] lg:min-h-[88svh] flex flex-col justify-center animate-[fade-up_0.6s_ease] bg-[linear-gradient(rgba(120,120,120,0.12)_1px,transparent_1px),linear-gradient(90deg,rgba(120,120,120,0.12)_1px,transparent_1px)] bg-[size:26px_26px]"">
     <div class="mb-7 max-w-3xl">
       <p class="text-xs font-semibold uppercase tracking-[0.12em] text-primary">Why use it?</p>
       <h2 class="mt-2 text-3xl font-semibold tracking-tight text-highlighted sm:text-4xl">

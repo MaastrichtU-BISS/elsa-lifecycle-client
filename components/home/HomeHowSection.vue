@@ -18,27 +18,11 @@
         </article>
       </div>
 
-      <div class="sticky top-24 self-start rounded-xl border border-default bg-elevated p-4 bg-[linear-gradient(rgba(120,120,120,0.12)_1px,transparent_1px),linear-gradient(90deg,rgba(120,120,120,0.12)_1px,transparent_1px)] bg-[size:26px_26px]">
+      <div class="sticky top-24 self-start rounded-xl border border-default bg-elevated p-4">
         <div class="mb-2 flex items-center justify-between">
-          <p class="font-semibold text-highlighted">Demand Forecasting v2</p>
-          <UBadge color="primary" variant="soft" size="sm">Active</UBadge>
+          <p class="font-semibold text-highlighted">Learn how to use the app with this video</p>
         </div>
-
-        <UCard v-for="entry in notebookEntries" :key="entry.meta" class="mb-3 last:mb-0" :class="entry.active ? 'ring-1 ring-inset ring-primary/40' : ''">
-          <p class="text-xs uppercase tracking-[0.1em] text-toned">{{ entry.meta }}</p>
-          <p class="mt-2 text-sm leading-6 text-toned">{{ entry.text }}</p>
-          <div class="mt-3 flex flex-wrap gap-1.5">
-            <UBadge
-              v-for="tag in entry.tags"
-              :key="tag"
-              color="neutral"
-              variant="outline"
-              size="sm"
-            >
-              {{ tag }}
-            </UBadge>
-          </div>
-        </UCard>
+        <video src="/demo-video.mp4" width="100%" height="100%" controls class="rounded-lg"/>
       </div>
     </div>
   </section>
@@ -72,27 +56,6 @@ const steps = [
     title: 'Export when you need it',
     description:
       'Generate impact assessments, ethics summaries, or model cards from your entries. Your groundwork is already captured.'
-  }
-]
-
-const notebookEntries = [
-  {
-    meta: 'Data collection · Privacy and consent · 14 May 2025',
-    text: 'Decided to exclude postcode-level demographic data from the training set to reduce socioeconomic bias risks.',
-    tags: ['Privacy', 'Fairness', 'Data'],
-    active: true
-  },
-  {
-    meta: 'Problem definition · Stakeholders · 2 May 2025',
-    text: 'Completed stakeholder mapping and identified groups that need stronger consent communication.',
-    tags: ['Stakeholders', 'Consent'],
-    active: false
-  },
-  {
-    meta: 'Documentation · Data audit · 9 May 2025',
-    text: 'Data minimisation complete, purpose limitation complete, retention policy pending legal review.',
-    tags: ['Legal'],
-    active: false
   }
 ]
 </script>
