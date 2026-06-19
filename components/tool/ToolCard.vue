@@ -162,8 +162,6 @@ const setRecommendationDoneTo = async (value: boolean) => {
             newRecommendationAnswer = await props.recommendationAnswerService.createRecommendationAnswer(data);
         }
 
-        console.log(newRecommendationAnswer)
-
         answer.value = newRecommendationAnswer;
 
         if (newRecommendationAnswer.checked_done) {
@@ -211,7 +209,7 @@ const setRecommendationDoneTo = async (value: boolean) => {
             <i v-if="tool.type" class="text-sm">
                 {{ tool.type }}
             </i>
-            <p class="my-4 flex-grow">
+            <p class="my-4 flex-grow h-[150px] overflow-scroll">
                 {{ tool.description }}
             </p>
             <div v-if="tags" class="flex justify-end mb-3">
