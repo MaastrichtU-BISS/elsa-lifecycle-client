@@ -86,7 +86,7 @@ onUnmounted(() => {
     <div v-if="pdfPreviewLoading" class="flex justify-center items-center h-96">
         <UIcon name="i-lucide-loader-circle" class="animate-spin text-4xl" />
     </div>
-    <iframe v-else-if="pdfPreviewUrl" :src="pdfPreviewUrl" class="w-full h-[75vh] border rounded-lg mb-6" />
+    <iframe v-else-if="pdfPreviewUrl" :src="pdfPreviewUrl" class="w-full h-[65vh] border rounded-lg mb-6" />
 
     <div class="flex justify-center gap-4 mt-4">
         <UButton 

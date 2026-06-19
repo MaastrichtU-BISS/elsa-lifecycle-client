@@ -613,7 +613,7 @@ onMounted(async () => {
 
                 <!-- EXPORT AS PDF -->
                 <div v-show="activeIndex.value == 'export'">
-                    <div class="lifecycle-content mt-4">
+                    <div class="lifecycle-content">
                         <h1 class="text-2xl font-bold mb-6 text-center">Export</h1>
 
                         <JournalPdfExport :journal-id="journal.id" :journal-title="journal.title"
