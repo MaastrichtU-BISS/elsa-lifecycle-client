@@ -18,9 +18,9 @@ const lifecycleService = new LifecycleService(config.public.apiBase as string);
 const lifecycles: Lifecycle[] = await lifecycleService.getAllLifecycles();
 const lifeCyclesOptions = ref(lifecycles.map(lifecycle => ({ label: lifecycle.title, value: lifecycle.id })));
 
-const selectedLifecycle = computed(() => {
-    return lifecycles.find(lifecycle => lifecycle.id === newJournal.value.lifecycleId);
-});
+// const selectedLifecycle = computed(() => {
+//     return lifecycles.find(lifecycle => lifecycle.id === newJournal.value.lifecycleId);
+// });
 
 const newJournal = ref<Omit<Journal, 'id' | 'userId'>>({
     title: '',
@@ -58,9 +58,9 @@ const createNewJournal = async () => {
         <template #body>
             <p class="text-sm font-medium mb-2">Title:</p>
             <UInput v-model="newJournal.title" placeholder="My new journal" class="w-full mb-4" />
-            <p class="text-sm font-medium mb-2">Template:</p>
-            <USelect v-model="newJournal.lifecycleId" :items="lifeCyclesOptions" class="w-full mb-4" />
-            <p class="text-sm text-gray-500">{{ selectedLifecycle?.description }}</p>
+            <!-- <p class="text-sm font-medium mb-2">Template:</p> -->
+            <USelect v-model="newJournal.lifecycleId" :items="lifeCyclesOptions" class="w-full mb-4 hidden" />
+            <!-- <p class="text-sm text-gray-500">{{ selectedLifecycle?.description }}</p> -->
         </template>
         <template #footer>
             <UButton color="primary" variant="outline" icon="i-lucide-x" size="lg" @click="showModal = false">Cancel
