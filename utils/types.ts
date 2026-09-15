@@ -12,7 +12,7 @@ export type Lifecycle = {
   title: string;
   description: string;
   introduction: string;
-  Phases?: Phase[];
+  Reflections?: Reflection[];
 };
 
 export type Journal = {
@@ -23,24 +23,17 @@ export type Journal = {
   Lifecycle?: Lifecycle;
 };
 
-export type Phase = {
-  id: number;
-  title: string;
-  description: string;
-  lifecycleId: number;
-  Lifecycle?: Lifecycle;
-  Reflections?: Reflection[];
-};
-
 export type Reflection = {
   id: number;
-  description: string;
   title: string;
+  // introductory paragraph shown above the question
+  context: string;
+  // the question the user answers
+  description: string;
   considerations: string;
   form: string;
   furtherReflectionForm: string;
-  phaseId: number;
-  Phase?: Phase;
+  lifecycleId: number;
 };
 
 export type ReflectionAnswer = {

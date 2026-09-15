@@ -1,8 +1,17 @@
-import { test, expect, type Locator, type Page } from "@playwright/test";
+import {
+  test,
+  expect,
+  type APIRequestContext,
+  type Locator,
+  type Page,
+} from "@playwright/test";
+
+const apiBaseUrl = process.env.API_BASE_URL ?? "http://localhost:8080";
+const journalTitle = "E2E journal";
 
 test.describe("Lifecycle reflection recommendations", () => {
-  test.beforeEach(async ({ page }) => {
-    await openProblemDefinitionReflection(page);
+  test.beforeEach(async ({ page, request }) => {
+    await openProblemDefinitionReflection(page, request);
   });
 
   test("hides tool recommendations when user is happy with their answer", async ({
@@ -119,7 +128,7 @@ test.describe("Lifecycle reflection recommendations", () => {
 
     await page.getByRole("button", { name: /phases/i }).click();
 
-    const drawer = page.getByRole("dialog", { name: /ELSA Journal/i });
+    const drawer = page.getByRole("dialog", { name: journalTitle });
     await expect(drawer).toBeVisible();
 
     const reflectionItem = drawer.getByRole("treeitem", {
@@ -133,7 +142,7 @@ test.describe("Lifecycle reflection recommendations", () => {
 });
 
 async function closePhasesDrawer(page: Page) {
-  const drawer = page.getByRole("dialog", { name: /ELSA Journal/i });
+  const drawer = page.getByRole("dialog", { name: journalTitle });
 
   if (await drawer.isVisible().catch(() => false)) {
     await drawer.getByRole("button", { name: /^Close$/ }).click();
@@ -141,18 +150,26 @@ async function closePhasesDrawer(page: Page) {
   }
 }
 
-async function openProblemDefinitionReflection(page: Page) {
-  await page.goto("/lifecycles");
-  await page.waitForLoadState("networkidle");
+// Creates a fresh journal for the logged-in user and opens it. Its first section is Problem Definition.
+async function openProblemDefinitionReflection(
+  page: Page,
+  request: APIRequestContext,
+) {
+  await page.goto("/");
+  const token = await page.evaluate(() => localStorage.getItem("token"));
+  expect(token, "user must be logged in (auth-setup)").toBeTruthy();
 
-  await page.getByRole("link", { name: /start/i }).first().click();
-  await page.waitForLoadState("networkidle");
+  const response = await request.post(`${apiBaseUrl}/journals`, {
+    headers: { Authorization: `Bearer ${token}` },
+    data: { title: journalTitle, lifecycleId: 1 },
+  });
+  expect(response.ok()).toBeTruthy();
+  const journal = await response.json();
 
-  await closePhasesDrawer(page);
+  await page.goto(`/journals/${journal.id}`);
+  await page.waitForLoadState("networkidle");
 
   const main = page.locator("main");
-
-  await main.getByRole("button", { name: /^Problem Definition$/ }).click();
 
   await expect(
     main.getByRole("heading", { name: /^Problem Definition$/ }),

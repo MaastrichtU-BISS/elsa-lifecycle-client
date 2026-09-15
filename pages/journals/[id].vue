@@ -1,11 +1,10 @@
 <script setup lang="ts">
-import type { FurtherReflectionAnswer, Recommendation, RecommendationAnswer, ReflectionAnswer, TreeNode } from "~/utils/types";
-import { isRecommendationDone, isGetRecommendationsActive, isReflectionFinished, isPhaseFinished, openPdfInFullscreen } from '~/utils/helpers';
+import type { FurtherReflectionAnswer, Recommendation, RecommendationAnswer, Reflection, ReflectionAnswer, TreeNode } from "~/utils/types";
+import { isRecommendationDone, isGetRecommendationsActive, isReflectionFinished, openPdfInFullscreen } from '~/utils/helpers';
 import { FurtherReflectionAnswerService } from "~/services/furtherReflectionAnswer";
 import { JournalService } from "~/services/journal";
 import { ReflectionAnswerService } from "~/services/reflectionAnswer";
 import { RecommendationService } from "~/services/recommendation";
-import { LifecycleService } from "~/services/lifecycle";
 import { RecommendationAnswerService } from "~/services/recommendationAnswer";
 
 const auth = useAuthStore();
@@ -24,19 +23,25 @@ const recommendationService = new RecommendationService(config.public.apiBase);
 const recommendationAnswerService = new RecommendationAnswerService(config.public.apiBase);
 
 const journal = ref<Journal>();
-const recommendations = ref<Recommendation[][][]>([]);
-const furtherReflectionAnswers = ref<(FurtherReflectionAnswer | undefined)[][]>([]);
-const reflectionAnswers = ref<(ReflectionAnswer | undefined)[][]>([]);
-const recommendationAnswers = ref<RecommendationAnswer[][][]>([]);
 
-const activeIndex = ref();
-const expandedPhases = ref<string[]>([]);
+// All indexed by the reflection's position in journal.Lifecycle.Reflections
+const recommendations = ref<Recommendation[][]>([]);
+const furtherReflectionAnswers = ref<(FurtherReflectionAnswer | undefined)[]>([]);
+const reflectionAnswers = ref<(ReflectionAnswer | undefined)[]>([]);
+const recommendationAnswers = ref<RecommendationAnswer[][]>([]);
+
+const activeIndex = ref<TreeNode>();
 const lastActiveIndex = ref<TreeNode | undefined>(undefined);
 const hasUnsavedChanges = ref(false);
-const unsavedChangesPhases = ref<Set<string>>(new Set());
+const unsavedChangesItems = ref<Set<string>>(new Set());
 const isPhasesOpen = ref(true);
 
-const phases = ref<TreeNode[]>([]);
+// Journal index: one item per reflection, followed by the export page
+const navItems = ref<TreeNode[]>([]);
+
+const reflections = computed<Reflection[]>(() => journal.value?.Lifecycle?.Reflections ?? []);
+
+const reflectionNavValue = (reflection: Reflection) => `reflection-${reflection.id}`;
 
 // Handle Reflections 
 const createReflectionAnswer = async (data: any, reflectionId: number) => {
@@ -68,54 +73,47 @@ const editReflectionAnswer = async (data: any, reflectionAnswerId: number) => {
     }
 }
 
-const createOrEditReflectionAnswer = async (data: any, phaseIndex: number, reflectionIndex: number) => {
+const clearUnsavedChanges = () => {
+    hasUnsavedChanges.value = false;
+    if (activeIndex.value?.value) {
+        unsavedChangesItems.value.delete(activeIndex.value.value);
+    }
+    updateNavCheckmarks();
+};
 
-    if (!journal.value?.Lifecycle?.Phases?.length) throw new Error("Lifecycle has no phases");
-
+const createOrEditReflectionAnswer = async (data: any, reflectionIndex: number) => {
     if (!auth.token) {
         toast.add({ title: 'Error', description: 'You need to be logged in!', color: 'error' });
         return
     }
 
-    const phase = journal.value.Lifecycle.Phases[phaseIndex];
-
-    if (!phase.Reflections?.length) throw new Error(`Phase ${phase.title} has no reflections`);
-
-    const reflectionId = phase.Reflections[reflectionIndex].id;
+    const reflectionId = reflections.value[reflectionIndex].id;
+    const existingAnswer = reflectionAnswers.value[reflectionIndex];
 
     let answer: ReflectionAnswer | undefined;
 
-    if (reflectionAnswers.value[phaseIndex][reflectionIndex]?.id) {
-        answer = await editReflectionAnswer(data, reflectionAnswers.value[phaseIndex][reflectionIndex].id!);
+    if (existingAnswer?.id) {
+        answer = await editReflectionAnswer(data, existingAnswer.id);
     } else {
         answer = await createReflectionAnswer(data, reflectionId);
     }
 
     if (answer) {
         // update answer
-        reflectionAnswers.value[phaseIndex][reflectionIndex] = answer;
+        reflectionAnswers.value[reflectionIndex] = answer;
 
         // update recommended tools
-        const phaseRecommendations = await recommendationService.getRecommendations(reflectionId, answer);
-        recommendations.value[phaseIndex][reflectionIndex] = phaseRecommendations;
+        const reflectionRecommendations = await recommendationService.getRecommendations(reflectionId, answer);
+        recommendations.value[reflectionIndex] = reflectionRecommendations;
 
         // update recommendation answers
         // TODO: optimize this to do it in a single query
-        const promises: Promise<RecommendationAnswer>[] = [];
+        recommendationAnswers.value[reflectionIndex] = await Promise.all(
+            reflectionRecommendations.map((rec: Recommendation) =>
+                recommendationAnswerService.GetRecommendationAnswerByJournalIdAndRecommendationID(journalId, rec.id))
+        );
 
-        phaseRecommendations.forEach((phaseRec: Recommendation) => {
-            promises.push(recommendationAnswerService.GetRecommendationAnswerByJournalIdAndRecommendationID(journalId, phaseRec.id));
-        });
-
-        recommendationAnswers.value[phaseIndex][reflectionIndex] = await Promise.all(promises);
-
-        // Clear unsaved changes and update checkmarks
-        hasUnsavedChanges.value = false;
-        if (activeIndex.value?.value) {
-            unsavedChangesPhases.value.delete(activeIndex.value.value);
-        }
-        updatePhasesWithCheckmarks();
-
+        clearUnsavedChanges();
     }
 };
 
@@ -149,21 +147,14 @@ const editFurtherReflectionAnswer = async (data: any, furtherReflectionAnswerId:
     }
 }
 
-const createOrEditFurtherReflectionAnswer = async (data: any, phaseIndex: number, reflectionIndex: number) => {
-
-    if (!journal.value?.Lifecycle?.Phases?.length) throw new Error("Lifecycle has no phases");
-
+const createOrEditFurtherReflectionAnswer = async (data: any, reflectionIndex: number) => {
     if (!auth.token) {
         toast.add({ title: 'Error', description: 'You need to be logged in!', color: 'error' });
         return
     }
 
-    const phase = journal.value.Lifecycle.Phases[phaseIndex];
-
-    if (!phase.Reflections?.length) throw new Error(`Phase ${phase.title} has no reflections`);
-
-    const reflectionId = phase.Reflections[reflectionIndex].id;
-    const existingAnswer = furtherReflectionAnswers.value[phaseIndex][reflectionIndex];
+    const reflectionId = reflections.value[reflectionIndex].id;
+    const existingAnswer = furtherReflectionAnswers.value[reflectionIndex];
 
     let answer: FurtherReflectionAnswer | undefined;
 
@@ -174,108 +165,42 @@ const createOrEditFurtherReflectionAnswer = async (data: any, phaseIndex: number
     }
 
     if (answer) {
-        furtherReflectionAnswers.value[phaseIndex][reflectionIndex] = answer;
-
-        // Clear unsaved changes and update checkmarks
-        hasUnsavedChanges.value = false;
-        if (activeIndex.value?.value) {
-            unsavedChangesPhases.value.delete(activeIndex.value.value);
-        }
-        updatePhasesWithCheckmarks();
+        furtherReflectionAnswers.value[reflectionIndex] = answer;
+        clearUnsavedChanges();
     }
 };
 
 // Handle Recommendations
 const recommendationProgress = computed(() => {
-    const res: { completed: number; total: number; percent: number }[][] = [];
-    if (!recommendations.value.length) return [];
-
-    recommendations.value.forEach((phase, i) => {
-        res.push([]);
-        phase.forEach((recs, j) => {
-            const answers = recommendationAnswers.value[i][j];
-            const total = recs.length;
-            const completed = answers?.filter(answer => isRecommendationDone(answer?.Recommendation, answer))?.length ?? 0;
-            res.at(-1)?.push({ completed, total, percent: total > 0 ? Math.round((completed / total) * 100) : 0 });
-        })
+    return recommendations.value.map((recs, i) => {
+        const answers = recommendationAnswers.value[i];
+        const total = recs.length;
+        const completed = answers?.filter(answer => isRecommendationDone(answer?.Recommendation, answer))?.length ?? 0;
+        return { completed, total, percent: total > 0 ? Math.round((completed / total) * 100) : 0 };
     });
-
-    return res;
 });
 
-// Update phases with checkmarks for finished reflections
-const updatePhasesWithCheckmarks = () => {
-    if (!journal.value.Lifecycle?.Phases?.length) return;
+// Show a checkmark for finished reflections and a warning for unsaved changes
+const updateNavCheckmarks = () => {
+    reflections.value.forEach((reflection, reflectionIndex) => {
+        const item = navItems.value[reflectionIndex];
+        if (!item) return;
 
-    journal.value.Lifecycle.Phases.forEach((phase, phaseIndex) => {
-        if (!phase.Reflections?.length) return;
-
-        const phaseNode = phases.value[phaseIndex];
-        if (!phaseNode?.children) return;
-
-        // Update reflection checkmarks
-        phase.Reflections.forEach((reflection, reflectionIndex) => {
-            const child = phaseNode.children?.[reflectionIndex];
-            if (child) {
-                // If this reflection has unsaved changes, show warning icon
-                if (unsavedChangesPhases.value.has(child.value)) {
-                    child.trailingIcon = 'i-lucide-triangle-alert';
-                } else {
-                    const isFinished = isReflectionFinished(
-                        reflectionAnswers.value[phaseIndex]?.[reflectionIndex],
-                        furtherReflectionAnswers.value[phaseIndex]?.[reflectionIndex]
-                    );
-                    child.trailingIcon = isFinished ? 'i-lucide-check' : undefined;
-                }
-            }
-        });
-
-        // Update phase checkmark if all reflections are finished
-        const allReflectionsFinished = isPhaseFinished(
-            reflectionAnswers.value[phaseIndex] || [],
-            furtherReflectionAnswers.value[phaseIndex] || []
-        );
-        phaseNode.trailingIcon = allReflectionsFinished ? 'i-lucide-check' : 'none';
+        if (unsavedChangesItems.value.has(item.value)) {
+            item.trailingIcon = 'i-lucide-triangle-alert';
+        } else {
+            const isFinished = isReflectionFinished(
+                reflectionAnswers.value[reflectionIndex],
+                furtherReflectionAnswers.value[reflectionIndex]
+            );
+            item.trailingIcon = isFinished ? 'i-lucide-check' : undefined;
+        }
     });
 };
 
-// Handle RecommendationAnswers
-
-// const updateRecommendationAnswer = (newRecommendationAnswer: any, answerIndex: number, index: number) => {
-//     recommendationAnswers.value[index][answerIndex] = newRecommendationAnswer;
-// }
-
-function getBackIndex(index: number, childrenIndex: number) {
-    const currentGroup = phases.value[index];
-    const previousGroup = phases.value[index - 1];
-
-    const currentChildren = currentGroup?.children ?? [];
-    const previousChildren = previousGroup?.children ?? [];
-
-    if (childrenIndex === -1) {
-        return previousChildren.at(-1) ?? previousGroup ?? currentGroup;
-    }
-
-    if (childrenIndex === 0) {
-        return currentGroup;
-    }
-
-    return currentChildren[childrenIndex - 1] ?? currentGroup;
-}
-
-function getNextIndex(index: number, childrenIndex: number) {
-    const currentGroup = phases.value[index];
-    const nextGroup = phases.value[index + 1];
-    const currentChildren = currentGroup?.children ?? [];
-
-    if (childrenIndex === -1) {
-        return currentChildren[0] ?? nextGroup ?? currentGroup;
-    }
-
-    return childrenIndex < currentChildren.length - 1
-        ? currentChildren[childrenIndex + 1]
-        : nextGroup ?? currentGroup;
-}
+// Previous and next items in the journal index (the export page is the last item)
+const getBackItem = (index: number) => navItems.value[index - 1];
+const getNextItem = (index: number) => navItems.value[index + 1];
 
 async function openPdfPreviewForReflection(reflectionId: number) {
     if (!journal.value) throw new Error("No journal loaded");
@@ -299,37 +224,31 @@ watch(activeIndex, async (newValue, oldValue) => {
                 icon: 'i-lucide-triangle-alert',
                 color: 'warning'
             });
-            // Keep the unsavedChangesIndexValue set to show the warning icon
+            // Keep the item in unsavedChangesItems to show the warning icon
         }
         hasUnsavedChanges.value = false;
         lastActiveIndex.value = newValue;
-        updatePhasesWithCheckmarks();
+        updateNavCheckmarks();
         return;
     }
 
+    // clicking the selected item again deselects it: keep it selected
     if (lastActiveIndex.value) {
         activeIndex.value = lastActiveIndex.value;
     }
 });
 
-// Watch for form changes and update phases
+// Watch for form changes and mark the active item
 watch(hasUnsavedChanges, (changed) => {
     if (changed && activeIndex.value?.value) {
-        unsavedChangesPhases.value.add(activeIndex.value.value);
-        updatePhasesWithCheckmarks();
-    }
-});
-
-watch(expandedPhases, (value) => {
-    const fixed = phases.value.filter((index) => index.children?.length).map((index) => index.value);
-    if (value.length !== fixed.length || fixed.some((v, i) => v !== value[i])) {
-        expandedPhases.value = fixed;
+        unsavedChangesItems.value.add(activeIndex.value.value);
+        updateNavCheckmarks();
     }
 });
 
 // Watch for changes in reflection and further reflection answers to update checkmarks
 watch([reflectionAnswers, furtherReflectionAnswers], () => {
-    updatePhasesWithCheckmarks();
+    updateNavCheckmarks();
 }, { deep: true });
 
 const initJournal = async (authToken: string) => {
@@ -343,106 +262,52 @@ const initJournal = async (authToken: string) => {
     // Refetch journal to get the latest answers
     journal.value = await journalService.getJournalById(journalId);
 
-    if (!journal.value.Lifecycle?.Phases?.length) throw new Error("Lifecycle has no phases");
+    if (!reflections.value.length) throw new Error("Lifecycle has no reflections");
 
-    const hash = route.hash.substring(1);
-    let hashIndex: TreeNode | undefined = undefined;
-
-    for (const phase of journal.value.Lifecycle.Phases) {
-
-        // Add phases phases
-        const phaseChildren: TreeNode[] = [];
-
-        // Add reflections
-        if (phase.Reflections) {
-            phase.Reflections.forEach((r) => {
-                phaseChildren.push({
-                    label: r.title,
-                    value: `phase${r.title}-reflection`,
-                    icon: 'i-lucide-circle-question-mark',
-                    defaultExpanded: true,
-                });
-            });
-        }
-
-        phases.value.push({
-            label: `${phase.title}`,
-            value: `phase-${phase.title}`,
-            defaultExpanded: true,
-            children: phaseChildren,
-            trailingIcon: 'none'
+    for (const reflection of reflections.value) {
+        navItems.value.push({
+            label: reflection.title,
+            value: reflectionNavValue(reflection),
+            icon: 'i-lucide-circle-question-mark',
         });
 
-        if (!hashIndex) {
-            const hit = phases.value.at(-1)?.value === hash
-                ? phases.value.at(-1)
-                : phases.value.at(-1)?.children?.find(x => x.value == hash)
-            if (hit) {
-                hashIndex = hit;
-            }
+        const refAnswer = await reflectionAnswerService.GetReflectionAnswerByJournalIdAndReflectionID(journal.value.id, reflection.id);
+        reflectionAnswers.value.push(refAnswer || undefined);
+
+        if (refAnswer) {
+            // Add recommended tools
+            const reflectionRecommendations = await recommendationService.getRecommendations(reflection.id, refAnswer);
+            recommendations.value.push(reflectionRecommendations);
+
+            // TODO: optimize this to do it in a single query
+            recommendationAnswers.value.push(await Promise.all(
+                reflectionRecommendations.map((rec: Recommendation) =>
+                    recommendationAnswerService.GetRecommendationAnswerByJournalIdAndRecommendationID(journal.value!.id, rec.id))
+            ));
+        } else {
+            recommendations.value.push([]);
+            recommendationAnswers.value.push([]);
         }
 
-        reflectionAnswers.value.push([]);
-        furtherReflectionAnswers.value.push([]);
-        recommendations.value.push([]);
-        recommendationAnswers.value.push([]);
-
-        if (auth.token && phase.Reflections?.length) {
-            for (const reflection of phase.Reflections) {
-                const refAnswer = await reflectionAnswerService.GetReflectionAnswerByJournalIdAndReflectionID(journal.value.id, reflection.id);
-                // Add reflection answers
-                if (refAnswer) {
-                    reflectionAnswers.value.at(-1)?.push(refAnswer);
-
-                    // Add recommended tools
-                    const phaseRecommendations = await recommendationService.getRecommendations(reflection.id, refAnswer);
-                    recommendations.value.at(-1)?.push(phaseRecommendations);
-
-                    // TODO: optimize this to do it in a single query
-                    const promises: Promise<RecommendationAnswer>[] = [];
-
-                    phaseRecommendations.forEach((phaseRec: Recommendation) => {
-                        promises.push(recommendationAnswerService.GetRecommendationAnswerByJournalIdAndRecommendationID(journal.value.id, phaseRec.id));
-                    });
-
-                    recommendationAnswers.value.at(-1)?.push(await Promise.all(promises));
-                } else {
-                    reflectionAnswers.value.at(-1)?.push(undefined);
-                    recommendations.value.at(-1)?.push([]);
-                    recommendationAnswers.value.at(-1)?.push([]);
-                }
-
-                const furtherRefAnswer = await furtherReflectionAnswerService.GetFurtherReflectionAnswerByJournalIdAndReflectionID(journal.value.id, reflection.id);
-                furtherReflectionAnswers.value.at(-1)?.push(furtherRefAnswer || undefined);
-            }
-        }
+        const furtherRefAnswer = await furtherReflectionAnswerService.GetFurtherReflectionAnswerByJournalIdAndReflectionID(journal.value.id, reflection.id);
+        furtherReflectionAnswers.value.push(furtherRefAnswer || undefined);
     }
 
     //add export page
-    phases.value.push({
+    navItems.value.push({
         label: 'Export',
         value: 'export',
         icon: 'i-lucide-download',
-        defaultExpanded: true,
         trailingIcon: 'none'
     });
 
-    // hash was export
-    if (!hashIndex) {
-        const hit = phases.value.at(-1)?.value === hash ? phases.value.at(-1) : undefined;
-        if (hit) {
-            hashIndex = hit;
-        }
-    }
-
-    expandedPhases.value = phases.value.filter((index) => index.children?.length).map((index) => index.value);
-
-    // Set active index, Lifecycle General by default
-    activeIndex.value = hashIndex ?? phases.value[0];
+    // Open the item from the URL hash, or the first reflection
+    const hash = route.hash.substring(1);
+    activeIndex.value = navItems.value.find(item => item.value === hash) ?? navItems.value[0];
     lastActiveIndex.value = activeIndex.value;
 
-    // Update phases with checkmarks for finished reflections
-    updatePhasesWithCheckmarks();
+    // Update checkmarks for finished reflections
+    updateNavCheckmarks();
 }
 
 watch(auth, async () => {
@@ -480,136 +345,90 @@ onMounted(async () => {
                         evolves.
                     </p>
                 </div>
-                <UTree class="phases-tree" v-model="activeIndex" v-model:expanded="expandedPhases" :items="phases" />
+                <UTree class="phases-tree" v-model="activeIndex" :items="navItems" />
             </template>
         </USlideover>
 
         <div data-testid="lifecycle-page" :class="['lifecycle-main', { 'phases-open': isPhasesOpen }]">
             <template v-if="activeIndex">
-                <!-- PHASES -->
-                <template v-for="(phase, phaseIndex) in journal.Lifecycle?.Phases" :key="phase.id">
+                <!-- REFLECTIONS -->
+                <div v-for="(reflection, reflectionIndex) in reflections"
+                    v-show="activeIndex.value == reflectionNavValue(reflection)" :key="reflection.id"
+                    :data-testid="`reflection-${reflectionIndex}`">
+                    <div class="lifecycle-content">
+                        <h1 class="text-2xl font-bold mb-6">{{ reflection.title }}</h1>
 
-                    <!-- PHASE INTRODUCTION  -->
-                    <div v-show="activeIndex.value == `phase-${phase.title}`"
-                        :data-testid="`phase-introduction-${phaseIndex}`">
-
-                        <div class="lifecycle-content">
-                            <h1 class="text-2xl font-bold mb-6">{{ `${phase.title}`
-                            }}
-                            </h1>
-
-                            <div class="prose dark:prose-invert lg:prose-xl mb-6 text-justify"> {{
-                                phase.description
-                            }}</div>
+                        <div v-if="reflection.context" class="prose dark:prose-invert lg:prose-xl mb-6 text-justify">
+                            {{ reflection.context }}
                         </div>
 
-                        <div class="flex justify-between my-8">
-                            <div>
-                                <UButton v-if="phaseIndex !== 0" icon="i-lucide-arrow-left" size="md" variant="outline"
-                                    class="lifecycle-navigate-btn justify-between" :disabled="phaseIndex === 0"
-                                    @click="activeIndex = getBackIndex(phaseIndex, -1)">
-                                    {{ getBackIndex(phaseIndex, -1)?.label }}</UButton>
+                        <div class="dark:prose-invert prose lg:prose-xl mb-2 text-justify font-semibold">
+                            {{ reflection.description }}
+                        </div>
+
+                        <p class="font-semibold mb-4">In your answer, you might consider:</p>
+
+                        <ul class="list-disc list-inside mb-6">
+                            <li v-for="consideration in JSON.parse(reflection.considerations)" :key="consideration">
+                                {{ consideration }}
+                            </li>
+                        </ul>
+
+                        <UAlert v-if="!auth.token" icon="i-lucide-info" color="warning" variant="subtle"
+                            title="Please log in to save your answers"
+                            description="You need to be logged in to fill and save reflection forms." class="mb-4" />
+                        <div :data-testid="`reflection-form-${reflectionIndex}`">
+                            <QuestionnaireForm :questionnaire="reflection.form!"
+                                :answer="reflectionAnswers[reflectionIndex]?.form" :disabled="!auth.token"
+                                @on-submit="(data: any) => createOrEditReflectionAnswer(data, reflectionIndex)"
+                                @form-changed="(changed: boolean) => hasUnsavedChanges = changed" />
+                        </div>
+                        <!-- RECOMMENDATIONS -->
+                        <div v-show="isGetRecommendationsActive(reflectionAnswers[reflectionIndex]?.form)" class="mt-10"
+                            :data-testid="`recommendations-section-${reflectionIndex}`">
+                            <h2 class="text-xl font-bold mb-2">Recommended Tools</h2>
+                            <ToolList :tools="recommendations[reflectionIndex]?.map(r => r.Tool!) || []"
+                                :recommendation-answer-service="recommendationAnswerService" :journal-id="journalId"
+                                :recommendations="recommendations[reflectionIndex]"
+                                v-model:answers="recommendationAnswers[reflectionIndex]" />
+                            <div v-if="recommendations[reflectionIndex]?.length" class="my-4">
+                                <UProgress :data-testid="`recommendation-progress-${reflectionIndex}`"
+                                    v-model="recommendationProgress[reflectionIndex].percent" status />
                             </div>
-                            <UButton v-if="phase.Reflections?.length" trailing-icon="i-lucide-arrow-right"
-                                :data-testid="`phase-next-reflection-${phaseIndex}`"
-                                class="lifecycle-navigate-btn justify-between" size="md" variant="outline"
-                                @click="activeIndex = getNextIndex(phaseIndex, -1)"> {{ getNextIndex(phaseIndex,
-                                    -1)?.label
-                                }}
-                            </UButton>
-                        </div>
-                    </div>
-
-                    <!-- REFLECTIONS -->
-                    <template v-for="(reflection, reflectionIndex) in phase.Reflections" :key="reflection.title">
-                        <!-- REFLECTION  -->
-                        <div v-show="activeIndex.value == `phase${reflection.title}-reflection`"
-                            :data-testid="`phase-reflection-${phaseIndex}-${reflectionIndex}`">
-                            <div class="lifecycle-content">
-                                <h1 class="text-2xl font-bold mb-1">{{ `${reflection.title}`
-                                }}
-                                </h1>
-
-
-                                <div class="dark:prose-invert prose lg:prose-xl mb-2 text-justify"> {{
-                                    reflection.description
-                                }}</div>
-
-                                <p class="font-semibold mb-4">In your answer, you might consider:</p>
-
-                                <ul class="list-disc list-inside mb-6">
-                                    <li v-for="consideration in JSON.parse(reflection.considerations)"
-                                        :key="consideration">
-                                        {{ consideration }}
-                                    </li>
-                                </ul>
-
-                                <UAlert v-if="!auth.token" icon="i-lucide-info" color="warning" variant="subtle"
-                                    title="Please log in to save your answers"
-                                    description="You need to be logged in to fill and save reflection forms."
-                                    class="mb-4" />
-                                <div :data-testid="`reflection-form-${phaseIndex}-${reflectionIndex}`">
-                                    <QuestionnaireForm :questionnaire="reflection.form!"
-                                        :answer="reflectionAnswers[phaseIndex][reflectionIndex]?.form"
+                            <div class="mt-10" :data-testid="`further-reflection-section-${reflectionIndex}`">
+                                <h2 class="text-xl font-bold mb-2">Further Reflection</h2>
+                                <div :data-testid="`further-reflection-form-${reflectionIndex}`">
+                                    <QuestionnaireForm :questionnaire="reflection.furtherReflectionForm!"
+                                        :answer="furtherReflectionAnswers[reflectionIndex]?.form"
                                         :disabled="!auth.token"
-                                        @on-submit="(data: any) => createOrEditReflectionAnswer(data, phaseIndex, reflectionIndex)"
+                                        @on-submit="(data: any) => createOrEditFurtherReflectionAnswer(data, reflectionIndex)"
                                         @form-changed="(changed: boolean) => hasUnsavedChanges = changed" />
                                 </div>
-                                <!-- RECOMMENDATIONS -->
-                                <div v-show="isGetRecommendationsActive(reflectionAnswers[phaseIndex][reflectionIndex]?.form)"
-                                    class="mt-10"
-                                    :data-testid="`recommendations-section-${phaseIndex}-${reflectionIndex}`">
-                                    <h2 class="text-xl font-bold mb-2">Recommended Tools</h2>
-                                    <ToolList
-                                        :tools="recommendations[phaseIndex][reflectionIndex]?.map(r => r.Tool!) || []"
-                                        :recommendation-answer-service="recommendationAnswerService"
-                                        :journal-id="journalId"
-                                        :recommendations="recommendations[phaseIndex][reflectionIndex]"
-                                        v-model:answers="recommendationAnswers[phaseIndex][reflectionIndex]" />
-                                    <div v-if="recommendations[phaseIndex][reflectionIndex]?.length" class="my-4">
-                                        <UProgress
-                                            :data-testid="`recommendation-progress-${phaseIndex}-${reflectionIndex}`"
-                                            v-model="recommendationProgress[phaseIndex][reflectionIndex].percent"
-                                            status />
-                                    </div>
-                                    <div class="mt-10"
-                                        :data-testid="`further-reflection-section-${phaseIndex}-${reflectionIndex}`">
-                                        <h2 class="text-xl font-bold mb-2">Further Reflection</h2>
-                                        <div :data-testid="`further-reflection-form-${phaseIndex}-${reflectionIndex}`">
-                                            <QuestionnaireForm :questionnaire="reflection.furtherReflectionForm!"
-                                                :answer="furtherReflectionAnswers[phaseIndex][reflectionIndex]?.form"
-                                                :disabled="!auth.token"
-                                                @on-submit="(data: any) => createOrEditFurtherReflectionAnswer(data, phaseIndex, reflectionIndex)"
-                                                @form-changed="(changed: boolean) => hasUnsavedChanges = changed" />
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="flex justify-between my-8">
-                                <UButton icon="i-lucide-arrow-left" size="md" variant="outline"
-                                    class="lifecycle-navigate-btn justify-between"
-                                    @click="activeIndex = getBackIndex(phaseIndex, reflectionIndex)"
-                                    :data-testid="`reflection-back-${phaseIndex}-${reflectionIndex}`">
-                                    {{ getBackIndex(phaseIndex, reflectionIndex)?.label
-                                    }}</UButton>
-
-                                <UButton icon="i-lucide-eye" size="md" variant="outline"
-                                    class="lifecycle-navigate-btn justify-center"
-                                    @click="openPdfPreviewForReflection(reflection.id)"
-                                    :data-testid="`reflection-preview-${phaseIndex}-${reflectionIndex}`">See preview
-                                </UButton>
-                                <UButton trailing-icon="i-lucide-arrow-right" size="md" variant="outline"
-                                    class="lifecycle-navigate-btn justify-between"
-                                    @click="activeIndex = getNextIndex(phaseIndex, reflectionIndex)"
-                                    :data-testid="`reflection-next-${phaseIndex}-${reflectionIndex}`">
-                                    {{ getNextIndex(phaseIndex, reflectionIndex)?.label
-                                    }}
-                                </UButton>
                             </div>
                         </div>
-                    </template>
+                    </div>
+                    <div class="flex justify-between my-8">
+                        <div>
+                            <UButton v-if="getBackItem(reflectionIndex)" icon="i-lucide-arrow-left" size="md"
+                                variant="outline" class="lifecycle-navigate-btn justify-between"
+                                @click="activeIndex = getBackItem(reflectionIndex)"
+                                :data-testid="`reflection-back-${reflectionIndex}`">
+                                {{ getBackItem(reflectionIndex)?.label }}</UButton>
+                        </div>
 
-                </template>
+                        <UButton icon="i-lucide-eye" size="md" variant="outline"
+                            class="lifecycle-navigate-btn justify-center"
+                            @click="openPdfPreviewForReflection(reflection.id)"
+                            :data-testid="`reflection-preview-${reflectionIndex}`">See preview
+                        </UButton>
+                        <UButton trailing-icon="i-lucide-arrow-right" size="md" variant="outline"
+                            class="lifecycle-navigate-btn justify-between"
+                            @click="activeIndex = getNextItem(reflectionIndex)"
+                            :data-testid="`reflection-next-${reflectionIndex}`">
+                            {{ getNextItem(reflectionIndex)?.label }}
+                        </UButton>
+                    </div>
+                </div>
 
                 <!-- EXPORT AS PDF -->
                 <div v-show="activeIndex.value == 'export'">
@@ -621,10 +440,10 @@ onMounted(async () => {
                     </div>
 
                     <div class="flex justify-between my-8">
-                        <UButton v-if="journal.Lifecycle?.Phases?.length" icon="i-lucide-arrow-left" size="md"
+                        <UButton v-if="getBackItem(reflections.length)" icon="i-lucide-arrow-left" size="md"
                             variant="outline" class="lifecycle-navigate-btn justify-between"
-                            @click="activeIndex = getBackIndex(journal.Lifecycle?.Phases?.length, -1)">
-                            {{ getBackIndex(journal.Lifecycle?.Phases?.length, -1)?.label }}</UButton>
+                            @click="activeIndex = getBackItem(reflections.length)">
+                            {{ getBackItem(reflections.length)?.label }}</UButton>
                     </div>
                 </div>
             </template>
@@ -670,7 +489,7 @@ onMounted(async () => {
     rotate: 0deg !important;
 }
 
-/* Hide expansion chevrons in phases tree (folder rows) */
+/* Hide expansion chevrons in phases tree */
 .phases-tree .i-lucide\:chevron-down,
 .phases-tree .i-lucide\:chevron-up,
 .phases-tree .i-lucide\:chevron-right,
