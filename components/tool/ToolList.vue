@@ -13,8 +13,9 @@ const answers = defineModel<RecommendationAnswer[]>('answers', { default: () => 
 </script>
 
 <template>
-    <section id="list" class="flex flex-col gap-4">
-        <TransitionGroup name="fade" tag="div" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+    <!-- columns follow the available width (e.g. next to the journal drawer), not the screen width -->
+    <section id="list" class="@container flex flex-col gap-4">
+        <TransitionGroup name="fade" tag="div" class="grid grid-cols-1 @lg:grid-cols-2 @3xl:grid-cols-3 gap-6">
             <ToolCard v-for="(tool, index) in tools" :key="tool.id" :tool="tools[index]"
                 :recommendation="recommendations[index]" :journal-id="journalId"
                 :recommendation-answer-service="recommendationAnswerService" v-model:answer="answers[index]" />

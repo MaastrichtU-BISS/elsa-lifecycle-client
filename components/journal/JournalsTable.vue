@@ -83,9 +83,9 @@ const columns: TableColumn<Journal>[] = [
 
     <UTable ref="table" v-model:pagination="pagination" :pagination-options="{
         getPaginationRowModel: getPaginationRowModel()
-    }" :data="rows" :columns="columns" :loading="loadingTable" class="flex-1 mb-4 mx-auto w-3xl" />
+    }" :data="rows" :columns="columns" :loading="loadingTable" class="flex-1 mb-4 mx-auto w-full max-w-3xl" />
 
-    <div class="flex justify-center border-t border-(--ui-border) pt-4 mx-auto w-3xl">
+    <div class="flex justify-center border-t border-(--ui-border) pt-4 mx-auto w-full max-w-3xl">
         <UPagination :default-page="(table?.tableApi?.getState().pagination.pageIndex || 0) + 1"
             :items-per-page="table?.tableApi?.getState().pagination.pageSize"
             :total="table?.tableApi?.getFilteredRowModel().rows.length"

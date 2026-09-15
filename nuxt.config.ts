@@ -21,6 +21,18 @@ export default defineNuxtConfig({
   //   ],
   // },
 
+  app: {
+    head: {
+      title: 'ELSA Journal',
+      // ?v= forces browsers to drop favicons cached for localhost from other projects
+      link: [
+        { rel: 'icon', type: 'image/svg+xml', href: '/favicon.svg?v=2' },
+        { rel: 'icon', type: 'image/x-icon', sizes: '48x48', href: '/favicon.ico?v=2' },
+        { rel: 'apple-touch-icon', href: '/apple-touch-icon.png?v=2' },
+      ],
+    },
+  },
+
   css: ['~/assets/css/main.css'],
 
   runtimeConfig: {

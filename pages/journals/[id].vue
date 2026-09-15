@@ -36,6 +36,9 @@ const hasUnsavedChanges = ref(false);
 const unsavedChangesItems = ref<Set<string>>(new Set());
 const isPhasesOpen = ref(true);
 
+// On large screens the drawer sits next to the content; on smaller screens it covers it
+const isLargeScreen = () => window.matchMedia('(min-width: 1024px)').matches;
+
 // Journal index: one item per reflection, followed by the export page
 const navItems = ref<TreeNode[]>([]);
 
@@ -180,11 +183,14 @@ const recommendationProgress = computed(() => {
     });
 });
 
-// Show a checkmark for finished reflections and a warning for unsaved changes
+// Show an open book for the selected reflection, a checkmark for finished reflections
+// and a warning for unsaved changes
 const updateNavCheckmarks = () => {
     reflections.value.forEach((reflection, reflectionIndex) => {
         const item = navItems.value[reflectionIndex];
         if (!item) return;
+
+        item.icon = activeIndex.value?.value === item.value ? 'i-lucide-book-open' : 'i-lucide-book';
 
         if (unsavedChangesItems.value.has(item.value)) {
             item.trailingIcon = 'i-lucide-triangle-alert';
@@ -210,6 +216,7 @@ async function openPdfPreviewForReflection(reflectionId: number) {
 
 watch(() => activeIndex.value?.value, (value) => {
     if (!value) return;
+    if (!isLargeScreen()) isPhasesOpen.value = false; //uncover the selected section
     window.scrollTo({ top: 0, behavior: 'smooth' }); //scroll to top
     router.push({ hash: `#${value}` }); //update url
 });
@@ -268,7 +275,7 @@ const initJournal = async (authToken: string) => {
         navItems.value.push({
             label: reflection.title,
             value: reflectionNavValue(reflection),
-            icon: 'i-lucide-circle-question-mark',
+            icon: 'i-lucide-book',
         });
 
         const refAnswer = await reflectionAnswerService.GetReflectionAnswerByJournalIdAndReflectionID(journal.value.id, reflection.id);
@@ -317,6 +324,8 @@ watch(auth, async () => {
 });
 
 onMounted(async () => {
+    isPhasesOpen.value = isLargeScreen();
+
     if (!journalLoaded.value && auth.token) {
         initJournal(auth.token);
     }
@@ -329,11 +338,11 @@ onMounted(async () => {
         <USlideover data-testid="phases-drawer" v-model:open="isPhasesOpen" :modal="false"
             :title="journal?.title" :description="journal.Lifecycle?.title" :dismissible="false"
             :overlay="false" side="left" :ui="{
-                overlay: 'max-w-sm',
-                content: 'top-[65px] h-[calc(100dvh-65px)]'
+                content: 'top-[65px] h-[calc(100dvh-65px)] w-80 max-w-[85vw]'
             }">
+            <!-- sticky in the flow, so it never covers the section title -->
             <UButton data-testid="phases-drawer-trigger" label="Phases" trailing-icon="i-lucide-square-menu"
-                class="ml-4 fixed left-[1em]" />
+                class="sticky top-[73px] z-10 mb-4 shadow-sm" />
 
             <template #body>
                 <div class="rounded-md border border-default p-3 mb-6 text-xs leading-relaxed text-toned">
@@ -341,8 +350,7 @@ onMounted(async () => {
                         Start anywhere
                     </p>
                     <p>
-                        Move freely between phases and questions. Return to revisit any entry whenever your thinking
-                        evolves.
+                        Answer the sections in any order. Return to revisit any answer whenever your thinking evolves.
                     </p>
                 </div>
                 <UTree class="phases-tree" v-model="activeIndex" :items="navItems" />
@@ -407,7 +415,7 @@ onMounted(async () => {
                             </div>
                         </div>
                     </div>
-                    <div class="flex justify-between my-8">
+                    <div class="flex flex-wrap justify-between gap-2 my-8">
                         <div>
                             <UButton v-if="getBackItem(reflectionIndex)" icon="i-lucide-arrow-left" size="md"
                                 variant="outline" class="lifecycle-navigate-btn justify-between"
@@ -422,7 +430,7 @@ onMounted(async () => {
                             :data-testid="`reflection-preview-${reflectionIndex}`">See preview
                         </UButton>
                         <UButton trailing-icon="i-lucide-arrow-right" size="md" variant="outline"
-                            class="lifecycle-navigate-btn justify-between"
+                            class="lifecycle-navigate-btn justify-between ml-auto"
                             @click="activeIndex = getNextItem(reflectionIndex)"
                             :data-testid="`reflection-next-${reflectionIndex}`">
                             {{ getNextItem(reflectionIndex)?.label }}
@@ -439,7 +447,7 @@ onMounted(async () => {
                             :active="activeIndex?.value === 'export'" />
                     </div>
 
-                    <div class="flex justify-between my-8">
+                    <div class="flex flex-wrap justify-between gap-2 my-8">
                         <UButton v-if="getBackItem(reflections.length)" icon="i-lucide-arrow-left" size="md"
                             variant="outline" class="lifecycle-navigate-btn justify-between"
                             @click="activeIndex = getBackItem(reflections.length)">
@@ -457,9 +465,12 @@ onMounted(async () => {
     transition: padding-left 220ms ease, max-width 220ms ease;
 }
 
-.lifecycle-main.phases-open {
-    padding-left: 22rem;
-    max-width: 1650px;
+/* keep the content next to the open drawer (w-80 = 20rem) instead of under it */
+@media (min-width: 1024px) {
+    .lifecycle-main.phases-open {
+        padding-left: 21.5rem;
+        max-width: calc(1220px + 21.5rem);
+    }
 }
 
 .lifecycle-main .prose {
@@ -471,8 +482,10 @@ onMounted(async () => {
     min-height: calc(100vh - 200px);
 }
 
-.lifecycle-navigate-btn {
-    min-width: 170px !important;
+@media (min-width: 640px) {
+    .lifecycle-navigate-btn {
+        min-width: 170px !important;
+    }
 }
 
 /* Global styles to ensure checkmark icon displays correctly */
@@ -495,11 +508,5 @@ onMounted(async () => {
 .phases-tree .i-lucide\:chevron-right,
 .phases-tree .i-lucide\:chevron-left {
     display: none !important;
-}
-
-@media (max-width: 1024px) {
-    .lifecycle-main.phases-open {
-        padding-left: 0;
-    }
 }
 </style>

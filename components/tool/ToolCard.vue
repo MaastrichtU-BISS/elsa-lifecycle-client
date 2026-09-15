@@ -209,7 +209,7 @@ const setRecommendationDoneTo = async (value: boolean) => {
             <i v-if="tool.type" class="text-sm">
                 {{ tool.type }}
             </i>
-            <p class="my-4 flex-grow h-[150px] overflow-scroll">
+            <p class="my-4 flex-grow h-[150px] overflow-y-auto overflow-x-hidden break-words">
                 {{ tool.description }}
             </p>
             <div v-if="tags" class="flex justify-end mb-3">
