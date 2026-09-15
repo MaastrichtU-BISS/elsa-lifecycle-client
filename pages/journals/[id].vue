@@ -183,14 +183,11 @@ const recommendationProgress = computed(() => {
     });
 });
 
-// Show an open book for the selected reflection, a checkmark for finished reflections
-// and a warning for unsaved changes
+// Show a checkmark for finished reflections and a warning for unsaved changes
 const updateNavCheckmarks = () => {
     reflections.value.forEach((reflection, reflectionIndex) => {
         const item = navItems.value[reflectionIndex];
         if (!item) return;
-
-        item.icon = activeIndex.value?.value === item.value ? 'i-lucide-book-open' : 'i-lucide-book';
 
         if (unsavedChangesItems.value.has(item.value)) {
             item.trailingIcon = 'i-lucide-triangle-alert';
@@ -235,7 +232,9 @@ watch(activeIndex, async (newValue, oldValue) => {
         }
         hasUnsavedChanges.value = false;
         lastActiveIndex.value = newValue;
-        updateNavCheckmarks();
+        // Changing the tree items while it applies a new selection makes it emit the previous
+        // selection again, so update them after the tree has rendered the new one
+        nextTick(updateNavCheckmarks);
         return;
     }
 
@@ -275,7 +274,6 @@ const initJournal = async (authToken: string) => {
         navItems.value.push({
             label: reflection.title,
             value: reflectionNavValue(reflection),
-            icon: 'i-lucide-book',
         });
 
         const refAnswer = await reflectionAnswerService.GetReflectionAnswerByJournalIdAndReflectionID(journal.value.id, reflection.id);
@@ -353,7 +351,16 @@ onMounted(async () => {
                         Answer the sections in any order. Return to revisit any answer whenever your thinking evolves.
                     </p>
                 </div>
-                <UTree class="phases-tree" v-model="activeIndex" :items="navItems" />
+                <UTree class="phases-tree" v-model="activeIndex" :items="navItems">
+                    <!-- open book for the selected section, from the tree's own selection so it
+                         always matches the highlighted item -->
+                    <template #item-leading="{ item, selected }">
+                        <UIcon
+                            :name="item.icon ?? (selected ? 'i-lucide-book-open' : 'i-lucide-book')"
+                            class="shrink-0 size-5"
+                        />
+                    </template>
+                </UTree>
             </template>
         </USlideover>
 
