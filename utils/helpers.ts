@@ -139,3 +139,23 @@ export async function openPdfInFullscreen(
     toast.add({ title: 'Error', description: error as string, color: 'error' });
   }
 }
+
+// Where to go after logging in or registering, based on the ?redirect= query.
+// Only in-app paths are accepted, so a crafted link can't send users to another site.
+export function getPostAuthRedirect(redirect: unknown): string {
+  if (
+    typeof redirect !== "string" ||
+    !redirect.startsWith("/") ||
+    redirect.startsWith("//") ||
+    redirect.startsWith("/\\")
+  ) {
+    return "/";
+  }
+
+  // coming from the home page or an auth page: go to the journals instead
+  if (redirect === "/" || redirect.startsWith("/auth/")) {
+    return "/journals";
+  }
+
+  return redirect;
+}
