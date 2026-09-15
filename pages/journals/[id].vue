@@ -415,8 +415,9 @@ onMounted(async () => {
                             </div>
                         </div>
                     </div>
-                    <div class="flex flex-wrap justify-between gap-2 my-8">
-                        <div>
+                    <!-- back left, preview centered, next right; on phones preview moves below -->
+                    <div class="grid grid-cols-2 sm:grid-cols-3 items-center gap-2 my-8">
+                        <div class="col-start-1 row-start-1 justify-self-start">
                             <UButton v-if="getBackItem(reflectionIndex)" icon="i-lucide-arrow-left" size="md"
                                 variant="outline" class="lifecycle-navigate-btn justify-between"
                                 @click="activeIndex = getBackItem(reflectionIndex)"
@@ -425,12 +426,12 @@ onMounted(async () => {
                         </div>
 
                         <UButton icon="i-lucide-eye" size="md" variant="outline"
-                            class="lifecycle-navigate-btn justify-center"
+                            class="lifecycle-navigate-btn justify-center col-span-2 row-start-2 justify-self-center sm:col-span-1 sm:col-start-2 sm:row-start-1"
                             @click="openPdfPreviewForReflection(reflection.id)"
                             :data-testid="`reflection-preview-${reflectionIndex}`">See preview
                         </UButton>
                         <UButton trailing-icon="i-lucide-arrow-right" size="md" variant="outline"
-                            class="lifecycle-navigate-btn justify-between ml-auto"
+                            class="lifecycle-navigate-btn justify-between col-start-2 row-start-1 justify-self-end sm:col-start-3"
                             @click="activeIndex = getNextItem(reflectionIndex)"
                             :data-testid="`reflection-next-${reflectionIndex}`">
                             {{ getNextItem(reflectionIndex)?.label }}
