@@ -27,9 +27,10 @@ const pagination = ref({
     pageSize: 10
 });
 
-const rows = computed(() => {
-    return props.journals.map(a => ({...a, template: a.Lifecycle?.title }));
-});
+// Journals come sorted from the API, most recently updated first
+const rows = computed(() => props.journals);
+
+const dateFormat = new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeStyle: 'short' });
 
 const columns: TableColumn<Journal>[] = [
     {
@@ -38,10 +39,11 @@ const columns: TableColumn<Journal>[] = [
         cell: ({ row }) => `${row.getValue('title')}`
     },
     {
-        accessorKey: 'template',
-        header: 'Template',
+        accessorKey: 'updatedAt',
+        header: 'Last updated',
         cell: ({ row }) => {
-             return h('div', { style: 'white-space: pre-wrap' }, `${row.getValue('template')}`)
+            const updatedAt = row.getValue('updatedAt') as string | undefined;
+            return updatedAt ? dateFormat.format(new Date(updatedAt)) : '';
         }
     },
     {

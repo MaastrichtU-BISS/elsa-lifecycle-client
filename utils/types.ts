@@ -21,6 +21,9 @@ export type Journal = {
   title: string;
   lifecycleId: number;
   Lifecycle?: Lifecycle;
+  createdAt?: string;
+  // last time any answer in the journal was saved
+  updatedAt?: string;
 };
 
 export type Reflection = {

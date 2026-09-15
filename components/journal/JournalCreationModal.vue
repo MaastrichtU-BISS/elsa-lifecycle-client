@@ -51,7 +51,7 @@ const createNewJournal = async () => {
 
 <template>
     <UModal v-model:open="showModal" :title="'Create New Journal'"
-        :description="'Fill in the title and select a template to create a new journal.'"
+        :description="'Fill in the title to create a new journal.'"
         :ui="{ footer: 'justify-center gap-4' }">
         <UButton class="mt-4" color="primary" icon="i-lucide-plus" size="lg">Create New Journal</UButton>
 

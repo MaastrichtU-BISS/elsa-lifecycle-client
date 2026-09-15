@@ -48,7 +48,7 @@ watch(() => auth.token, async (newToken) => {
                         description="Create your first journal to get started." class="mb-4" />
                 </template>
 
-                <JournalCreationModal :journal-service="journalService" @journal-created="journals.push($event)" />
+                <JournalCreationModal :journal-service="journalService" @journal-created="journals.unshift($event)" />
             </template>
             <template v-else>
                 <UAlert icon="i-lucide-info" color="warning" variant="subtle" title="Please log in to continue"
