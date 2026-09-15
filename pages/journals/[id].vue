@@ -338,9 +338,10 @@ onMounted(async () => {
             :overlay="false" side="left" :ui="{
                 content: 'top-[65px] h-[calc(100dvh-65px)] w-80 max-w-[85vw]'
             }">
-            <!-- sticky in the flow, so it never covers the section title -->
+            <!-- sticky in the flow, so it never covers the section title; hidden while the drawer
+                 (which has its own close button) is open, so it doesn't leave a gap above the title -->
             <UButton data-testid="phases-drawer-trigger" label="Phases" trailing-icon="i-lucide-square-menu"
-                class="sticky top-[73px] z-10 mb-4 shadow-sm" />
+                :class="['sticky top-[73px] z-10 mb-2 shadow-sm', { hidden: isPhasesOpen }]" />
 
             <template #body>
                 <div class="rounded-md border border-default p-3 mb-6 text-xs leading-relaxed text-toned">
