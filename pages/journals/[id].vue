@@ -36,6 +36,10 @@ const hasUnsavedChanges = ref(false);
 const unsavedChangesItems = ref<Set<string>>(new Set());
 const isPhasesOpen = ref(true);
 
+const setActiveIndex = (item: TreeNode | undefined) => {
+    if (item) activeIndex.value = item;
+};
+
 // On large screens the drawer sits next to the content; on smaller screens it covers it
 const isLargeScreen = () => window.matchMedia('(min-width: 1024px)').matches;
 
@@ -351,12 +355,11 @@ onMounted(async () => {
                         Answer the sections in any order. Return to revisit any answer whenever your thinking evolves.
                     </p>
                 </div>
-                <UTree class="phases-tree" v-model="activeIndex" :items="navItems">
-                    <!-- open book for the selected section, from the tree's own selection so it
-                         always matches the highlighted item -->
-                    <template #item-leading="{ item, selected }">
+                <UTree class="phases-tree" :model-value="activeIndex" :items="navItems"
+                    selection-behavior="replace" @update:model-value="setActiveIndex">
+                    <template #item-leading="{ item }">
                         <UIcon
-                            :name="item.icon ?? (selected ? 'i-lucide-book-open' : 'i-lucide-book')"
+                            :name="item.icon ?? (item.value === activeIndex?.value ? 'i-lucide-book-open' : 'i-lucide-book')"
                             class="shrink-0 size-5"
                         />
                     </template>
